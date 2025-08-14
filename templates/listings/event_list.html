@@ -1,0 +1,295 @@
+{% extends 'users/base.html' %}
+{% block content %}
+
+<!-- Hero Section -->
+<div class="relative bg-gradient-to-br from-emerald-900 via-teal-900 to-cyan-900 py-20">
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20" style="background-image: url('https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4">
+        <div class="text-center">
+            <h1 class="text-5xl lg:text-6xl font-bold text-white mb-6">Discover Amazing Events</h1>
+            <p class="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
+                Join exciting tours, workshops, and activities across Kenya. Connect with fellow travelers and create unforgettable memories.
+            </p>
+            
+            <!-- Search Bar -->
+            <div class="max-w-2xl mx-auto mb-8">
+                <div class="relative">
+                    <input type="text" id="searchInput" placeholder="Search events by name, type, or location..." class="w-full px-6 py-4 bg-white/90 backdrop-blur-sm border-0 rounded-2xl text-gray-900 placeholder-gray-500 focus:ring-4 focus:ring-white/50 focus:outline-none transition duration-300">
+                    <div class="absolute right-4 top-1/2 transform -translate-y-1/2">
+                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="{% url 'home' %}" class="bg-white hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-lg font-semibold transition duration-300 shadow-md hover:shadow-lg flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    Home
+                </a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'user_event_list' %}" class="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white px-6 py-3 rounded-lg font-semibold transition duration-300 shadow-md hover:shadow-lg flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                        My Events
+                    </a>
+                    <a href="{% url 'event_create' %}" class="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition duration-300 shadow-md hover:shadow-lg flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Create Event
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters Section -->
+<div class="bg-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <!-- Filter Buttons -->
+            <div class="flex flex-wrap gap-2">
+                <button class="filter-btn active bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium transition duration-300" data-filter="all">
+                    All Events
+                </button>
+                <button class="filter-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition duration-300" data-filter="tour">
+                    Tours
+                </button>
+                <button class="filter-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition duration-300" data-filter="activity">
+                    Activities
+                </button>
+                <button class="filter-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition duration-300" data-filter="workshop">
+                    Workshops
+                </button>
+                <button class="filter-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition duration-300" data-filter="conference">
+                    Conferences
+                </button>
+            </div>
+            
+            <!-- Sort Options -->
+            <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-600">Sort by:</span>
+                <select id="sortSelect" class="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent px-3 py-2">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="name">Name A-Z</option>
+                    <option value="price_low">Price: Low to High</option>
+                    <option value="price_high">Price: High to Low</option>
+                    <option value="date">Date: Soonest First</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Events Grid -->
+<div class="bg-gray-50 py-16">
+    <div class="max-w-7xl mx-auto px-4">
+        {% if events %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="eventsGrid">
+                {% for event in events %}
+                <div class="event-card bg-white rounded-2xl shadow-lg hover:shadow-xl transition duration-300 overflow-hidden group" data-type="{{ event.event_type }}" data-name="{{ event.name|lower }}">
+                    <!-- Event Image -->
+                    <div class="relative h-48 bg-gradient-to-br from-emerald-400 to-teal-500 overflow-hidden">
+                        {% if event.display_picture %}
+                            <img src="{{ event.display_picture.url }}" alt="{{ event.name }}" class="absolute inset-0 w-full h-full object-cover">
+                        {% else %}
+                            <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+                        {% endif %}
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                        
+                        <!-- Event Type Badge -->
+                        <div class="absolute top-4 left-4">
+                            <span class="bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-semibold">
+                                {{ event.get_event_type_display }}
+                            </span>
+                        </div>
+                        
+                        <!-- Price Badge -->
+                        <div class="absolute top-4 right-4">
+                            <span class="bg-emerald-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+                                ${{ event.price_per_person }}
+                            </span>
+                        </div>
+                        
+                        <!-- Date Badge -->
+                        <div class="absolute bottom-4 left-4">
+                            <span class="bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-medium">
+                                {{ event.start_date|date:"M d" }} - {{ event.end_date|date:"M d, Y" }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Event Content -->
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-emerald-600 transition duration-300">
+                            {{ event.name }}
+                        </h3>
+                        
+                        <p class="text-gray-600 mb-4 line-clamp-2">
+                            {{ event.description|truncatewords:20 }}
+                        </p>
+                        
+                        <!-- Event Details -->
+                        <div class="space-y-2 mb-4">
+                            <div class="flex items-center gap-2 text-sm text-gray-500">
+                                <svg class="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                </svg>
+                                <span>{{ event.start_date|date:"M d, Y" }} - {{ event.end_date|date:"M d, Y" }}</span>
+                            </div>
+                            
+                            <div class="flex items-center gap-2 text-sm text-gray-500">
+                                <svg class="w-4 h-4 text-teal-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"/>
+                                </svg>
+                                <span>{{ event.current_participants }}/{{ event.max_participants }} participants</span>
+                            </div>
+                            
+                            {% if event.travel_group %}
+                            <div class="flex items-center gap-2 text-sm text-gray-500">
+                                <svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
+                                </svg>
+                                <span>{{ event.travel_group.name }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="flex gap-2">
+                            <a href="{% url 'public_event_detail' event.pk %}" class="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white py-2 px-3 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-1 text-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <div class="mt-12 flex justify-center">
+                <nav class="flex items-center gap-2">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200">
+                            Previous
+                        </a>
+                    {% endif %}
+                    
+                    <span class="px-4 py-2 bg-emerald-600 text-white rounded-lg">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </span>
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200">
+                            Next
+                        </a>
+                    {% endif %}
+                </nav>
+            </div>
+            {% endif %}
+            
+        {% else %}
+            <!-- No Events Found -->
+            <div class="text-center py-16">
+                <div class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">No Events Found</h3>
+                <p class="text-gray-600 mb-6">There are currently no events available. Check back later or create your own event!</p>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'event_create' %}" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-6 py-3 rounded-lg font-semibold transition duration-300 shadow-md hover:shadow-lg">
+                        Create Your First Event
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const eventCards = document.querySelectorAll('.event-card');
+    const searchInput = document.getElementById('searchInput');
+    const sortSelect = document.getElementById('sortSelect');
+    
+    // Filter by type
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const filter = this.dataset.filter;
+            
+            // Update active button
+            filterBtns.forEach(b => b.classList.remove('active', 'bg-emerald-600', 'text-white'));
+            filterBtns.forEach(b => b.classList.add('bg-gray-100', 'text-gray-700'));
+            this.classList.remove('bg-gray-100', 'text-gray-700');
+            this.classList.add('active', 'bg-emerald-600', 'text-white');
+            
+            // Filter events
+            eventCards.forEach(card => {
+                if (filter === 'all' || card.dataset.type === filter) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+    
+    // Search functionality
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        eventCards.forEach(card => {
+            const eventName = card.dataset.name;
+            if (eventName.includes(searchTerm)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+    
+    // Sort functionality
+    sortSelect.addEventListener('change', function() {
+        const sortBy = this.value;
+        const eventsGrid = document.getElementById('eventsGrid');
+        const eventCardsArray = Array.from(eventCards);
+        
+        eventCardsArray.sort((a, b) => {
+            if (sortBy === 'name') {
+                return a.dataset.name.localeCompare(b.dataset.name);
+            } else if (sortBy === 'price_low') {
+                const priceA = parseFloat(a.querySelector('.bg-emerald-600').textContent.replace('$', ''));
+                const priceB = parseFloat(b.querySelector('.bg-emerald-600').textContent.replace('$', ''));
+                return priceA - priceB;
+            } else if (sortBy === 'price_high') {
+                const priceA = parseFloat(a.querySelector('.bg-emerald-600').textContent.replace('$', ''));
+                const priceB = parseFloat(b.querySelector('.bg-emerald-600').textContent.replace('$', ''));
+                return priceB - priceA;
+            }
+            return 0;
+        });
+        
+        // Reorder DOM
+        eventCardsArray.forEach(card => eventsGrid.appendChild(card));
+    });
+});
+</script>
+
+{% endblock %} 

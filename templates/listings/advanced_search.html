@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Advanced Search - TravelsKe{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Search Header -->
+    <div class="bg-gradient-to-r from-teal-600 to-teal-800 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div class="text-center">
+                <h1 class="text-4xl font-bold mb-4">Find Your Perfect Adventure</h1>
+                <p class="text-xl text-teal-100 mb-8">Search across places, tours, agencies, and events to discover amazing experiences in Kenya</p>
+                
+                <!-- Quick Search Bar -->
+                <div class="max-w-2xl mx-auto">
+                    <form action="{% url 'quick_search' %}" method="get" class="flex">
+                        <input type="text" 
+                               name="q" 
+                               placeholder="Search for anything..." 
+                               class="flex-1 px-6 py-4 text-lg text-gray-900 bg-white border-0 rounded-l-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                               required>
+                        <button type="submit" class="px-8 py-4 bg-teal-700 hover:bg-teal-800 text-white font-semibold rounded-r-lg transition duration-200">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Form -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Advanced Search</h2>
+            
+            <form method="get" class="space-y-6">
+                <!-- Basic Search -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">What are you looking for?</label>
+                        {{ form.query }}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Search Type</label>
+                        {{ form.search_type }}
+                    </div>
+                </div>
+                
+                <!-- Location and Category -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                        {{ form.location }}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                        {{ form.place_category }}
+                    </div>
+                </div>
+                
+                <!-- Price Range -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Minimum Price</label>
+                        {{ form.min_price }}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Maximum Price</label>
+                        {{ form.max_price }}
+                    </div>
+                </div>
+                
+                <!-- Rating and Dates -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Minimum Rating</label>
+                        {{ form.min_rating }}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Agency Type</label>
+                        {{ form.agency_type }}
+                    </div>
+                </div>
+                
+                <!-- Date Range -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                        {{ form.start_date }}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                        {{ form.end_date }}
+                    </div>
+                </div>
+                
+                <!-- Additional Filters -->
+                <div class="border-t pt-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Additional Filters</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="flex items-center space-x-6">
+                            <label class="flex items-center">
+                                {{ form.is_verified }}
+                                <span class="ml-2 text-sm text-gray-700">Verified Only</span>
+                            </label>
+                            <label class="flex items-center">
+                                {{ form.has_photos }}
+                                <span class="ml-2 text-sm text-gray-700">With Photos</span>
+                            </label>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                            {{ form.sort_by }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Search Button -->
+                <div class="flex justify-center pt-6">
+                    <button type="submit" class="inline-flex items-center px-8 py-3 border border-transparent text-lg font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition duration-200">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        Search
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Search Tips -->
+        <div class="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">💡 Search Tips</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-medium text-gray-900 mb-2">For Places:</h4>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li>• Try searching by city or region</li>
+                        <li>• Use specific categories like "restaurant" or "hotel"</li>
+                        <li>• Filter by rating to find top-rated places</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-medium text-gray-900 mb-2">For Tours:</h4>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li>• Search by destination or activity type</li>
+                        <li>• Use date filters to find available tours</li>
+                        <li>• Set price range to match your budget</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Links -->
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <a href="{% url 'trending' %}" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mr-4">
+                        <span class="text-2xl">🔥</span>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900">Trending Now</h3>
+                        <p class="text-sm text-gray-600">See what's popular</p>
+                    </div>
+                </div>
+            </a>
+            
+            <a href="{% url 'recommendations' %}" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                        <span class="text-2xl">🌟</span>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900">For You</h3>
+                        <p class="text-sm text-gray-600">Personalized recommendations</p>
+                    </div>
+                </div>
+            </a>
+            
+            <a href="{% url 'public_place_list' %}" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                        <span class="text-2xl">📍</span>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900">Browse Places</h3>
+                        <p class="text-sm text-gray-600">Explore all destinations</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %} 

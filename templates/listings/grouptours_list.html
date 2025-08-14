@@ -1,0 +1,343 @@
+{% extends 'users/base.html' %}
+{% block content %}
+
+<!-- Hero Section -->
+<div class="relative bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-900 py-20">
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20" style="background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4">
+        <div class="text-center">
+            <h1 class="text-5xl lg:text-6xl font-bold text-white mb-6">Discover Amazing Group Tours</h1>
+            <p class="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">Join fellow adventurers on unforgettable journeys across Kenya's most spectacular destinations</p>
+            
+            <!-- Simple Navigation -->
+            <div class="flex flex-wrap justify-center gap-4 mb-8">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'grouptours_create' %}" class="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        Create Your Tour
+                    </a>
+                {% endif %}
+                <a href="{% url 'home' %}" class="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                    Back to Home
+                </a>
+            </div>
+            
+            <!-- Quick Filter Container -->
+            <div class="bg-white bg-opacity-95 backdrop-blur-sm rounded-xl p-6 shadow-xl w-full max-w-4xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- Location Dropdown -->
+                    <div class="relative">
+                        <div class="flex items-center gap-2 text-gray-600 mb-2">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-sm font-medium">Located in</span>
+                        </div>
+                        <select id="locationFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                            <option value="all">All Destinations</option>
+                            <option value="Nairobi" {% if filtered_location == 'Nairobi' %}selected{% endif %}>Nairobi</option>
+                            <option value="Mombasa" {% if filtered_location == 'Mombasa' %}selected{% endif %}>Mombasa</option>
+                            <option value="Nakuru" {% if filtered_location == 'Nakuru' %}selected{% endif %}>Nakuru</option>
+                            <option value="Kisumu" {% if filtered_location == 'Kisumu' %}selected{% endif %}>Kisumu</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Date Range -->
+                    <div class="relative">
+                        <div class="flex items-center gap-2 text-gray-600 mb-2">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-sm font-medium">From-To</span>
+                        </div>
+                        <select id="dateRangeFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                            <option value="">All Dates</option>
+                            <option value="this_month" {% if filtered_date_range == 'this_month' %}selected{% endif %}>This Month</option>
+                            <option value="next_month" {% if filtered_date_range == 'next_month' %}selected{% endif %}>Next Month</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Filter -->
+                    <div class="relative">
+                        <div class="flex items-center gap-2 text-gray-600 mb-2">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-sm font-medium">Filter</span>
+                        </div>
+                        <select id="tourTypeFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                            <option value="all">All Tours</option>
+                            <option value="Adventure" {% if filtered_tour_type == 'Adventure' %}selected{% endif %}>Adventure</option>
+                            <option value="Cultural" {% if filtered_tour_type == 'Cultural' %}selected{% endif %}>Cultural</option>
+                            <option value="Wildlife" {% if filtered_tour_type == 'Wildlife' %}selected{% endif %}>Wildlife</option>
+                            <option value="Beach" {% if filtered_tour_type == 'Beach' %}selected{% endif %}>Beach</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Search Button -->
+                    <div class="flex items-end">
+                        <button type="button" onclick="applyFilters()" class="w-full bg-teal-600 hover:bg-teal-700 text-white p-2 rounded-lg transition duration-300 flex items-center justify-center">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tours List Section -->
+<div class="bg-gradient-to-br from-gray-50 to-gray-100 py-16">
+    <div class="max-w-7xl mx-auto px-4">
+        <!-- Section Header -->
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-gray-900 mb-4">Available Group Tours</h2>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">Find the perfect adventure that matches your interests and schedule</p>
+        </div>
+
+        <!-- Tours Grid -->
+        {% if group_tours %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {% for tour in group_tours %}
+                <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105 overflow-hidden border border-gray-100 hover:border-emerald-200">
+                    <!-- Tour Image -->
+                    <div class="relative h-56 bg-gradient-to-br from-emerald-400 to-teal-500 overflow-hidden">
+                        {% if tour.display_picture %}
+                            <img src="{{ tour.display_picture.url }}" alt="{{ tour.name }}" class="absolute inset-0 w-full h-full object-cover">
+                        {% else %}
+                            <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+                        {% endif %}
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                        
+                        <!-- Status Badge -->
+                        <div class="absolute top-4 left-4">
+                            {% if tour.status == 'active' %}
+                                <span class="bg-emerald-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg flex items-center gap-1">
+                                    <div class="w-2 h-2 bg-white rounded-full"></div>
+                                    Active
+                                </span>
+                            {% elif tour.status == 'planning' %}
+                                <span class="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">Planning</span>
+                            {% elif tour.status == 'completed' %}
+                                <span class="bg-gray-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">Completed</span>
+                            {% else %}
+                                <span class="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">Cancelled</span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Price Badge -->
+                        <div class="absolute top-4 right-4">
+                            <span class="bg-white/90 backdrop-blur-sm text-gray-800 px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+                                ${{ tour.price_per_person }}
+                            </span>
+                        </div>
+                        
+                        <!-- Available Spots -->
+                        <div class="absolute bottom-4 left-4">
+                            <span class="bg-black/70 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-semibold">
+                                {{ tour.max_participants|add:"-"|add:tour.current_participants }}/{{ tour.max_participants }} spots
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Tour Content -->
+                    <div class="p-6">
+                        <div class="flex items-center gap-2 mb-3">
+                            <h3 class="text-xl font-bold text-gray-800 group-hover:text-emerald-600 transition-colors duration-300">{{ tour.name }}</h3>
+                            {% if tour.creator.is_verified %}
+                            <div class="flex items-center gap-1">
+                                <svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                <span class="text-xs text-blue-600 font-medium">Verified</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <p class="text-gray-600 mb-4 line-clamp-2 text-sm leading-relaxed">{{ tour.description|truncatewords:20 }}</p>
+                        
+                        <!-- Tour Details -->
+                        <div class="space-y-3 mb-4">
+                            <div class="flex items-center gap-3 text-gray-600">
+                                <div class="w-6 h-6 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <span class="text-sm font-medium">
+                                    {{ tour.start_date|date:"M d" }} - {{ tour.end_date|date:"M d, Y" }}
+                                </span>
+                            </div>
+                            
+                            {% if tour.to %}
+                            <div class="flex items-center gap-3 text-gray-600">
+                                <div class="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <span class="text-sm font-medium">To: {{ tour.to }}</span>
+                            </div>
+                            {% endif %}
+                            
+                            {% if tour.destination.all %}
+                            <div class="flex items-center gap-3 text-gray-600">
+                                <div class="w-6 h-6 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <span class="text-sm font-medium">
+                                    {% for dest in tour.destination.all|slice:":2" %}
+                                        {{ dest.name }}{% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                    {% if tour.destination.count > 2 %} +{{ tour.destination.count|add:"-2" }} more{% endif %}
+                                </span>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="flex items-center gap-3 text-gray-600">
+                                <div class="w-6 h-6 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
+                                    </svg>
+                                </div>
+                                <span class="text-sm font-medium">{{ tour.creator.email|truncatechars:25 }}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Tags -->
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            {% if tour.status == 'active' %}
+                                <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-medium">Active</span>
+                            {% elif tour.status == 'planning' %}
+                                <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">Planning</span>
+                            {% elif tour.status == 'completed' %}
+                                <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium">Completed</span>
+                            {% else %}
+                                <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-medium">Cancelled</span>
+                            {% endif %}
+                            
+                            {% if tour.couple_price %}
+                                <span class="bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-xs font-medium">Couple Discount</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-col gap-3">
+                            <a href="{% url 'public_grouptours_detail' tour.pk %}" class="block w-full bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-50 text-center py-3 px-6 rounded-lg font-semibold transition duration-300">
+                                View Details
+                            </a>
+                            <a href="{% url 'enhanced_tour_booking' tour.pk %}" class="block w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-center py-3 px-6 rounded-lg font-semibold transition duration-300 shadow-lg hover:shadow-xl">
+                                Book Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <div class="mt-12 flex justify-center">
+                <nav class="flex items-center space-x-2">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 text-gray-500 hover:text-gray-700 transition-colors duration-200">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                        </a>
+                    {% endif %}
+                    
+                    <span class="px-4 py-2 text-gray-700">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </span>
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 text-gray-500 hover:text-gray-700 transition-colors duration-200">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </a>
+                    {% endif %}
+                </nav>
+            </div>
+            {% endif %}
+            
+        {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-16">
+                <div class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">No Tours Available Yet</h3>
+                <p class="text-gray-600 mb-8 max-w-md mx-auto">Be the first to create an amazing group tour and start your adventure with fellow travelers!</p>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'grouptours_create' %}" class="inline-flex items-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-8 py-4 rounded-xl font-semibold transition duration-300 shadow-lg hover:shadow-xl">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        Create Your First Tour
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="inline-flex items-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-8 py-4 rounded-xl font-semibold transition duration-300 shadow-lg hover:shadow-xl">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                        </svg>
+                        Sign In to Create Tours
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Filter functionality for group tours
+  function applyFilters() {
+    const location = document.getElementById('locationFilter').value;
+    const dateRange = document.getElementById('dateRangeFilter').value;
+    const tourType = document.getElementById('tourTypeFilter').value;
+    
+    console.log('Applying filters:', { location, dateRange, tourType });
+    
+    // Build query string
+    const params = new URLSearchParams();
+    if (location && location !== 'all') params.append('location', location);
+    if (dateRange) params.append('date_range', dateRange);
+    if (tourType && tourType !== 'all') params.append('tour_type', tourType);
+    
+    // Redirect to filtered results
+    const currentUrl = window.location.pathname;
+    const queryString = params.toString();
+    const newUrl = queryString ? `${currentUrl}?${queryString}` : currentUrl;
+    
+    console.log('Redirecting to:', newUrl);
+    window.location.href = newUrl;
+  }
+  
+  // Auto-apply filters on change
+  document.getElementById('locationFilter').addEventListener('change', function() {
+    applyFilters();
+  });
+  
+  document.getElementById('dateRangeFilter').addEventListener('change', function() {
+    applyFilters();
+  });
+  
+  document.getElementById('tourTypeFilter').addEventListener('change', function() {
+    applyFilters();
+  });
+</script>
+{% endblock %} 

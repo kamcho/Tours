@@ -1,0 +1,547 @@
+{% extends 'users/base.html' %}
+{% load static %}
+{% block content %}
+
+<!-- Hero Section -->
+<div class="relative bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-900 py-12 sm:py-16 lg:py-20">
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20" style="background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4">
+        <div class="text-center">
+            <div class="flex items-center justify-center gap-4 mb-4 sm:mb-6">
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white">{{ group_tour.name }}</h1>
+                {% if group_tour.creator.is_verified %}
+                <div class="flex items-center gap-1">
+                    <svg class="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="text-lg text-blue-200 font-medium">Verified</span>
+                </div>
+                {% endif %}
+            </div>
+            <p class="text-lg sm:text-xl text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto px-4">{{ group_tour.description|truncatewords:40 }}</p>
+            
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 sm:mt-8 justify-center items-center">
+                {% if not user.is_authenticated %}
+                    <a href="{% url 'login' %}" class="w-full sm:w-auto bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold transition duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                        </svg>
+                        Sign In to Book
+                    </a>
+                {% else %}
+                    {% if group_tour.is_full %}
+                        <button disabled class="w-full sm:w-auto bg-gray-400 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold cursor-not-allowed flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            Tour Full
+                        </button>
+                    {% else %}
+                        <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                            <a href="{% url 'enhanced_tour_booking' group_tour.pk %}" class="w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold transition duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                </svg>
+                                Book This Tour
+                            </a>
+                            
+                            <a href="{% url 'tour_booking_payment' group_tour.pk %}" class="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold transition duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                </svg>
+                                Book with Payment
+                            </a>
+                        </div>
+                    {% endif %}
+                {% endif %}
+                
+                <a href="{% url 'grouptours_list' %}" class="w-full sm:w-auto bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-50 px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold transition duration-300 text-center">
+                    Browse More Tours
+                </a>
+            </div>
+            
+            <!-- Like and Bookmark Buttons -->
+            {% if user.is_authenticated %}
+            <div class="flex flex-wrap justify-center gap-3 sm:gap-4 mt-4 sm:mt-6">
+                <!-- Like Button -->
+                <button onclick="likeTour({{ group_tour.id }})" id="tour-like-btn-{{ group_tour.id }}" class="flex items-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300 {% if user in group_tour.likes.all %}text-red-400{% endif %}">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="{% if user in group_tour.likes.all %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                    </svg>
+                    <span id="tour-like-count-{{ group_tour.id }}">{{ group_tour.total_likes }}</span>
+                </button>
+                
+                <!-- Bookmark Button -->
+                <button onclick="bookmarkTour({{ group_tour.id }})" id="tour-bookmark-btn-{{ group_tour.id }}" class="flex items-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300 {% if user in group_tour.bookmarks.all %}text-yellow-400{% endif %}">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="{% if user in group_tour.bookmarks.all %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v14l-7-3.5L5 18V5z"/>
+                    </svg>
+                    <span id="tour-bookmark-count-{{ group_tour.id }}">{{ group_tour.total_bookmarks }}</span>
+                </button>
+            </div>
+            {% endif %}
+            
+            <!-- Simple Navigation -->
+            <div class="flex flex-wrap justify-center gap-3 sm:gap-4 mt-4">
+                <a href="{% url 'grouptours_list' %}" class="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                    </svg>
+                    Discover More Tours
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tour Details -->
+<div class="bg-gradient-to-br from-gray-50 to-gray-100 py-8 sm:py-12 lg:py-16">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-12">
+            <!-- Main Content -->
+            <div class="lg:col-span-2">
+                <!-- Tour Image -->
+                <div class="relative h-64 sm:h-80 lg:h-96 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl sm:rounded-2xl overflow-hidden mb-6 sm:mb-8 shadow-2xl">
+                    {% if group_tour.display_picture %}
+                        <img src="{{ group_tour.display_picture.url }}" alt="{{ group_tour.name }}" class="absolute inset-0 w-full h-full object-cover">
+                    {% else %}
+                        <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+                    {% endif %}
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                    
+                    <!-- Status Badge -->
+                    <div class="absolute top-3 sm:top-6 left-3 sm:left-6">
+                        {% if group_tour.status == 'active' %}
+                            <span class="bg-emerald-500 text-white px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-semibold shadow-lg flex items-center gap-1 sm:gap-2">
+                                <div class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full"></div>
+                                Active
+                            </span>
+                        {% elif group_tour.status == 'planning' %}
+                            <span class="bg-blue-500 text-white px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-semibold shadow-lg">Planning</span>
+                        {% elif group_tour.status == 'completed' %}
+                            <span class="bg-gray-500 text-white px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-semibold shadow-lg">Completed</span>
+                        {% else %}
+                            <span class="bg-red-500 text-white px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-semibold shadow-lg">Cancelled</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Price Badge -->
+                    <div class="absolute top-3 sm:top-6 right-3 sm:right-6">
+                        <span class="bg-white/90 backdrop-blur-sm text-gray-800 px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-semibold shadow-lg">
+                            ${{ group_tour.price_per_person }}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Description -->
+                <div class="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 shadow-lg border border-emerald-200">
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3">
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        About This Tour
+                    </h2>
+                    <p class="text-gray-600 leading-relaxed text-base sm:text-lg">{{ group_tour.description }}</p>
+                </div>
+                
+                <!-- Itinerary -->
+                {% if group_tour.itinerary %}
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 shadow-lg border border-blue-200">
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 00-2 2v2h2V5z"/>
+                            </svg>
+                        </div>
+                        Tour Itinerary
+                    </h2>
+                    <div class="prose prose-sm sm:prose-base lg:prose-lg max-w-none">
+                        {{ group_tour.itinerary|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Included Services -->
+                {% if group_tour.included_services %}
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 shadow-lg border border-green-200">
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        What's Included
+                    </h2>
+                    <div class="prose prose-sm sm:prose-base lg:prose-lg max-w-none">
+                        {{ group_tour.included_services|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Excluded Services -->
+                {% if group_tour.excluded_services %}
+                <div class="bg-gradient-to-r from-red-50 to-pink-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 shadow-lg border border-red-200">
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </div>
+                        What's Not Included
+                    </h2>
+                    <div class="prose prose-sm sm:prose-base lg:prose-lg max-w-none">
+                        {{ group_tour.excluded_services|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Comments Section - Only visible if creator is verified -->
+                {% if group_tour.creator.is_verified %}
+                <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-lg border border-purple-200">
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                        </div>
+                        Comments & Reviews
+                    </h2>
+                    
+                    <!-- Add Comment Form -->
+                    {% if user.is_authenticated %}
+                    <form id="tour-comment-form-{{ group_tour.id }}" class="mb-4 sm:mb-6">
+                        {% csrf_token %}
+                        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                            <div class="flex-1">
+                                <textarea id="tour-comment-input-{{ group_tour.id }}" placeholder="Share your thoughts about this tour..." class="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200" rows="3"></textarea>
+                            </div>
+                            <button type="button" onclick="addTourComment({{ group_tour.id }})" class="w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition duration-300 self-end">
+                                Post Comment
+                            </button>
+                        </div>
+                    </form>
+                    {% else %}
+                    <div class="mb-4 sm:mb-6 p-3 sm:p-4 bg-gray-50 rounded-lg text-center">
+                        <p class="text-sm sm:text-base text-gray-600">Please <a href="{% url 'login' %}" class="text-emerald-600 hover:text-emerald-700 font-semibold">log in</a> to leave a comment.</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Comments List -->
+                    <div id="tour-comments-{{ group_tour.id }}">
+                        {% for comment in group_tour.comments.all %}
+                        <div class="bg-gray-50 rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
+                            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-0 mb-2">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 sm:w-8 sm:h-8 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <svg class="w-3 h-3 sm:w-4 sm:h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <span class="text-sm sm:text-base font-semibold text-gray-800">{{ comment.user.email }}</span>
+                                </div>
+                                <span class="text-xs sm:text-sm text-gray-500">{{ comment.created_at|date:"M d, Y at g:i A" }}</span>
+                            </div>
+                            <p class="text-sm sm:text-base text-gray-700">{{ comment.content }}</p>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-6 sm:py-8 text-gray-500">
+                            <p class="text-sm sm:text-base">No comments yet. Be the first to share your thoughts!</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
+                <!-- Comments section hidden - Creator not verified -->
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 py-4 px-6 rounded-xl">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-yellow-700">
+                                <strong>Comments & Reviews:</strong> This feature is only available for tours created by verified users. The tour creator needs to complete verification to enable comments.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="space-y-4 sm:space-y-6">
+                <!-- Quick Info Card -->
+                <div class="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-teal-200 shadow-lg">
+                    <h3 class="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3">
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 bg-teal-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        Tour Information
+                    </h3>
+                    <div class="space-y-3 sm:space-y-4">
+                        <div class="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-lg">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-gray-600">Start Date</p>
+                                <p class="text-sm sm:text-base font-semibold text-gray-800">{{ group_tour.start_date|date:"M d, Y" }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-lg">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-gray-600">End Date</p>
+                                <p class="text-sm sm:text-base font-semibold text-gray-800">{{ group_tour.end_date|date:"M d, Y" }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-lg">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-gray-600">Participants</p>
+                                <p class="text-sm sm:text-base font-semibold text-gray-800">{{ group_tour.current_participants }}/{{ group_tour.max_participants }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Duration</p>
+                                <p class="font-semibold text-gray-800">
+                                    {% if group_tour.start_date and group_tour.end_date %}
+                                        {% with duration=group_tour.end_date|date:"j"|add:"0"|add:"-"|add:group_tour.start_date|date:"j"|add:"0" %}
+                                            {{ duration|add:"1" }} days
+                                        {% endwith %}
+                                    {% else %}
+                                        TBD
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- To Field -->
+                        {% if group_tour.to %}
+                        <div class="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">To</p>
+                                <p class="font-semibold text-gray-800">{{ group_tour.to }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if group_tour.destination.all %}
+                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Destinations</p>
+                                <p class="font-semibold text-gray-800">
+                                    {% for dest in group_tour.destination.all|slice:":2" %}
+                                        {{ dest.name }}{% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                    {% if group_tour.destination.count > 2 %} +{{ group_tour.destination.count|add:"-2" }} more{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Pricing Card -->
+                <div class="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-emerald-200 shadow-lg">
+                    <h3 class="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3">
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                            </svg>
+                        </div>
+                        Pricing
+                    </h3>
+                    <div class="space-y-3 sm:space-y-4">
+                        <div class="text-center p-3 sm:p-4 bg-emerald-50 rounded-lg">
+                            <p class="text-xs sm:text-sm text-gray-600">Price per person</p>
+                            <p class="text-2xl sm:text-3xl font-bold text-emerald-600">${{ group_tour.price_per_person }}</p>
+                        </div>
+                        
+                        {% if group_tour.couple_price %}
+                        <div class="text-center p-3 sm:p-4 bg-blue-50 rounded-lg">
+                            <p class="text-xs sm:text-sm text-gray-600">Couple price</p>
+                            <p class="text-xl sm:text-2xl font-bold text-blue-600">${{ group_tour.couple_price }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="text-center p-3 sm:p-4 bg-gray-50 rounded-lg">
+                            <p class="text-xs sm:text-sm text-gray-600">Available spots</p>
+                            <p class="text-xl sm:text-2xl font-bold text-gray-800">{{ group_tour.max_participants|add:"-"|add:group_tour.current_participants }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Contact Actions -->
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-blue-200 shadow-lg">
+                    <h3 class="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3">
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        Get in Touch
+                    </h3>
+                    <div class="space-y-2 sm:space-y-3">
+                        {% if group_tour.creator.email %}
+                        <a href="mailto:{{ group_tour.creator.email }}" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white py-2 sm:py-3 px-3 sm:px-4 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl text-sm sm:text-base">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            Contact Organizer
+                        </a>
+                        {% endif %}
+                        
+                        <a href="{% url 'grouptours_list' %}" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-2 sm:py-3 px-3 sm:px-4 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl text-sm sm:text-base">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            </svg>
+                            View All Tours
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Creator Actions - Only show if user is the creator -->
+                {% if user.is_authenticated and group_tour.creator == user %}
+                <div class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-amber-200">
+                    <h3 class="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3">
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </div>
+                        Manage Tour
+                    </h3>
+                    <div class="space-y-2 sm:space-y-3">
+                        <a href="{% url 'grouptours_update' group_tour.pk %}" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white py-2 sm:py-3 px-3 sm:px-4 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl text-sm sm:text-base">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                            Edit Tour
+                        </a>
+                        <a href="{% url 'grouptours_delete' group_tour.pk %}" class="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-2 sm:py-3 px-3 sm:px-4 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl text-sm sm:text-base">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                            Delete Tour
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Booking Modal -->
+<div id="booking-modal-{{ group_tour.id }}" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Book This Tour</h3>
+                <button onclick="closeBookingModal({{ group_tour.id }})" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <form id="tour-booking-form-{{ group_tour.id }}">
+                {% csrf_token %}
+                <div class="space-y-4">
+                    <div>
+                        <label for="tour-participants-{{ group_tour.id }}" class="block text-sm font-medium text-gray-700 mb-2">Number of Participants</label>
+                        <input type="number" id="tour-participants-{{ group_tour.id }}" name="participants" min="1" max="{{ group_tour.max_participants|add:'-'|add:group_tour.current_participants }}" value="1" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200">
+                    </div>
+                    
+                    <div>
+                        <label for="tour-special-requests-{{ group_tour.id }}" class="block text-sm font-medium text-gray-700 mb-2">Special Requests (Optional)</label>
+                        <textarea id="tour-special-requests-{{ group_tour.id }}" name="special_requests" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200" placeholder="Any special requirements or requests?"></textarea>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Price per person:</span>
+                            <span class="font-semibold">${{ group_tour.price_per_person }}</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-sm text-gray-600">Total Amount:</span>
+                            <span class="text-lg font-bold text-emerald-600" id="total-amount-{{ group_tour.id }}">${{ group_tour.price_per_person }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="closeBookingModal({{ group_tour.id }})" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 px-4 rounded-lg font-semibold transition duration-300">
+                        Cancel
+                    </button>
+                    <button type="button" onclick="bookTour({{ group_tour.id }})" class="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white py-3 px-4 rounded-lg font-semibold transition duration-300">
+                        Confirm Booking
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/interactions.js' %}"></script>
+<script>
+// Pass Django authentication status to JavaScript
+window.isAuthenticated = {% if user.is_authenticated %}true{% else %}false{% endif %};
+
+// Calculate total amount based on participants
+document.getElementById('tour-participants-{{ group_tour.id }}').addEventListener('input', function() {
+    const participants = parseInt(this.value) || 1;
+    const pricePerPerson = {{ group_tour.price_per_person }};
+    const totalAmount = participants * pricePerPerson;
+    document.getElementById('total-amount-{{ group_tour.id }}').textContent = '$' + totalAmount;
+});
+
+function openBookingModal(tourId) {
+    document.getElementById(`booking-modal-${tourId}`).classList.remove('hidden');
+}
+
+function closeBookingModal(tourId) {
+    document.getElementById(`booking-modal-${tourId}`).classList.add('hidden');
+}
+</script>
+{% endblock %} 

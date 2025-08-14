@@ -1,0 +1,340 @@
+{% extends 'users/base.html' %}
+{% block content %}
+
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">
+    <div class="max-w-6xl mx-auto px-4">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-800 mb-4">
+                {% if form.instance.pk %}Edit Menu Item{% else %}Add New Menu Item{% endif %}
+            </h1>
+            <p class="text-xl text-gray-600">Create delicious menu items that will delight your customers</p>
+        </div>
+        
+        <!-- Form Card -->
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <form method="post" enctype="multipart/form-data" class="space-y-8">
+                {% csrf_token %}
+                
+                <!-- Basic Information Section -->
+                <div class="border-b border-gray-200 pb-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Basic Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Name Field -->
+                        <div>
+                            <label for="{{ form.name.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Item Name *
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                            <div class="mt-1 text-red-600 text-sm">
+                                {% for error in form.name.errors %}
+                                <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Category Field -->
+                        <div>
+                            <label for="{{ form.category.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Category *
+                            </label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
+                            <div class="mt-1 text-red-600 text-sm">
+                                {% for error in form.category.errors %}
+                                <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Description Field -->
+                    <div class="mt-6">
+                        <label for="{{ form.description.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Description *
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                        <div class="mt-1 text-red-600 text-sm">
+                            {% for error in form.description.errors %}
+                            <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Pricing Section -->
+                <div class="border-b border-gray-200 pb-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Pricing</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Base Price Field -->
+                        <div>
+                            <label for="{{ form.price.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Base Price *
+                            </label>
+                            {{ form.price }}
+                            {% if form.price.errors %}
+                            <div class="mt-1 text-red-600 text-sm">
+                                {% for error in form.price.errors %}
+                                <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Discounted Price Field -->
+                        <div>
+                            <label for="{{ form.discounted_price.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Discounted Price
+                            </label>
+                            {{ form.discounted_price }}
+                            {% if form.discounted_price.errors %}
+                            <div class="mt-1 text-red-600 text-sm">
+                                {% for error in form.discounted_price.errors %}
+                                <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Is Discounted Field -->
+                        <div class="flex items-center">
+                            {{ form.is_discounted }}
+                            <label for="{{ form.is_discounted.id_for_label }}" class="ml-2 text-sm font-medium text-gray-700">
+                                Currently Discounted
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Item Details Section -->
+                <div class="border-b border-gray-200 pb-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Item Details</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Spice Level Field -->
+                        <div>
+                            <label for="{{ form.spice_level.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Spice Level
+                            </label>
+                            {{ form.spice_level }}
+                            {% if form.spice_level.errors %}
+                            <div class="mt-1 text-red-600 text-sm">
+                                {% for error in form.spice_level.errors %}
+                                <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Preparation Time Field -->
+                        <div>
+                            <label for="{{ form.preparation_time.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Preparation Time (minutes)
+                            </label>
+                            {{ form.preparation_time }}
+                            {% if form.preparation_time.errors %}
+                            <div class="mt-1 text-red-600 text-sm">
+                                {% for error in form.preparation_time.errors %}
+                                <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Serving Size Field -->
+                        <div>
+                            <label for="{{ form.serving_size.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Serving Size
+                            </label>
+                            {{ form.serving_size }}
+                            {% if form.serving_size.errors %}
+                            <div class="mt-1 text-red-600 text-sm">
+                                {% for error in form.serving_size.errors %}
+                                <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Availability Field -->
+                        <div>
+                            <label for="{{ form.availability.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Availability Status
+                            </label>
+                            {{ form.availability }}
+                            {% if form.availability.errors %}
+                            <div class="mt-1 text-red-600 text-sm">
+                                {% for error in form.availability.errors %}
+                                <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Ingredients Field -->
+                    <div class="mt-6">
+                        <label for="{{ form.ingredients.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Ingredients
+                        </label>
+                        {{ form.ingredients }}
+                        {% if form.ingredients.errors %}
+                        <div class="mt-1 text-red-600 text-sm">
+                            {% for error in form.ingredients.errors %}
+                            <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Allergens Field -->
+                    <div class="mt-6">
+                        <label for="{{ form.allergens.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Allergen Information
+                        </label>
+                        {{ form.allergens }}
+                        {% if form.allergens.errors %}
+                        <div class="mt-1 text-red-600 text-sm">
+                            {% for error in form.allergens.errors %}
+                            <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Dietary Options Section -->
+                <div class="border-b border-gray-200 pb-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Dietary Options</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div class="flex items-center">
+                            {{ form.is_vegetarian }}
+                            <label for="{{ form.is_vegetarian.id_for_label }}" class="ml-2 text-sm font-medium text-gray-700">
+                                Vegetarian 🥬
+                            </label>
+                        </div>
+                        <div class="flex items-center">
+                            {{ form.is_vegan }}
+                            <label for="{{ form.is_vegan.id_for_label }}" class="ml-2 text-sm font-medium text-gray-700">
+                                Vegan 🌱
+                            </label>
+                        </div>
+                        <div class="flex items-center">
+                            {{ form.is_gluten_free }}
+                            <label for="{{ form.is_gluten_free.id_for_label }}" class="ml-2 text-sm font-medium text-gray-700">
+                                Gluten-Free 🌾
+                            </label>
+                        </div>
+                        <div class="flex items-center">
+                            {{ form.is_halal }}
+                            <label for="{{ form.is_halal.id_for_label }}" class="ml-2 text-sm font-medium text-gray-700">
+                                Halal ☪️
+                            </label>
+                        </div>
+                        <div class="flex items-center">
+                            {{ form.is_kosher }}
+                            <label for="{{ form.is_kosher.id_for_label }}" class="ml-2 text-sm font-medium text-gray-700">
+                                Kosher ✡️
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Media & Settings Section -->
+                <div class="border-b border-gray-200 pb-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Media & Settings</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Image Field -->
+                        <div>
+                            <label for="{{ form.image.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Item Image
+                            </label>
+                            {{ form.image }}
+                            {% if form.image.errors %}
+                            <div class="mt-1 text-red-600 text-sm">
+                                {% for error in form.image.errors %}
+                                <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Order Field -->
+                        <div>
+                            <label for="{{ form.order.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Display Order
+                            </label>
+                            {{ form.order }}
+                            {% if form.order.errors %}
+                            <div class="mt-1 text-red-600 text-sm">
+                                {% for error in form.order.errors %}
+                                <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <div class="flex items-center">
+                            {{ form.is_featured }}
+                            <label for="{{ form.is_featured.id_for_label }}" class="ml-2 text-sm font-medium text-gray-700">
+                                Featured Item (highlighted on menu)
+                            </label>
+                        </div>
+                        <div class="flex items-center">
+                            {{ form.is_active }}
+                            <label for="{{ form.is_active.id_for_label }}" class="ml-2 text-sm font-medium text-gray-700">
+                                Active (visible to customers)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="flex flex-col sm:flex-row gap-4 pt-6">
+                    <button type="submit" class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-3 px-6 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                        {% if form.instance.pk %}Update Menu Item{% else %}Create Menu Item{% endif %}
+                    </button>
+                    
+                    <a href="{% url 'user_place_menu' place.pk %}" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-3 px-6 rounded-xl font-semibold transition-all duration-300 text-center">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Help Section -->
+        <div class="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-blue-800 mb-3">💡 Tips for Creating Great Menu Items</h3>
+            <ul class="space-y-2 text-blue-700">
+                <li class="flex items-start gap-2">
+                    <span class="text-blue-500">•</span>
+                    <span>Use descriptive names that clearly indicate what the item is</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-blue-500">•</span>
+                    <span>Include key ingredients and preparation methods in the description</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-blue-500">•</span>
+                    <span>Accurately mark dietary restrictions to help customers make informed choices</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-blue-500">•</span>
+                    <span>Add high-quality images to make your menu more appealing</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-blue-500">•</span>
+                    <span>Use the featured option to highlight your best or most popular items</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% endblock %} 

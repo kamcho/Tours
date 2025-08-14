@@ -1,0 +1,282 @@
+{% extends 'users/base.html' %}
+{% block content %}
+
+<div class="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 py-12">
+    <div class="max-w-4xl mx-auto px-4">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-4">
+                {% if form.instance.pk %}
+                    Edit Service
+                {% else %}
+                    Add New Service
+                {% endif %}
+            </h1>
+            <p class="text-lg text-gray-600">
+                {% if form.instance.pk %}
+                    Update your service information and details
+                {% else %}
+                    Create a new service to offer to your customers
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Service Type and Name -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.service_type.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Service Type *
+                        </label>
+                        {{ form.service_type }}
+                        {% if form.service_type.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.service_type.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.name.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Service Name *
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label for="{{ form.description.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Description *
+                    </label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.description.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Availability and Status -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.availability.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Availability
+                        </label>
+                        {{ form.availability }}
+                        {% if form.availability.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.availability.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <label class="flex items-center">
+                            {{ form.is_featured }}
+                            <span class="ml-2 text-sm font-semibold text-gray-700">Featured Service</span>
+                        </label>
+                        
+                        <label class="flex items-center">
+                            {{ form.is_active }}
+                            <span class="ml-2 text-sm font-semibold text-gray-700">Active</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Pricing Section -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Pricing Information</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label for="{{ form.base_price.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Base Price
+                            </label>
+                            {{ form.base_price }}
+                            {% if form.base_price.errors %}
+                                <div class="text-red-600 text-sm mt-1">{{ form.base_price.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.price_range_min.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Min Price Range
+                            </label>
+                            {{ form.price_range_min }}
+                            {% if form.price_range_min.errors %}
+                                <div class="text-red-600 text-sm mt-1">{{ form.price_range_min.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.price_range_max.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Max Price Range
+                            </label>
+                            {{ form.price_range_max }}
+                            {% if form.price_range_max.errors %}
+                                <div class="text-red-600 text-sm mt-1">{{ form.price_range_max.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <label for="{{ form.pricing_model.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Pricing Model
+                        </label>
+                        {{ form.pricing_model }}
+                        {% if form.pricing_model.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.pricing_model.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Service Details Section -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Service Details</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="{{ form.duration.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Duration
+                            </label>
+                            {{ form.duration }}
+                            {% if form.duration.errors %}
+                                <div class="text-red-600 text-sm mt-1">{{ form.duration.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.group_size_min.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Min Group Size
+                            </label>
+                            {{ form.group_size_min }}
+                            {% if form.group_size_min.errors %}
+                                <div class="text-red-600 text-sm mt-1">{{ form.group_size_min.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <label for="{{ form.group_size_max.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Max Group Size
+                        </label>
+                        {{ form.group_size_max }}
+                        {% if form.group_size_max.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.group_size_max.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Service Image -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Service Image</h3>
+                    
+                    <div>
+                        <label for="{{ form.service_image.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Service Image
+                        </label>
+                        {{ form.service_image }}
+                        {% if form.service_image.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.service_image.errors.0 }}</div>
+                        {% endif %}
+                        <p class="text-sm text-gray-500 mt-1">Upload an image that represents this service (optional)</p>
+                    </div>
+                </div>
+
+                <!-- Additional Information Section -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Additional Information</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label for="{{ form.requirements.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Requirements
+                            </label>
+                            {{ form.requirements }}
+                            {% if form.requirements.errors %}
+                                <div class="text-red-600 text-sm mt-1">{{ form.requirements.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.included_items.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                What's Included
+                            </label>
+                            {{ form.included_items }}
+                            {% if form.included_items.errors %}
+                                <div class="text-red-600 text-sm mt-1">{{ form.included_items.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.excluded_items.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                What's Not Included
+                            </label>
+                            {{ form.excluded_items }}
+                            {% if form.excluded_items.errors %}
+                                <div class="text-red-600 text-sm mt-1">{{ form.excluded_items.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.cancellation_policy.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                Cancellation Policy
+                            </label>
+                            {{ form.cancellation_policy }}
+                            {% if form.cancellation_policy.errors %}
+                                <div class="text-red-600 text-sm mt-1">{{ form.cancellation_policy.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="border-t border-gray-200 pt-6 flex flex-col sm:flex-row gap-4">
+                    <button type="submit" class="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-8 py-3 rounded-lg font-semibold transition duration-300 shadow-md hover:shadow-lg">
+                        {% if form.instance.pk %}
+                            Update Service
+                        {% else %}
+                            Create Service
+                        {% endif %}
+                    </button>
+                    
+                    <a href="{% url 'agency_detail' agency.pk %}" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-semibold transition duration-300 text-center">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Custom form styling */
+    input[type="text"], input[type="number"], input[type="email"], input[type="url"], input[type="file"],
+    textarea, select {
+        @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200;
+    }
+    
+    textarea {
+        @apply resize-vertical min-h-[120px];
+    }
+    
+    select {
+        @apply appearance-none bg-white;
+    }
+    
+    /* Checkbox styling */
+    input[type="checkbox"] {
+        @apply w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2;
+    }
+    
+    /* File input styling */
+    input[type="file"] {
+        @apply file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100;
+    }
+</style>
+{% endblock %} 

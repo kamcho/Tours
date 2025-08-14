@@ -1,0 +1,317 @@
+{% extends 'users/base.html' %}
+{% block content %}
+
+<!-- Hero Section -->
+<div class="relative bg-gradient-to-br from-blue-900 via-indigo-800 to-purple-900 py-24">
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20" style="background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4">
+        <div class="text-center">
+            <h1 class="text-5xl lg:text-7xl font-bold text-white mb-8 leading-tight">My Travel Communities</h1>
+            <p class="text-xl lg:text-2xl text-gray-200 mb-12 max-w-4xl mx-auto leading-relaxed">Manage your travel groups, connect with members, and create amazing experiences together. This is where your travel adventures begin.</p>
+            
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
+                <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 text-center">
+                    <div class="text-3xl font-bold text-white mb-2">{{ travel_groups.count }}</div>
+                    <div class="text-gray-200">Groups Created</div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 text-center">
+                    <div class="text-3xl font-bold text-white mb-2">
+                        {% if travel_groups %}
+                            {% with total_members=0 %}
+                                {% for group in travel_groups %}
+                                    {% with total_members=total_members|add:group.members.count %}{% endwith %}
+                                {% endfor %}
+                                {{ total_members }}
+                            {% endwith %}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </div>
+                    <div class="text-gray-200">Total Members</div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 text-center">
+                    <div class="text-3xl font-bold text-white mb-2">
+                        {% if travel_groups %}
+                            {% for group in travel_groups %}
+                                {% if group.is_public %}1{% else %}0{% endif %}
+                            {% endfor %}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </div>
+                    <div class="text-gray-200">Public Groups</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Bar -->
+<div class="bg-gradient-to-r from-gray-50 to-gray-100 py-8 border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex flex-wrap justify-center gap-4">
+            <a href="{% url 'home' %}" class="bg-white hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2 border border-gray-200">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                Home
+            </a>
+            <a href="{% url 'travelgroup_list' %}" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2 transform hover:scale-105">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                </svg>
+                Discover Groups
+            </a>
+            <a href="{% url 'travelgroup_create' %}" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2 transform hover:scale-105">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Create New Group
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- My Groups Section -->
+<div class="bg-gradient-to-br from-gray-50 to-gray-100 py-20">
+    <div class="max-w-7xl mx-auto px-4">
+        {% if travel_groups %}
+            <!-- Results Header -->
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-12">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Your Travel Communities</h2>
+                    <p class="text-gray-600">You've created {{ travel_groups.count }} amazing travel group{{ travel_groups.count|pluralize }}</p>
+                </div>
+                <div class="flex items-center gap-4 mt-4 sm:mt-0">
+                    <span class="text-sm text-gray-500">Sort by:</span>
+                    <select id="sortSelect" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="members">Most Members</option>
+                        <option value="name">Name A-Z</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Enhanced Groups Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="groupsGrid">
+                {% for group in travel_groups %}
+                <div class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 overflow-hidden border border-gray-100" data-group="{{ group.name|lower }} {{ group.description|lower }} {{ group.objective }} {{ group.group_type }}">
+                    <!-- Enhanced Group Image -->
+                    <div class="relative h-56 bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600 overflow-hidden">
+                        <div class="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700" style="background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                        
+                        <!-- Enhanced Badges -->
+                        <div class="absolute top-4 left-4 flex flex-col gap-2">
+                            <span class="bg-white/95 backdrop-blur-sm text-gray-800 px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg">{{ group.get_group_type_display }}</span>
+                            <span class="bg-blue-500/95 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg">{{ group.get_objective_display }}</span>
+                        </div>
+                        
+                        <!-- Public/Private Badge -->
+                        <div class="absolute top-4 right-4">
+                            {% if group.is_public %}
+                                <span class="bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg flex items-center gap-1">
+                                    <div class="w-2 h-2 bg-white rounded-full"></div>
+                                    Public
+                                </span>
+                            {% else %}
+                                <span class="bg-gray-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg">Private</span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Member Count with Icon -->
+                        <div class="absolute bottom-4 left-4">
+                            <div class="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-full flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
+                                </svg>
+                                <span class="text-sm font-medium">{{ group.members.count }} members</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Creator Badge -->
+                        <div class="absolute bottom-4 right-4">
+                            <div class="bg-blue-600/90 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg">
+                                <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                                </svg>
+                                Creator
+                            </div>
+                        </div>
+                        
+                        <!-- Hover Overlay -->
+                        <div class="absolute inset-0 bg-gradient-to-t from-blue-600/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                            <div class="text-center text-white">
+                                <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <p class="font-semibold">Manage Group</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Enhanced Group Content -->
+                    <div class="p-8">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-3 group-hover:text-blue-600 transition-colors duration-300 line-clamp-1">{{ group.name }}</h3>
+                        <p class="text-gray-600 mb-6 leading-relaxed line-clamp-3">{{ group.description|truncatewords:25 }}</p>
+                        
+                        <!-- Enhanced Group Details -->
+                        <div class="space-y-3 mb-6">
+                            <div class="flex items-center gap-3 text-gray-600">
+                                <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <span class="text-sm font-medium">{{ group.get_objective_display }}</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-gray-600">
+                                <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
+                                    </svg>
+                                </div>
+                                <span class="text-sm font-medium">{{ group.get_group_type_display }}</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-gray-600">
+                                <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <span class="text-sm font-medium">{{ group.created_at|date:"M d, Y" }}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Enhanced Tags -->
+                        <div class="flex flex-wrap gap-2 mb-6">
+                            <span class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full text-xs font-medium">{{ group.get_objective_display }}</span>
+                            <span class="bg-purple-100 text-purple-700 px-3 py-1.5 rounded-full text-xs font-medium">{{ group.get_group_type_display }}</span>
+                            {% if group.is_public %}
+                                <span class="bg-green-100 text-green-700 px-3 py-1.5 rounded-full text-xs font-medium">Open to Join</span>
+                            {% else %}
+                                <span class="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full text-xs font-medium">Invite Only</span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Enhanced Action Buttons -->
+                        <div class="grid grid-cols-3 gap-3">
+                            <a href="{% url 'travelgroup_detail' group.pk %}" class="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                View
+                            </a>
+                            <a href="{% url 'travelgroup_update' group.pk %}" class="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                                Edit
+                            </a>
+                            <a href="{% url 'travelgroup_delete' group.pk %}" class="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                                Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Load More Button -->
+            <div class="text-center mt-12">
+                <button class="bg-white hover:bg-gray-50 text-gray-700 px-8 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200 transform hover:scale-105">
+                    Load More Groups
+                </button>
+            </div>
+        {% else %}
+            <!-- Enhanced Empty State -->
+            <div class="text-center py-20">
+                <div class="w-32 h-32 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-8">
+                    <svg class="w-16 h-16 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                </div>
+                <h3 class="text-3xl font-bold text-gray-800 mb-4">No Travel Groups Yet</h3>
+                <p class="text-gray-600 mb-8 max-w-2xl mx-auto text-lg">You haven't created any travel groups yet. Start building your first community and connect with fellow travelers!</p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="{% url 'travelgroup_create' %}" class="inline-flex items-center bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-10 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                        <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        Create Your First Group
+                    </a>
+                    <a href="{% url 'travelgroup_list' %}" class="inline-flex items-center bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-10 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                        <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        </svg>
+                        Discover Groups
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Enhanced Search and Filter Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const sortSelect = document.getElementById('sortSelect');
+    const groupsGrid = document.getElementById('groupsGrid');
+    
+    if (sortSelect && groupsGrid) {
+        let allGroups = Array.from(groupsGrid.children);
+        
+        function sortGroups() {
+            const sortBy = sortSelect.value;
+            
+            // Clear current grid
+            groupsGrid.innerHTML = '';
+            
+            // Sort groups
+            const sortedGroups = [...allGroups].sort((a, b) => {
+                switch(sortBy) {
+                    case 'newest':
+                        return new Date(b.querySelector('[data-date]')?.dataset.date || 0) - new Date(a.querySelector('[data-date]')?.dataset.date || 0);
+                    case 'oldest':
+                        return new Date(a.querySelector('[data-date]')?.dataset.date || 0) - new Date(b.querySelector('[data-date]')?.dataset.date || 0);
+                    case 'members':
+                        const aMembers = parseInt(a.querySelector('[data-members]')?.dataset.members || 0);
+                        const bMembers = parseInt(b.querySelector('[data-members]')?.dataset.members || 0);
+                        return bMembers - aMembers;
+                    case 'name':
+                        const aName = a.querySelector('h3')?.textContent || '';
+                        const bName = b.querySelector('h3')?.textContent || '';
+                        return aName.localeCompare(bName);
+                    default:
+                        return 0;
+                }
+            });
+            
+            // Display sorted results
+            sortedGroups.forEach(group => {
+                groupsGrid.appendChild(group.cloneNode(true));
+            });
+        }
+        
+        // Event listener for sorting
+        sortSelect.addEventListener('change', sortGroups);
+    }
+});
+
+// Theme toggle functionality
+const toggle = document.getElementById('theme-toggle');
+if (toggle) {
+    toggle.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+    });
+}
+</script>
+{% endblock %} 

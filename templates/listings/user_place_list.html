@@ -1,0 +1,181 @@
+{% extends 'users/base.html' %}
+{% block content %}
+
+<!-- Hero Section -->
+<div class="relative bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-900 py-20">
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20" style="background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4">
+        <div class="text-center">
+            <h1 class="text-5xl lg:text-6xl font-bold text-white mb-6">My Places</h1>
+            <p class="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">Manage your created places, track visitors, and keep your locations organized.</p>
+            
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="{% url 'home' %}" class="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    Home
+                </a>
+                <a href="{% url 'public_place_list' %}" class="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    All Places
+                </a>
+                <a href="{% url 'place_create_step' 1 %}" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    Add Place
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Places Grid -->
+<div class="bg-gradient-to-br from-gray-50 to-gray-100 py-16">
+    <div class="max-w-7xl mx-auto px-4">
+        {% if places %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {% for place in places %}
+                <a href="{% url 'user_place_detail' place.pk %}" class="group block">
+                    <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105 overflow-hidden border border-gray-100 hover:border-emerald-200">
+                        <!-- Place Image -->
+                        <div class="relative h-56 bg-gradient-to-br from-emerald-400 to-teal-500 overflow-hidden">
+                            {% if place.profile_picture %}
+                                <img src="{{ place.profile_picture.url }}" alt="{{ place.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            {% else %}
+                                <div class="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-500" style="background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+                            {% endif %}
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                            
+                            <!-- Category Badge -->
+                            <div class="absolute top-4 left-4">
+                                <span class="bg-white/90 backdrop-blur-sm text-gray-800 px-3 py-1 rounded-full text-xs font-semibold shadow-lg">{{ place.category }}</span>
+                            </div>
+                            
+                            <!-- Status Badge -->
+                            <div class="absolute top-4 right-4">
+                                {% if place.is_active %}
+                                    <span class="bg-emerald-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg flex items-center gap-1">
+                                        <div class="w-2 h-2 bg-white rounded-full"></div>
+                                        Active
+                                    </span>
+                                {% else %}
+                                    <span class="bg-gray-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg flex items-center gap-1">
+                                        <div class="w-2 h-2 bg-white rounded-full"></div>
+                                        Inactive
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Hover Overlay -->
+                            <div class="absolute inset-0 bg-gradient-to-t from-emerald-600/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
+                                <div class="p-4 text-white">
+                                    <div class="flex items-center gap-2 text-sm">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                        </svg>
+                                        <span>Click to view details</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Place Content -->
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-3 group-hover:text-emerald-600 transition-colors duration-300">{{ place.name }}</h3>
+                            <p class="text-gray-600 mb-4 line-clamp-2 text-sm leading-relaxed">{{ place.description|truncatewords:20 }}</p>
+                            
+                            <!-- Place Details -->
+                            <div class="space-y-3 mb-4">
+                                <div class="flex items-center gap-3 text-gray-600">
+                                    <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <span class="text-sm font-medium">{{ place.location }}</span>
+                                </div>
+                                
+                                <div class="flex items-center gap-3 text-gray-600">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <span class="text-sm font-medium">{{ place.category }}</span>
+                                </div>
+                                
+                                {% if place.website %}
+                                <div class="flex items-center gap-3 text-gray-600">
+                                    <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <svg class="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <span class="text-sm font-medium truncate">{{ place.website|truncatechars:25 }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Tags -->
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-medium">{{ place.category }}</span>
+                                {% if place.is_active %}
+                                    <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">Active</span>
+                                {% else %}
+                                    <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium">Inactive</span>
+                                {% endif %}
+                                {% if place.contact_email %}
+                                    <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-medium">Contact</span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Created Date -->
+                            <div class="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
+                                <span>Created {{ place.created_at|date:"M d, Y" }}</span>
+                                <div class="flex items-center gap-1 text-emerald-600 group-hover:text-emerald-700 transition-colors">
+                                    <span class="font-medium">View Details</span>
+                                    <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-16">
+                <div class="w-24 h-24 bg-gradient-to-r from-emerald-100 to-teal-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-12 h-12 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">No Places Created Yet</h3>
+                <p class="text-gray-600 mb-6">You haven't created any places yet. Start sharing your favorite locations!</p>
+                <a href="{% url 'place_create_step' 1 %}" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                    Add Your First Place
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+  const toggle = document.getElementById('theme-toggle');
+  toggle.addEventListener('click', () => {
+    document.documentElement.classList.toggle('dark');
+  });
+</script>
+{% endblock %} 

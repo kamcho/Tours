@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Personalized Recommendations - TravelsKe{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-purple-600 to-purple-800 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="text-center">
+                <h1 class="text-4xl font-bold mb-4">🌟 Your Recommendations</h1>
+                <p class="text-xl text-purple-100">Discover places, tours, and agencies tailored just for you</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Personalized Message -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <h2 class="text-lg font-medium text-gray-900">Welcome back, {{ request.user.first_name|default:request.user.email }}!</h2>
+                    <p class="text-gray-600">Based on your preferences and activity, here are some recommendations we think you'll love.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommended Places -->
+        <div class="mb-12">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">📍 Recommended Places</h2>
+                <a href="{% url 'advanced_search' %}?search_type=places&sort_by=rating" class="text-purple-600 hover:text-purple-700 font-medium">
+                    View all places →
+                </a>
+            </div>
+            
+            {% if recommended_places %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for place in recommended_places %}
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                            {% if place.profile_picture %}
+                                <img src="{{ place.profile_picture.url }}" alt="{{ place.name }}" class="w-full h-48 object-cover">
+                            {% else %}
+                                <div class="w-full h-48 bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center">
+                                    <svg class="w-16 h-16 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                    </svg>
+                                </div>
+                            {% endif %}
+                            <div class="p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                        🌟 Recommended
+                                    </span>
+                                    <span class="text-sm text-gray-500">{{ place.category.name }}</span>
+                                </div>
+                                <h3 class="font-semibold text-lg text-gray-900 mb-2">{{ place.name }}</h3>
+                                <p class="text-gray-600 text-sm mb-3">{{ place.location }}</p>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        {% if place.avg_rating %}
+                                            <div class="flex items-center">
+                                                <span class="text-yellow-400">★</span>
+                                                <span class="ml-1 text-sm text-gray-600">{{ place.avg_rating|floatformat:1 }}/5</span>
+                                                <span class="ml-2 text-xs text-gray-500">({{ place.total_ratings }})</span>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-gray-400 text-sm">No ratings yet</span>
+                                        {% endif %}
+                                    </div>
+                                    <a href="{% url 'public_place_detail' place.pk %}" class="text-purple-600 hover:text-purple-700 text-sm font-medium">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8 bg-white rounded-lg border border-gray-200">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">No recommendations yet</h3>
+                    <p class="mt-1 text-sm text-gray-500">Start rating places and liking tours to get personalized recommendations.</p>
+                    <div class="mt-6">
+                        <a href="{% url 'public_place_list' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700">
+                            Explore Places
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Recommended Tours -->
+        <div class="mb-12">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">🚀 Recommended Tours</h2>
+                <a href="{% url 'advanced_search' %}?search_type=tours&sort_by=rating" class="text-purple-600 hover:text-purple-700 font-medium">
+                    View all tours →
+                </a>
+            </div>
+            
+            {% if recommended_tours %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for tour in recommended_tours %}
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                            <div class="p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                        🚀 Recommended
+                                    </span>
+                                    <span class="text-sm text-gray-500">{{ tour.status|title }}</span>
+                                </div>
+                                <h3 class="font-semibold text-lg text-gray-900 mb-2">{{ tour.name }}</h3>
+                                <p class="text-gray-600 text-sm mb-3">{{ tour.description|truncatewords:15 }}</p>
+                                <div class="flex items-center justify-between text-sm text-gray-500 mb-3">
+                                    <span>{{ tour.start_date|date:"M d" }} - {{ tour.end_date|date:"M d, Y" }}</span>
+                                    <span class="text-purple-600 font-semibold">${{ tour.price_per_person }}</span>
+                                </div>
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                        <span>❤️ {{ tour.like_count }}</span>
+                                        <span>🔖 {{ tour.bookmark_count }}</span>
+                                    </div>
+                                    {% if tour.available_spots > 0 %}
+                                        <span class="text-green-600 text-sm">{{ tour.available_spots }} spots left</span>
+                                    {% else %}
+                                        <span class="text-red-600 text-sm">Fully booked</span>
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'public_grouptours_detail' tour.pk %}" class="block w-full text-center bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8 bg-white rounded-lg border border-gray-200">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"></path>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">No tour recommendations yet</h3>
+                    <p class="mt-1 text-sm text-gray-500">Start liking tours to get personalized recommendations.</p>
+                    <div class="mt-6">
+                        <a href="{% url 'grouptours_list' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700">
+                            Explore Tours
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Recommended Agencies -->
+        <div class="mb-12">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">🏢 Recommended Agencies</h2>
+                <a href="{% url 'advanced_search' %}?search_type=agencies&sort_by=rating" class="text-purple-600 hover:text-purple-700 font-medium">
+                    View all agencies →
+                </a>
+            </div>
+            
+            {% if recommended_agencies %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for agency in recommended_agencies %}
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                            <div class="p-4">
+                                <div class="flex items-center mb-3">
+                                    {% if agency.logo %}
+                                        <img src="{{ agency.logo.url }}" alt="{{ agency.name }}" class="w-12 h-12 rounded-full object-cover mr-3">
+                                    {% else %}
+                                        <div class="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center mr-3">
+                                            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                            </svg>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="flex items-center mb-1">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 mr-2">
+                                                🏢 Recommended
+                                            </span>
+                                        </div>
+                                        <h3 class="font-semibold text-lg text-gray-900">{{ agency.name }}</h3>
+                                        <p class="text-gray-600 text-sm">{{ agency.get_agency_type_display }}</p>
+                                    </div>
+                                </div>
+                                <p class="text-gray-600 text-sm mb-3">{{ agency.city }}, {{ agency.country }}</p>
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center">
+                                        {% if agency.avg_rating %}
+                                            <div class="flex items-center">
+                                                <span class="text-yellow-400">★</span>
+                                                <span class="ml-1 text-sm text-gray-600">{{ agency.avg_rating|floatformat:1 }}/5</span>
+                                                <span class="ml-2 text-xs text-gray-500">({{ agency.total_ratings }})</span>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-gray-400 text-sm">No ratings yet</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if agency.is_verified %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            ✓ Verified
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'public_agency_detail' agency.pk %}" class="block w-full text-center bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8 bg-white rounded-lg border border-gray-200">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">No agency recommendations yet</h3>
+                    <p class="mt-1 text-sm text-gray-500">Start rating places to get agency recommendations in your preferred locations.</p>
+                    <div class="mt-6">
+                        <a href="{% url 'agency_list' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700">
+                            Explore Agencies
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- How Recommendations Work -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">How Recommendations Work</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <span class="text-2xl">📊</span>
+                    </div>
+                    <h4 class="font-medium text-gray-900 mb-2">Analyze Your Activity</h4>
+                    <p class="text-sm text-gray-600">We analyze your ratings, likes, and preferences to understand what you enjoy.</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <span class="text-2xl">🎯</span>
+                    </div>
+                    <h4 class="font-medium text-gray-900 mb-2">Match Similar Items</h4>
+                    <p class="text-sm text-gray-600">We find places, tours, and agencies that match your interests and preferences.</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <span class="text-2xl">✨</span>
+                    </div>
+                    <h4 class="font-medium text-gray-900 mb-2">Personalized Results</h4>
+                    <p class="text-sm text-gray-600">Get recommendations tailored specifically to your travel style and preferences.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Call to Action -->
+        <div class="bg-gradient-to-r from-purple-600 to-purple-800 rounded-lg text-white p-8 text-center mt-8">
+            <h3 class="text-2xl font-bold mb-4">Want Better Recommendations?</h3>
+            <p class="text-purple-100 mb-6">Rate more places, like tours, and engage with content to improve your personalized recommendations</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{% url 'public_place_list' %}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-purple-600 bg-white hover:bg-gray-50">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                    Explore Places
+                </a>
+                <a href="{% url 'trending' %}" class="inline-flex items-center px-6 py-3 border border-white text-base font-medium rounded-md text-white hover:bg-purple-700">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    View Trending
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

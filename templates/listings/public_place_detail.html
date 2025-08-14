@@ -1,0 +1,648 @@
+{% extends 'users/base.html' %}
+
+{% block extra_css %}
+<style>
+    /* Smooth transitions for all interactive elements */
+    * {
+        transition-property: all;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 150ms;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<div class="relative bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-900 py-20">
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20" style="background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4">
+        <div class="text-center">
+            <div class="flex items-center justify-center gap-4 mb-6">
+                <h1 class="text-5xl lg:text-6xl font-bold text-white">{{ place.name }}</h1>
+                {% if place.verified %}
+                <div class="flex items-center gap-1">
+                    <svg class="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="text-lg text-blue-200 font-medium">Verified</span>
+                </div>
+                {% endif %}
+            </div>
+            <p class="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">{{ place.description|truncatewords:40 }}</p>
+            
+            <!-- Simple Navigation -->
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="{% url 'public_place_list' %}" class="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Discover More Places
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Verification Notice for Unverified Places -->
+{% if not place.verified %}
+<div class="bg-yellow-50 border-l-4 border-yellow-400 py-4 px-6">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                </svg>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-yellow-700">
+                    <strong>Note:</strong> This place is not yet verified. Ratings and reviews will be available once verification is complete.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Place Details -->
+<div class="bg-gradient-to-br from-gray-100 via-gray-50 to-blue-50 py-16">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <!-- Main Content -->
+            <div class="lg:col-span-2">
+                <!-- Place Image -->
+                <div class="relative h-96 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl overflow-hidden mb-8 shadow-2xl">
+                    {% if place.profile_picture %}
+                        <img src="{{ place.profile_picture.url }}" alt="{{ place.name }}" class="w-full h-full object-cover">
+                    {% else %}
+                        <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+                    {% endif %}
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                    
+                    <!-- Category Badge -->
+                    <div class="absolute top-6 left-6">
+                        <span class="bg-white/90 backdrop-blur-sm text-gray-800 px-4 py-2 rounded-full text-sm font-semibold shadow-lg">{{ place.category.name }}</span>
+                    </div>
+                    
+                    <!-- Status Badge -->
+                    <div class="absolute top-6 right-6">
+                        {% if place.is_active %}
+                            <span class="bg-emerald-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg flex items-center gap-2">
+                                <div class="w-2 h-2 bg-white rounded-full"></div>
+                                Active
+                            </span>
+                        {% else %}
+                            <span class="bg-gray-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">Inactive</span>
+                        {% endif %}
+                    </div>
+                    
+
+                </div>
+                
+                <!-- Description -->
+                <div class="bg-gradient-to-br from-white to-blue-50 rounded-2xl p-8 mb-8 shadow-xl border border-blue-100">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-3">
+                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        About This Place
+                    </h2>
+                    <p class="text-gray-600 leading-relaxed text-lg">{{ place.description }}</p>
+                </div>
+                
+
+                
+                <!-- Menu Preview -->
+                {% if place.menu_categories.all %}
+                <div class="bg-gradient-to-br from-white to-red-50 rounded-2xl p-8 mb-8 shadow-xl border border-red-100">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                        <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                            <span class="text-2xl">🍽️</span>
+                        </div>
+                        Our Menu
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {% for category in place.menu_categories.all|slice:":3" %}
+                        <div class="bg-white rounded-xl p-6 border border-red-200 hover:shadow-lg hover:border-red-300 transition-all duration-300 group shadow-md">
+                            <div class="text-center mb-4">
+                                <span class="text-4xl mb-2 block">{{ category.display_icon }}</span>
+                                <h4 class="text-lg font-semibold text-gray-800 group-hover:text-red-600 transition-colors duration-300">
+                                    {{ category.name }}
+                                </h4>
+                                {% if category.description %}
+                                <p class="text-sm text-gray-600 mt-2">{{ category.description|truncatewords:10 }}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Sample Menu Items -->
+                            <div class="space-y-2">
+                                {% for item in category.menu_items.all|slice:":3" %}
+                                {% if item.is_active %}
+                                <div class="flex items-center justify-between p-2 bg-red-50 rounded-lg border border-red-100">
+                                    <span class="text-sm font-medium text-gray-800">{{ item.name|truncatechars:20 }}</span>
+                                    <span class="text-sm font-semibold text-red-600">{{ item.display_price }}</span>
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                            
+                            <!-- View Full Menu Button -->
+                            <div class="text-center mt-4">
+                                <a href="{% url 'place_menu' place.pk %}" class="inline-flex items-center bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-300">
+                                    View Full Menu
+                                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- View Full Menu Button -->
+                    <div class="text-center mt-6">
+                        <a href="{% url 'place_menu' place.pk %}" class="inline-flex items-center bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white px-8 py-3 rounded-xl font-semibold transition duration-300 shadow-lg hover:shadow-xl">
+                            <span class="text-xl mr-2">🍽️</span>
+                            View Complete Menu
+                            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Gallery -->
+                {% if place.gallery_images.all %}
+                <div class="bg-white rounded-2xl p-8 shadow-lg">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                        <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </div>
+                        Photo Gallery
+                    </h2>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {% for image in place.gallery_images.all %}
+                        <div class="relative h-32 bg-gray-200 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
+                            <img src="{{ image.image.url }}" alt="{{ image.caption|default:place.name }}" class="w-full h-full object-cover">
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Quick Info Card -->
+                <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-3">
+                        <div class="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        Quick Information
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Location</p>
+                                <p class="font-semibold text-gray-800">{{ place.location }}</p>
+                            </div>
+                        </div>
+                        
+                        {% if place.address %}
+                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Address</p>
+                                <p class="font-semibold text-gray-800">{{ place.address }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if place.contact_phone %}
+                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Phone</p>
+                                <p class="font-semibold text-gray-800">{{ place.contact_phone }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if place.contact_email %}
+                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Email</p>
+                                <p class="font-semibold text-gray-800">{{ place.contact_email }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+
+                
+                <!-- Contact Actions -->
+                <div class="bg-gradient-to-br from-white to-blue-50 rounded-2xl p-6 border border-blue-200 shadow-xl">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-3">
+                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        Get in Touch
+                    </h3>
+                    <div class="space-y-3">
+                        {% if place.website %}
+                        <a href="{{ place.website }}" target="_blank" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 px-4 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9"/>
+                            </svg>
+                            Visit Website
+                        </a>
+                        {% endif %}
+                        
+                        {% if place.contact_phone %}
+                        <a href="tel:{{ place.contact_phone }}" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white py-3 px-4 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                            </svg>
+                            Call Now
+                        </a>
+                        {% endif %}
+                        
+                        {% if place.contact_email %}
+                        <a href="mailto:{{ place.contact_email }}" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-3 px-4 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            Send Email
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Creator Actions - Only show if user is the creator -->
+                {% if user.is_authenticated and place.created_by == user %}
+                <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-200 shadow-xl mt-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-3">
+                        <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path fill-rule="evenodd" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" clip-rule="evenodd"/>
+                                <path fill-rule="evenodd" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        Manage Place
+                    </h3>
+                    <div class="space-y-3">
+                        <a href="{% url 'user_place_detail' place.pk %}" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white py-3 px-4 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                            Manage Place
+                        </a>
+                        <a href="{% url 'user_place_delete' place.pk %}" class="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-3 px-4 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                            Delete Place
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+
+            
+
+            
+
+</div>
+
+<!-- Features Section -->
+{% if place.features.all %}
+<div class="bg-gradient-to-br from-amber-50 to-orange-50 py-16">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="bg-white rounded-2xl p-8 shadow-lg">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4 flex items-center justify-center gap-3">
+                    <div class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
+                        <svg class="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                        </svg>
+                    </div>
+                    Features Available
+                </h2>
+                
+                <!-- Features Count Summary -->
+                <div class="inline-block p-6 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-200 shadow-lg mb-8">
+                    <div class="text-4xl font-bold text-amber-600 mb-2">{{ place.features.count }}</div>
+                    <div class="text-lg text-gray-600">Features Available</div>
+                </div>
+            </div>
+            
+            <!-- Features Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for feature in place.features.all %}
+                <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-200 hover:shadow-lg hover:border-amber-300 transition-all duration-300 group shadow-md">
+                    <div class="text-center mb-4">
+                        {% if feature.image %}
+                            <div class="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-400 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:from-amber-200 group-hover:to-orange-200 transition-all duration-300 shadow-md">
+                                <img src="{{ feature.image.url }}" alt="{{ feature.name }}" class="w-12 h-12 object-cover rounded-lg">
+                            </div>
+                        {% else %}
+                            <div class="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-400 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:from-amber-200 group-hover:to-orange-200 transition-all duration-300 shadow-md">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                                </svg>
+                            </div>
+                        {% endif %}
+                        
+                        <h4 class="text-lg font-semibold text-gray-800 group-hover:text-amber-600 transition-colors duration-300">
+                            {{ feature.name }}
+                        </h4>
+                        {% if feature.description %}
+                        <p class="text-sm text-gray-600 mt-2">{{ feature.description|truncatewords:8 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Feature Price -->
+                    {% if feature.price %}
+                    <div class="text-center mb-4">
+                        <div class="inline-block p-2 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200 shadow-sm">
+                            <span class="text-lg font-bold text-amber-600">{{ feature.display_price }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Feature Duration -->
+                    {% if feature.duration %}
+                    <div class="text-center mb-4">
+                        <div class="inline-block p-2 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 shadow-sm">
+                            <span class="text-sm font-medium text-blue-600">{{ feature.display_duration }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- View Feature Details Button -->
+                    <div class="text-center mt-4">
+                        <button class="inline-flex items-center bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-300">
+                            View Details
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Ratings and Reviews Section - Only visible for verified places -->
+{% if place.verified %}
+<div class="bg-white py-16">
+{% else %}
+<!-- Place not verified - Ratings section hidden -->
+<div class="bg-gray-50 py-16">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center">
+            <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Ratings & Reviews Not Available</h3>
+            <p class="text-gray-600">This place is not yet verified. Ratings and reviews will be available once the place has been verified by our team.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if place.verified %}
+<div class="bg-white py-16">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-gray-800 mb-4">What People Say</h2>
+            <p class="text-xl text-gray-600">Read reviews and ratings from visitors</p>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Rating Summary -->
+            <div class="lg:col-span-1">
+                <div class="bg-gray-50 rounded-2xl p-8 text-center">
+                    <!-- Star Rating Display -->
+                    {% include 'components/star_rating.html' with rating=place.average_rating total_ratings=place.total_ratings %}
+                    
+                    <!-- Rating Distribution -->
+                    {% if place.rating_distribution %}
+                    <div class="mt-6 space-y-2">
+                        {% for rating, count in place.rating_distribution.items %}
+                        {% if count > 0 %}
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="flex items-center gap-1">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= rating %}
+                                        <svg class="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                        </svg>
+                                    {% endif %}
+                                {% endfor %}
+                                {{ rating }} stars
+                            </span>
+                            <span class="text-gray-600">{{ count }}</span>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Rating Form and Reviews -->
+            <div class="lg:col-span-2">
+                <!-- Rating Form for Authenticated Users -->
+                {% if user.is_authenticated %}
+                    {% if not user_rating %}
+                        {% include 'components/rating_form.html' with rating_type='place' item_id=place.pk %}
+                    {% else %}
+                        <div class="bg-emerald-50 rounded-xl p-6 mb-6 border border-emerald-200">
+                            <h4 class="text-lg font-semibold text-emerald-800 mb-2">Your Rating</h4>
+                            <div class="flex items-center gap-3 mb-3">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= user_rating.rating %}
+                                        <svg class="w-6 h-6 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-6 h-6 text-gray-300 fill-current" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                        </svg>
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="text-lg font-semibold text-emerald-800">{{ user_rating.rating }}/5</span>
+                            </div>
+                            <p class="text-emerald-700 mb-3">{{ user_rating.comment }}</p>
+                            <button onclick="deleteRating('place', {{ user_rating.pk }})" class="text-red-600 hover:text-red-800 text-sm font-medium">Delete Rating</button>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="bg-blue-50 rounded-xl p-6 mb-6 border border-blue-200">
+                        <h4 class="text-lg font-semibold text-blue-800 mb-2">Want to Rate This Place?</h4>
+                        <p class="text-blue-700 mb-3">Please <a href="{% url 'login' %}" class="underline font-medium">login</a> to share your experience and rate this place.</p>
+                    </div>
+                {% endif %}
+                
+                <!-- Recent Reviews -->
+                <div class="space-y-4">
+                    <h4 class="text-xl font-semibold text-gray-800 mb-4">Recent Reviews</h4>
+                    {% if place.ratings.all %}
+                        {% for rating in place.ratings.all|slice:":5" %}
+                        <div class="bg-gray-50 rounded-xl p-6">
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                                        <span class="text-emerald-600 font-semibold">{{ rating.user.email|first|upper }}</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-800">{{ rating.user.email }}</p>
+                                        <div class="flex items-center gap-1">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= rating.rating %}
+                                                    <svg class="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                                    </svg>
+                                                {% else %}
+                                                    <svg class="w-4 h-4 text-gray-300 fill-current" viewBox="0 0 20 20">
+                                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                                    </svg>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <span class="text-sm text-gray-500 ml-2">{{ rating.rating }}/5</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="text-sm text-gray-500">{{ rating.created_at|date:"M d, Y" }}</span>
+                            </div>
+                            <p class="text-gray-700">{{ rating.comment }}</p>
+                            <div class="flex items-center gap-4 mt-3">
+                                <button onclick="markHelpful('place', {{ rating.pk }})" class="flex items-center gap-1 text-sm text-gray-600 hover:text-emerald-600 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
+                                    </svg>
+                                    Helpful ({{ rating.helpful_count }})
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        {% if place.ratings.count > 5 %}
+                        <div class="text-center mt-6">
+                            <a href="{% url 'place_ratings' place.pk %}" class="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200">
+                                View All {{ place.ratings.count }} Reviews
+                            </a>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="bg-gray-50 rounded-xl p-8 text-center">
+                            <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                </svg>
+                            </div>
+                            <p class="text-gray-500">No reviews yet. Be the first to share your experience!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+{% block extra_js %}
+<script>
+  const toggle = document.getElementById('theme-toggle');
+  toggle.addEventListener('click', () => {
+    document.documentElement.classList.toggle('dark');
+  });
+  
+  // Rating functionality
+  function markHelpful(ratingType, ratingId) {
+    fetch(`/listings/rating/${ratingType}/${ratingId}/helpful/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        location.reload();
+      } else {
+        alert(data.error || 'An error occurred');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('An error occurred');
+    });
+  }
+  
+  function deleteRating(ratingType, ratingId) {
+    if (confirm('Are you sure you want to delete your rating?')) {
+      fetch(`/listings/rating/${ratingType}/${ratingId}/delete/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          location.reload();
+        } else {
+          alert(data.error || 'An error occurred');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred');
+      });
+    }
+  }
+</script>
+{% endblock %} 

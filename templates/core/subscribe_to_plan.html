@@ -1,0 +1,142 @@
+{% extends 'users/base.html' %}
+{% load static %}
+
+{% block title %}Subscribe to {{ plan.name }} - TravelsKe{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-12">
+                <h1 class="text-4xl font-bold text-gray-800 mb-4">Subscribe to {{ plan.name }}</h1>
+                <p class="text-xl text-gray-600">Complete your subscription to unlock premium features</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Plan Details -->
+                <div class="bg-white rounded-2xl shadow-lg p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Plan Details</h2>
+                    
+                    <div class="space-y-6">
+                        <div class="text-center p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
+                            <div class="text-4xl font-bold text-blue-600 mb-2">KES {{ plan.price }}</div>
+                            <div class="text-gray-600">
+                                {% if plan.duration_days == 30 %}
+                                    per month
+                                {% elif plan.duration_days == 90 %}
+                                    per quarter
+                                {% elif plan.duration_days == 365 %}
+                                    per year
+                                {% else %}
+                                    for {{ plan.duration_days }} days
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="font-semibold text-gray-800 mb-3">What's included:</h3>
+                            <ul class="space-y-2">
+                                {% for feature in plan.features %}
+                                <li class="flex items-center">
+                                    <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    {{ feature }}
+                                </li>
+                                {% empty %}
+                                <li class="flex items-center">
+                                    <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    {{ plan.get_plan_type_display }} features
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <div class="border-t pt-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Duration:</span>
+                                <span class="font-medium">
+                                    {% if plan.duration_days == 30 %}
+                                        1 Month
+                                    {% elif plan.duration_days == 90 %}
+                                        3 Months
+                                    {% elif plan.duration_days == 365 %}
+                                        1 Year
+                                    {% else %}
+                                        {{ plan.duration_days }} Days
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-gray-600">Target:</span>
+                                <span class="font-medium">{{ plan.get_target_type_display }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subscription Form -->
+                <div class="bg-white rounded-2xl shadow-lg p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Complete Subscription</h2>
+                    
+                    <form method="POST" class="space-y-6">
+                        {% csrf_token %}
+                        
+                        <!-- Confirmation -->
+                        <div class="bg-blue-50 rounded-lg p-4">
+                            <div class="flex items-start">
+                                <svg class="w-5 h-5 text-blue-600 mt-1 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <div>
+                                    <h4 class="font-semibold text-blue-800 mb-1">Subscription Summary</h4>
+                                    <p class="text-blue-700 text-sm">
+                                        You're subscribing to <strong>{{ plan.name }}</strong> for 
+                                        <strong>KES {{ plan.price }}</strong>.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Terms and Conditions -->
+                        <div>
+                            <label class="flex items-start">
+                                <input type="checkbox" required class="mt-1 mr-3 text-blue-600 rounded focus:ring-blue-500">
+                                <span class="text-sm text-gray-700">
+                                    I agree to the <a href="#" class="text-blue-600 hover:underline">Terms of Service</a> and 
+                                    <a href="#" class="text-blue-600 hover:underline">Privacy Policy</a>. I understand that 
+                                    this subscription will automatically renew unless cancelled.
+                                </span>
+                            </label>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" 
+                                class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl">
+                            Subscribe Now - KES {{ plan.price }}
+                        </button>
+                    </form>
+
+                    <!-- Additional Info -->
+                    <div class="mt-6 text-center">
+                        <p class="text-sm text-gray-500">
+                            You'll be redirected to complete payment after subscription creation
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Back to Plans -->
+            <div class="text-center mt-12">
+                <a href="{% url 'core:subscription_page' %}" 
+                   class="text-blue-600 hover:text-blue-700 font-medium">
+                    ← Back to all subscription plans
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

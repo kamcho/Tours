@@ -1,0 +1,252 @@
+{% extends 'users/base.html' %}
+{% block content %}
+
+<!-- Hero Section -->
+<div class="relative bg-gradient-to-br from-gray-900 via-black to-gray-900 py-20">
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20" style="background-image: url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4">
+        <div class="text-center">
+            <h1 class="text-5xl lg:text-6xl font-bold text-white mb-6">Discover Amazing Places</h1>
+            <p class="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">Explore restaurants, parks, hotels, and unique destinations across Kenya. Find the perfect spots for your next adventure.</p>
+            
+            <!-- Search and Filter Bar -->
+            <div class="bg-white bg-opacity-95 backdrop-blur-sm rounded-xl p-6 shadow-xl max-w-4xl mx-auto mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- Category Filter -->
+                    <div class="relative">
+                        <div class="flex items-center gap-2 text-gray-600 mb-2">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-sm font-medium">Category</span>
+                        </div>
+                        <select id="categoryFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                            <option value="all">All Categories</option>
+                            {% for category in categories %}
+                                <option value="{{ category.name }}" {% if filtered_category == category.name %}selected{% endif %}>{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Location Filter -->
+                    <div class="relative">
+                        <div class="flex items-center gap-2 text-gray-600 mb-2">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-sm font-medium">Location</span>
+                        </div>
+                        <input type="text" id="locationFilter" placeholder="Enter location" value="{{ filtered_location }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                    </div>
+                    
+                    <!-- Search Input -->
+                    <div class="relative">
+                        <div class="flex items-center gap-2 text-gray-600 mb-2">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-sm font-medium">Search</span>
+                        </div>
+                        <input type="text" id="searchFilter" placeholder="Search places..." value="{{ filtered_search }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                    </div>
+                    
+                    <!-- Search Button -->
+                    <div class="flex items-end">
+                        <button type="button" onclick="applyFilters()" class="w-full bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700 text-white p-2 rounded-lg transition duration-300 flex items-center justify-center">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="bg-gray-100 py-6">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex flex-wrap justify-center gap-4">
+            <a href="{% url 'home' %}" class="bg-white hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-lg font-semibold transition duration-300 shadow-md hover:shadow-lg flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                </svg>
+                Home
+            </a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'user_place_list' %}" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition duration-300 shadow-md hover:shadow-lg flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    My Places
+                </a>
+                <a href="{% url 'place_create_step' step=1 %}" class="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition duration-300 shadow-md hover:shadow-lg flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    Add Place
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Places Grid -->
+<div class="bg-white py-16">
+    <div class="max-w-7xl mx-auto px-4">
+        {% if places %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {% for place in places %}
+                <div class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105 overflow-hidden border border-gray-100">
+                    <!-- Place Image -->
+                    <div class="relative h-48 bg-gradient-to-br from-teal-400 to-blue-500 overflow-hidden">
+                        {% if place.profile_picture %}
+                            <div class="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-500" style="background-image: url('{{ place.profile_picture.url }}');"></div>
+                        {% else %}
+                            <div class="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-500" style="background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+                        {% endif %}
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                        
+                        <!-- Category Badge -->
+                        <div class="absolute top-4 left-4">
+                            <span class="bg-white/90 backdrop-blur-sm text-gray-800 px-3 py-1 rounded-full text-xs font-semibold">{{ place.category.name }}</span>
+                        </div>
+                        
+                        <!-- Active Status -->
+                        <div class="absolute top-4 right-4">
+                            {% if place.is_active %}
+                                <span class="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">Active</span>
+                            {% else %}
+                                <span class="bg-gray-500 text-white px-3 py-1 rounded-full text-xs font-semibold">Inactive</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Place Content -->
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-2 group-hover:text-teal-600 transition-colors">{{ place.name }}</h3>
+                        <p class="text-gray-600 mb-4 line-clamp-2">{{ place.description|truncatewords:20 }}</p>
+                        
+                        <!-- Place Details -->
+                        <div class="space-y-2 mb-4">
+                            <div class="flex items-center gap-2 text-gray-600">
+                                <svg class="w-4 h-4 text-teal-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                </svg>
+                                <span class="text-sm">{{ place.location }}</span>
+                            </div>
+                            {% if place.address %}
+                            <div class="flex items-center gap-2 text-gray-600">
+                                <svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                </svg>
+                                <span class="text-sm">{{ place.address|truncatechars:30 }}</span>
+                            </div>
+                            {% endif %}
+                            {% if place.contact_phone %}
+                            <div class="flex items-center gap-2 text-gray-600">
+                                <svg class="w-4 h-4 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                                </svg>
+                                <span class="text-sm">{{ place.contact_phone }}</span>
+                            </div>
+                            {% endif %}
+                            <div class="flex items-center gap-2 text-gray-600">
+                                <svg class="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
+                                </svg>
+                                <span class="text-sm">By {{ place.created_by.email|truncatechars:20 }}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Tags -->
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="bg-teal-100 text-teal-700 px-2 py-1 rounded-full text-xs font-medium">{{ place.category.name }}</span>
+                            {% if place.website %}
+                                <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">Website</span>
+                            {% endif %}
+                            {% if place.contact_email %}
+                                <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">Email</span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Action Button -->
+                        <a href="{% url 'public_place_detail' place.pk %}" class="w-full bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700 text-white py-3 px-4 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-2 group-hover:shadow-lg">
+                            View Details
+                            <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-16">
+                <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">No Places Found</h3>
+                <p class="text-gray-600 mb-6">We couldn't find any places matching your criteria. Try adjusting your filters or check back later.</p>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'place_create_step' step=1 %}" class="bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition duration-300">
+                        Add the First Place
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+  const toggle = document.getElementById('theme-toggle');
+  toggle.addEventListener('click', () => {
+    document.documentElement.classList.toggle('dark');
+  });
+  
+  // Filter functionality
+  function applyFilters() {
+    const category = document.getElementById('categoryFilter').value;
+    const location = document.getElementById('locationFilter').value;
+    const search = document.getElementById('searchFilter').value;
+    
+    // Build query string
+    const params = new URLSearchParams();
+    if (category && category !== 'all') params.append('category', category);
+    if (location) params.append('location', location);
+    if (search) params.append('search', search);
+    
+    // Redirect to filtered results
+    const currentUrl = window.location.pathname;
+    const queryString = params.toString();
+    const newUrl = queryString ? `${currentUrl}?${queryString}` : currentUrl;
+    
+    window.location.href = newUrl;
+  }
+  
+  // Auto-apply filters on Enter key
+  document.getElementById('searchFilter').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      applyFilters();
+    }
+  });
+  
+  document.getElementById('locationFilter').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      applyFilters();
+    }
+  });
+  
+  // Auto-apply category filter on change
+  document.getElementById('categoryFilter').addEventListener('change', function() {
+    applyFilters();
+  });
+</script>
+{% endblock %} 

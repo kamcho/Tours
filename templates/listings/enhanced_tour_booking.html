@@ -1,0 +1,258 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Book Tour - {{ tour.name }}{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="relative bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-900 py-20">
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20" style="background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4">
+        <div class="text-center">
+            <h1 class="text-5xl lg:text-6xl font-bold text-white mb-6">Book Your Adventure</h1>
+            <p class="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">Complete your booking for an unforgettable journey to {{ tour.destination.first.name|default:"amazing destinations" }}</p>
+            
+            <!-- Tour Summary in Hero -->
+            <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-8 max-w-5xl mx-auto mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Tour Details -->
+                    <div class="text-left">
+                        <h3 class="text-2xl font-bold text-white mb-4">Tour Summary</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="text-white/80 text-sm font-medium">Tour Name</h4>
+                                <p class="text-white text-lg font-semibold">{{ tour.name }}</p>
+                            </div>
+                            <div>
+                                <h4 class="text-white/80 text-sm font-medium">Description</h4>
+                                <p class="text-white/90">{{ tour.description|truncatewords:30 }}</p>
+                            </div>
+                            <div>
+                                <h4 class="text-white/80 text-sm font-medium">Dates</h4>
+                                <p class="text-white text-lg">{{ tour.start_date|date:"M d" }} - {{ tour.end_date|date:"M d, Y" }}</p>
+                            </div>
+                            <div>
+                                <h4 class="text-white/80 text-sm font-medium">Available Spots</h4>
+                                <p class="text-white text-lg">{{ available_spots }} spots left</p>
+                            </div>
+                            {% if tour.status %}
+                            <div>
+                                <h4 class="text-white/80 text-sm font-medium">Status</h4>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
+                                    {% if tour.status == 'active' %}bg-emerald-500 text-white
+                                    {% elif tour.status == 'planning' %}bg-blue-500 text-white
+                                    {% else %}bg-gray-500 text-white{% endif %}">
+                                    {{ tour.status|title }}
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Pricing Information -->
+                    <div class="text-left">
+                        <h3 class="text-2xl font-bold text-white mb-4">Pricing</h3>
+                        <div class="space-y-4">
+                            <div class="bg-white/20 rounded-lg p-4">
+                                <h4 class="text-white/80 text-sm font-medium">Individual</h4>
+                                <p class="text-3xl font-bold text-white">${{ pricing_info.individual_price }}</p>
+                            </div>
+                            
+                            {% if pricing_info.has_couple_price %}
+                            <div class="bg-emerald-500/20 rounded-lg p-4">
+                                <h4 class="text-emerald-300 text-sm font-medium">Couple (2 people)</h4>
+                                <p class="text-3xl font-bold text-emerald-300">${{ pricing_info.couple_price }}</p>
+                                <p class="text-emerald-300 text-sm">Save ${{ pricing_info.individual_price|add:pricing_info.individual_price|add:"-"|add:pricing_info.couple_price }}!</p>
+                            </div>
+                            {% endif %}
+                            
+                            {% if pricing_info.group_discount %}
+                            <div class="bg-blue-500/20 rounded-lg p-4">
+                                <h4 class="text-blue-300 text-sm font-medium">Group (6+ people)</h4>
+                                <p class="text-3xl font-bold text-blue-300">{{ pricing_info.group_discount|floatformat:0 }}% off</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="bg-gradient-to-br from-gray-50 to-gray-100 py-16">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="max-w-4xl mx-auto">
+            <!-- Booking Form -->
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Complete Your Booking</h2>
+                    
+                    <form method="post" class="space-y-6">
+                        {% csrf_token %}
+                        
+                        <!-- Booking Type Selection -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">
+                                Select Booking Type
+                            </label>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {% for choice in form.booking_type %}
+                                    <label class="relative flex cursor-pointer rounded-lg border border-gray-300 bg-white p-4 shadow-sm focus:outline-none hover:bg-gray-50">
+                                        <input type="radio" name="{{ form.booking_type.name }}" value="{{ choice.data.value }}" class="sr-only" {% if choice.data.selected %}checked{% endif %}>
+                                        <span class="flex flex-1">
+                                            <span class="flex flex-col">
+                                                <span class="block text-sm font-medium text-gray-900">{{ choice.data.label }}</span>
+                                                {% if choice.data.value == 'couple' and pricing_info.has_couple_price %}
+                                                    <span class="mt-1 flex items-center text-sm text-emerald-600">
+                                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                        </svg>
+                                                        Best value
+                                                    </span>
+                                                {% endif %}
+                                            </span>
+                                        </span>
+                                        <span class="pointer-events-none absolute -inset-px rounded-lg border-2 {% if choice.data.selected %}border-teal-500{% endif %}"></span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                            {% if form.booking_type.errors %}
+                                <div class="mt-2 text-sm text-red-600">
+                                    {% for error in form.booking_type.errors %}
+                                        <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Participants -->
+                        <div>
+                            <label for="{{ form.participants.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Number of Participants
+                            </label>
+                            {{ form.participants }}
+                            {% if form.participants.errors %}
+                                <div class="mt-1 text-sm text-red-600">
+                                    {% for error in form.participants.errors %}
+                                        <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <p class="mt-1 text-sm text-gray-500">Maximum {{ available_spots }} participants allowed</p>
+                        </div>
+                        
+                        <!-- Special Requests -->
+                        <div>
+                            <label for="{{ form.special_requests.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Special Requests
+                            </label>
+                            {{ form.special_requests }}
+                            {% if form.special_requests.errors %}
+                                <div class="mt-1 text-sm text-red-600">
+                                    {% for error in form.special_requests.errors %}
+                                        <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <p class="mt-1 text-sm text-gray-500">Tell us about any dietary requirements, accessibility needs, or special requests</p>
+                        </div>
+                        
+                        <!-- Terms and Conditions -->
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                {{ form.terms_accepted }}
+                            </div>
+                            <div class="ml-3 text-sm">
+                                <label for="{{ form.terms_accepted.id_for_label }}" class="font-medium text-gray-700">
+                                    I agree to the 
+                                    <a href="#" class="text-teal-600 hover:text-teal-500 underline">Terms and Conditions</a>
+                                    and 
+                                    <a href="#" class="text-teal-600 hover:text-teal-500 underline">Privacy Policy</a>
+                                </label>
+                                {% if form.terms_accepted.errors %}
+                                    <div class="mt-1 text-sm text-red-600">
+                                        {% for error in form.terms_accepted.errors %}
+                                            <p>{{ error }}</p>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
+                            <button type="submit" class="flex-1 bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700 text-white px-8 py-4 rounded-lg font-semibold transition duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Confirm Booking
+                            </button>
+                            
+                            <a href="{% url 'public_grouptours_detail' tour.pk %}" class="flex-1 bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-4 rounded-lg font-semibold transition duration-300 text-center">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Additional Information -->
+                <div class="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
+                    <h3 class="text-lg font-semibold text-blue-900 mb-3">What's Included</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800">
+                        {% if tour.included_services %}
+                            <div>
+                                <h4 class="font-medium mb-2">Included Services:</h4>
+                                <p>{{ tour.included_services|linebreaks }}</p>
+                            </div>
+                        {% endif %}
+                        
+                        {% if tour.excluded_services %}
+                            <div>
+                                <h4 class="font-medium mb-2">Not Included:</h4>
+                                <p>{{ tour.excluded_services|linebreaks }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if tour.requirements %}
+                        <div class="mt-4">
+                            <h4 class="font-medium text-blue-900 mb-2">Requirements:</h4>
+                            <p class="text-sm text-blue-800">{{ tour.requirements }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Dynamic pricing calculation and form validation
+document.addEventListener('DOMContentLoaded', function() {
+    const bookingTypeRadios = document.querySelectorAll('input[name="booking_type"]');
+    const participantsInput = document.getElementById('{{ form.participants.id_for_label }}');
+    
+    function updateParticipantsValidation() {
+        const selectedType = document.querySelector('input[name="booking_type"]:checked').value;
+        
+        if (selectedType === 'couple') {
+            participantsInput.value = '2';
+            participantsInput.disabled = true;
+        } else if (selectedType === 'individual') {
+            participantsInput.value = '1';
+            participantsInput.disabled = true;
+        } else {
+            participantsInput.disabled = false;
+        }
+    }
+    
+    // Add event listeners
+    bookingTypeRadios.forEach(radio => {
+        radio.addEventListener('change', updateParticipantsValidation);
+    });
+    
+    // Initialize
+    updateParticipantsValidation();
+});
+</script>
+{% endblock %} 

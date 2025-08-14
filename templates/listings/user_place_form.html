@@ -1,0 +1,225 @@
+{% extends 'users/base.html' %}
+{% block content %}
+
+<!-- Hero Section -->
+<div class="relative bg-gradient-to-br from-gray-900 via-black to-gray-900 py-20">
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20" style="background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4">
+        <div class="text-center">
+            <h1 class="text-5xl lg:text-6xl font-bold text-white mb-6">Edit Place</h1>
+            <p class="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">Update your place information and make it even better for visitors to discover.</p>
+            
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="{% url 'home' %}" class="bg-white hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-lg font-semibold transition duration-300 shadow-md hover:shadow-lg flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    Home
+                </a>
+                <a href="{% url 'user_place_list' %}" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition duration-300 shadow-md hover:shadow-lg flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    My Places
+                </a>
+                <a href="{% url 'public_place_list' %}" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-3 rounded-lg font-semibold transition duration-300 shadow-md hover:shadow-lg flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    All Places
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Form -->
+<div class="bg-white py-16">
+    <div class="max-w-4xl mx-auto px-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <!-- Form Header -->
+            <div class="bg-gradient-to-r from-teal-600 to-blue-600 px-8 py-6">
+                <h2 class="text-2xl font-bold text-white">Update Place Information</h2>
+                <p class="text-teal-100 mt-2">Make changes to your place details below</p>
+            </div>
+            
+            <!-- Form Content -->
+            <div class="p-8">
+                <form method="post" class="space-y-8">
+                    {% csrf_token %}
+                    
+                    <!-- Basic Information -->
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-bold text-gray-800 border-b border-gray-200 pb-2">Basic Information</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="{{ form.name.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clip-rule="evenodd"/>
+                                    </svg>
+                                    Place Name
+                                </label>
+                                <input type="text" name="{{ form.name.name }}" value="{{ form.name.value|default:'' }}" id="{{ form.name.id_for_label }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 bg-white text-gray-900" placeholder="Enter place name">
+                                {% if form.name.help_text %}<p class="text-xs text-gray-500 mt-1">{{ form.name.help_text }}</p>{% endif %}
+                                {% for error in form.name.errors %}<p class="text-xs text-red-600 mt-1">{{ error }}</p>{% endfor %}
+                            </div>
+                            
+                            <div>
+                                <label for="{{ form.category.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                    Category
+                                </label>
+                                <select name="{{ form.category.name }}" id="{{ form.category.id_for_label }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 bg-white text-gray-900">
+                                    <option value="">Select category</option>
+                                    <option value="Restaurant" {% if form.category.value == 'Restaurant' %}selected{% endif %}>Restaurant</option>
+                                    <option value="Hotel" {% if form.category.value == 'Hotel' %}selected{% endif %}>Hotel</option>
+                                    <option value="Tourist Attraction" {% if form.category.value == 'Tourist Attraction' %}selected{% endif %}>Tourist Attraction</option>
+                                    <option value="Shopping Center" {% if form.category.value == 'Shopping Center' %}selected{% endif %}>Shopping Center</option>
+                                    <option value="Park" {% if form.category.value == 'Park' %}selected{% endif %}>Park</option>
+                                    <option value="Museum" {% if form.category.value == 'Museum' %}selected{% endif %}>Museum</option>
+                                    <option value="Beach" {% if form.category.value == 'Beach' %}selected{% endif %}>Beach</option>
+                                    <option value="Mountain" {% if form.category.value == 'Mountain' %}selected{% endif %}>Mountain</option>
+                                    <option value="Other" {% if form.category.value == 'Other' %}selected{% endif %}>Other</option>
+                                </select>
+                                {% if form.category.help_text %}<p class="text-xs text-gray-500 mt-1">{{ form.category.help_text }}</p>{% endif %}
+                                {% for error in form.category.errors %}<p class="text-xs text-red-600 mt-1">{{ error }}</p>{% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.description.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                </svg>
+                                Description
+                            </label>
+                            <textarea name="{{ form.description.name }}" id="{{ form.description.id_for_label }}" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 bg-white text-gray-900" placeholder="Describe your place...">{{ form.description.value|default:'' }}</textarea>
+                            {% if form.description.help_text %}<p class="text-xs text-gray-500 mt-1">{{ form.description.help_text }}</p>{% endif %}
+                            {% for error in form.description.errors %}<p class="text-xs text-red-600 mt-1">{{ error }}</p>{% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Location Information -->
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-bold text-gray-800 border-b border-gray-200 pb-2">Location Information</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="{{ form.location.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    Location
+                                </label>
+                                <input type="text" name="{{ form.location.name }}" value="{{ form.location.value|default:'' }}" id="{{ form.location.id_for_label }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 bg-white text-gray-900" placeholder="Enter location (e.g., Nairobi, Mombasa)">
+                                {% if form.location.help_text %}<p class="text-xs text-gray-500 mt-1">{{ form.location.help_text }}</p>{% endif %}
+                                {% for error in form.location.errors %}<p class="text-xs text-red-600 mt-1">{{ error }}</p>{% endfor %}
+                            </div>
+                            
+                            <div>
+                                <label for="{{ form.address.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    Address
+                                </label>
+                                <input type="text" name="{{ form.address.name }}" value="{{ form.address.value|default:'' }}" id="{{ form.address.id_for_label }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 bg-white text-gray-900" placeholder="Enter full address">
+                                {% if form.address.help_text %}<p class="text-xs text-gray-500 mt-1">{{ form.address.help_text }}</p>{% endif %}
+                                {% for error in form.address.errors %}<p class="text-xs text-red-600 mt-1">{{ error }}</p>{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Contact Information -->
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-bold text-gray-800 border-b border-gray-200 pb-2">Contact Information</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="{{ form.contact_email.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                                    </svg>
+                                    Email
+                                </label>
+                                <input type="email" name="{{ form.contact_email.name }}" value="{{ form.contact_email.value|default:'' }}" id="{{ form.contact_email.id_for_label }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 bg-white text-gray-900" placeholder="Enter contact email">
+                                {% if form.contact_email.help_text %}<p class="text-xs text-gray-500 mt-1">{{ form.contact_email.help_text }}</p>{% endif %}
+                                {% for error in form.contact_email.errors %}<p class="text-xs text-red-600 mt-1">{{ error }}</p>{% endfor %}
+                            </div>
+                            
+                            <div>
+                                <label for="{{ form.contact_phone.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                                    </svg>
+                                    Phone
+                                </label>
+                                <input type="tel" name="{{ form.contact_phone.name }}" value="{{ form.contact_phone.value|default:'' }}" id="{{ form.contact_phone.id_for_label }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 bg-white text-gray-900" placeholder="Enter contact phone">
+                                {% if form.contact_phone.help_text %}<p class="text-xs text-gray-500 mt-1">{{ form.contact_phone.help_text }}</p>{% endif %}
+                                {% for error in form.contact_phone.errors %}<p class="text-xs text-red-600 mt-1">{{ error }}</p>{% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.website.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                                <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5a2 2 0 112.828 2.828l-1.5 1.5a1 1 0 11-1.414 1.414l-1.5-1.5a4 4 0 00-5.656 5.656l3 3a4 4 0 005.656 0l1.5-1.5a1 1 0 001.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l1.5-1.5a1 1 0 01-1.414-1.414l-1.5 1.5z" clip-rule="evenodd"/>
+                                </svg>
+                                Website
+                            </label>
+                            {{ form.website }}
+                            {% if form.website.help_text %}<p class="text-xs text-gray-500 mt-1">{{ form.website.help_text }}</p>{% endif %}
+                            {% for error in form.website.errors %}<p class="text-xs text-red-600 mt-1">{{ error }}</p>{% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Settings -->
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-bold text-gray-800 border-b border-gray-200 pb-2">Settings</h3>
+                        
+                        <div class="flex items-center">
+                            <label for="{{ form.is_active.id_for_label }}" class="flex items-center cursor-pointer">
+                                <input type="checkbox" name="{{ form.is_active.name }}" id="{{ form.is_active.id_for_label }}" {% if form.is_active.value %}checked{% endif %} class="w-4 h-4 text-teal-600 bg-gray-100 border-gray-300 rounded focus:ring-teal-500 focus:ring-2">
+                                <span class="ml-3 text-sm font-semibold text-gray-700">Active Status</span>
+                            </label>
+                            {% if form.is_active.help_text %}<p class="text-xs text-gray-500 ml-6">{{ form.is_active.help_text }}</p>{% endif %}
+                        </div>
+                        {% for error in form.is_active.errors %}<p class="text-xs text-red-600 mt-1">{{ error }}</p>{% endfor %}
+                    </div>
+                    
+                    <!-- Form Actions -->
+                    <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
+                        <button type="submit" class="flex-1 bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700 text-white py-3 px-6 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Save Changes
+                        </button>
+                        <a href="{% url 'user_place_list' %}" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-6 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+  const toggle = document.getElementById('theme-toggle');
+  toggle.addEventListener('click', () => {
+    document.documentElement.classList.toggle('dark');
+  });
+</script>
+{% endblock %} 

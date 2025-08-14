@@ -1,0 +1,291 @@
+{% extends 'users/base.html' %}
+{% block content %}
+
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">
+    <div class="max-w-4xl mx-auto px-4">
+        <!-- Breadcrumb -->
+        <nav class="flex items-center gap-2 text-sm text-gray-600 mb-8">
+            <a href="{% url 'home' %}" class="hover:text-gray-800">Home</a>
+            <span>/</span>
+            <a href="{% url 'agency_detail' object.agency.pk %}" class="hover:text-gray-800">{{ object.agency.name }}</a>
+            <span>/</span>
+            <a href="{% url 'agency_service_list' object.agency.pk %}" class="hover:text-gray-800">Services</a>
+            <span>/</span>
+            <span class="text-gray-800">{{ object.name }}</span>
+        </nav>
+
+        <!-- Service Header -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-200 mb-8">
+            <div class="flex items-start justify-between mb-6">
+                <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
+                            {{ object.get_service_type_display }}
+                        </span>
+                        {% if object.is_featured %}
+                            <span class="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full text-sm font-medium">
+                                Featured
+                            </span>
+                        {% endif %}
+                        {% if not object.is_active %}
+                            <span class="bg-red-100 text-red-800 px-4 py-2 rounded-full text-sm font-medium">
+                                Inactive
+                            </span>
+                        {% endif %}
+                    </div>
+                    <h1 class="text-4xl font-bold text-gray-800 mb-4">{{ object.name }}</h1>
+                    <p class="text-xl text-gray-600 leading-relaxed">{{ object.description }}</p>
+                </div>
+                
+                <!-- Service Image -->
+                {% if object.service_image %}
+                    <div class="ml-8">
+                        <img src="{{ object.service_image.url }}" alt="{{ object.name }}" class="w-32 h-32 object-cover rounded-xl shadow-lg">
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Quick Info -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-gray-200">
+                {% if object.base_price %}
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                            </svg>
+                        </div>
+                        <h3 class="font-semibold text-gray-800 mb-1">Price</h3>
+                        <p class="text-green-600 font-bold text-lg">{{ object.display_price }}</p>
+                        {% if object.pricing_model %}
+                            <p class="text-sm text-gray-500">{{ object.pricing_model }}</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                
+                {% if object.duration %}
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="font-semibold text-gray-800 mb-1">Duration</h3>
+                        <p class="text-blue-600 font-bold text-lg">{{ object.duration }}</p>
+                    </div>
+                {% endif %}
+                
+                {% if object.group_size_min or object.group_size_max %}
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="font-semibold text-gray-800 mb-1">Group Size</h3>
+                        <p class="text-purple-600 font-bold text-lg">{{ object.group_size_display }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Service Details -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Requirements -->
+                {% if object.requirements %}
+                    <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Requirements
+                        </h2>
+                        <p class="text-gray-600 leading-relaxed">{{ object.requirements }}</p>
+                    </div>
+                {% endif %}
+
+                <!-- Included Items -->
+                {% if object.included_items %}
+                    <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            What's Included
+                        </h2>
+                        <p class="text-gray-600 leading-relaxed">{{ object.included_items }}</p>
+                    </div>
+                {% endif %}
+
+                <!-- Excluded Items -->
+                {% if object.excluded_items %}
+                    <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            What's Not Included
+                        </h2>
+                        <p class="text-gray-600 leading-relaxed">{{ object.excluded_items }}</p>
+                    </div>
+                {% endif %}
+
+                <!-- Cancellation Policy -->
+                {% if object.cancellation_policy %}
+                    <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                            Cancellation Policy
+                        </h2>
+                        <p class="text-gray-600 leading-relaxed">{{ object.cancellation_policy }}</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Agency Info -->
+                <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Agency Information</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-800">{{ object.agency.name }}</p>
+                                <p class="text-sm text-gray-600">{{ object.agency.get_agency_type_display }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-800">{{ object.agency.phone }}</p>
+                                <p class="text-sm text-gray-600">{{ object.agency.email }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-800">{{ object.agency.city }}, {{ object.agency.country }}</p>
+                                <p class="text-sm text-gray-600">{{ object.agency.address }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{% url 'agency_detail' object.agency.pk %}" class="inline-block w-full mt-4 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 py-2 px-4 rounded-lg font-semibold text-center transition-colors">
+                        View Agency Profile
+                    </a>
+                </div>
+
+                <!-- Service Status -->
+                <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Service Status</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Availability:</span>
+                            <span class="font-semibold text-gray-800">{{ object.get_availability_display }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Status:</span>
+                            <span class="font-semibold {% if object.is_active %}text-green-600{% else %}text-red-600{% endif %}">
+                                {% if object.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Featured:</span>
+                            <span class="font-semibold {% if object.is_featured %}text-yellow-600{% else %}text-gray-600{% endif %}">
+                                {% if object.is_featured %}Yes{% else %}No{% endif %}
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Created:</span>
+                            <span class="font-semibold text-gray-800">{{ object.created_at|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manage Service Card -->
+                {% if user.is_authenticated and user == object.agency.owner %}
+                    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200 shadow-sm">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-800">Manage Service</h3>
+                        </div>
+                        
+                        <!-- Quick Actions -->
+                        <div class="space-y-3 mb-4">
+                            <a href="{% url 'agency_service_update' object.pk %}" class="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white py-3 px-4 rounded-xl font-semibold text-center transition duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                                Edit Service
+                            </a>
+                            
+                            <a href="{% url 'agency_service_delete' object.pk %}" class="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-3 px-4 rounded-xl font-semibold text-center transition duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                Delete Service
+                            </a>
+                        </div>
+                        
+                        <!-- Service Stats -->
+                        <div class="bg-white/60 rounded-xl p-4 border border-blue-200">
+                            <h4 class="font-semibold text-gray-800 mb-3 text-sm">Service Statistics</h4>
+                            <div class="grid grid-cols-2 gap-3 text-xs">
+                                <div class="text-center">
+                                    <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-1">
+                                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <p class="text-gray-600">Created</p>
+                                    <p class="font-semibold text-gray-800">{{ object.created_at|date:"M d" }}</p>
+                                </div>
+                                <div class="text-center">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-1">
+                                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                        </svg>
+                                    </div>
+                                    <p class="text-gray-600">Updated</p>
+                                    <p class="font-semibold text-gray-800">{{ object.updated_at|date:"M d" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Links -->
+                        <div class="mt-4 space-y-2">
+                            <a href="{% url 'agency_service_list' object.agency.pk %}" class="block text-center text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors">
+                                ← Back to Services
+                            </a>
+                            <a href="{% url 'agency_detail' object.agency.pk %}" class="block text-center text-gray-500 hover:text-gray-700 text-sm transition-colors">
+                                View Agency Profile
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

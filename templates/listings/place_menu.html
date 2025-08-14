@@ -1,0 +1,115 @@
+{% extends 'users/base.html' %}
+{% block content %}
+
+<!-- Hero Section -->
+<div class="relative bg-gradient-to-br from-amber-900 via-orange-800 to-red-900 py-24">
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20" style="background-image: url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4">
+        <div class="text-center">
+            <h1 class="text-5xl lg:text-7xl font-bold text-white mb-8 leading-tight">{{ place.name }}</h1>
+            <p class="text-xl lg:text-2xl text-gray-200 mb-12 max-w-4xl mx-auto leading-relaxed">Discover our delicious menu featuring fresh ingredients, authentic flavors, and culinary excellence.</p>
+            
+            <!-- Navigation -->
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="{% url 'public_place_detail' place.pk %}" class="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                    View Place
+                </a>
+                {% if is_creator %}
+                <a href="{% url 'user_place_menu' place.pk %}" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    </svg>
+                    Manage Menu
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Full Menu Section -->
+<div class="bg-white py-20">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-800 mb-6">Our Complete Menu</h2>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">Explore our diverse selection of dishes, carefully crafted to satisfy every palate and dietary preference</p>
+        </div>
+        
+        {% if menu_categories %}
+            <div class="space-y-16">
+                {% for category in menu_categories %}
+                <div class="menu-category" id="category-{{ category.id }}">
+                    <!-- Category Header -->
+                    <div class="text-center mb-12">
+                        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full mb-6">
+                            <span class="text-3xl">{{ category.display_icon }}</span>
+                        </div>
+                        <h3 class="text-3xl font-bold text-gray-800 mb-4">{{ category.name }}</h3>
+                        {% if category.description %}
+                        <p class="text-gray-600 max-w-2xl mx-auto">{{ category.description }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Menu Items Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {% for item in category.menu_items.all %}
+                        {% if item.is_active %}
+                        <div class="group bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden border border-gray-100">
+                            <!-- Item Image -->
+                            <div class="relative h-40 bg-gradient-to-br from-amber-400 via-orange-500 to-red-600 overflow-hidden">
+                                {% if item.image %}
+                                    <img src="{{ item.image.url }}" alt="{{ item.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                {% else %}
+                                    <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+                                {% endif %}
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                                
+                                <!-- Price Badge -->
+                                <div class="absolute bottom-3 left-3">
+                                    <span class="bg-white/95 backdrop-blur-sm text-gray-800 px-2 py-1 rounded-full text-sm font-semibold shadow-lg">{{ item.display_price }}</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Item Content -->
+                            <div class="p-5">
+                                <h4 class="text-lg font-bold text-gray-800 mb-2 group-hover:text-amber-600 transition-colors duration-300">{{ item.name }}</h4>
+                                <p class="text-gray-600 mb-4 text-sm">{{ item.description|truncatewords:12 }}</p>
+                                
+                                <!-- Price Display -->
+                                <div class="flex items-center justify-between">
+                                    {% if item.is_discounted %}
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-lg font-bold text-amber-600">{{ item.display_price }}</span>
+                                        <span class="text-sm text-gray-400 line-through">{{ item.original_price }}</span>
+                                    </div>
+                                    {% else %}
+                                    <span class="text-lg font-bold text-amber-600">{{ item.display_price }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- Empty Menu State -->
+            <div class="text-center py-20">
+                <div class="w-32 h-32 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-8">
+                    <svg class="w-16 h-16 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 5.477 5.754 5 7.5 5s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 19 16.5 19c-1.746 0-3.332-.523-4.5-1.253"/>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">Menu Coming Soon</h3>
+                <p class="text-gray-600 mb-6">We're currently preparing our menu. Please check back later!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %} 

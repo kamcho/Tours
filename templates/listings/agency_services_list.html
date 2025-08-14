@@ -1,0 +1,174 @@
+{% extends 'users/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="bg-gradient-to-br from-gray-50 to-gray-100 py-8 sm:py-12 lg:py-16">
+    <div class="max-w-7xl mx-auto px-4">
+        <!-- Header -->
+        <div class="text-center mb-8 sm:mb-12">
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-800 mb-4">
+                {% if agency %}
+                    {{ agency.name }} Services
+                {% else %}
+                    Agency Services
+                {% endif %}
+            </h1>
+            {% if agency %}
+                <p class="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
+                    Discover the wide range of services offered by {{ agency.name }}
+                </p>
+            {% endif %}
+        </div>
+
+        <!-- Services Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
+            {% for service in services %}
+            <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100">
+                <!-- Service Image -->
+                {% if service.service_image %}
+                    <div class="h-48 bg-gradient-to-br from-blue-400 to-indigo-500 relative overflow-hidden">
+                        <img src="{{ service.service_image.url }}" alt="{{ service.name }}" class="w-full h-full object-cover">
+                    </div>
+                {% else %}
+                    <div class="h-48 bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center">
+                        <svg class="w-16 h-16 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                {% endif %}
+                
+                <!-- Service Content -->
+                <div class="p-6">
+                    <!-- Service Type Badge -->
+                    <div class="mb-3">
+                        <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded-full">
+                            {{ service.get_service_type_display }}
+                        </span>
+                    </div>
+                    
+                    <!-- Service Name -->
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">{{ service.name }}</h3>
+                    
+                    <!-- Service Description -->
+                    <p class="text-gray-600 text-sm mb-4 line-clamp-3">{{ service.description|truncatewords:20 }}</p>
+                    
+                    <!-- Service Details -->
+                    <div class="space-y-2 mb-4">
+                        {% if service.duration %}
+                        <div class="flex items-center text-sm text-gray-500">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            {{ service.duration }}
+                        </div>
+                        {% endif %}
+                        
+                        {% if service.group_size_min or service.group_size_max %}
+                        <div class="flex items-center text-sm text-gray-500">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                            {{ service.group_size_display }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Price -->
+                    <div class="mb-4">
+                        <span class="text-2xl font-bold text-emerald-600">{{ service.display_price }}</span>
+                    </div>
+                    
+                    <!-- Availability Badge -->
+                    <div class="mb-4">
+                        {% if service.availability == 'available' %}
+                            <span class="inline-block bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded-full">
+                                Available
+                            </span>
+                        {% elif service.availability == 'limited' %}
+                            <span class="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-1 rounded-full">
+                                Limited
+                            </span>
+                        {% elif service.availability == 'seasonal' %}
+                            <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded-full">
+                                Seasonal
+                            </span>
+                        {% else %}
+                            <span class="inline-block bg-red-100 text-red-800 text-xs font-semibold px-2 py-1 rounded-full">
+                                Unavailable
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Featured Badge -->
+                    {% if service.is_featured %}
+                    <div class="mb-4">
+                        <span class="inline-block bg-amber-100 text-amber-800 text-xs font-semibold px-2 py-1 rounded-full">
+                            ⭐ Featured
+                        </span>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Action Buttons -->
+                    <div class="flex gap-2">
+                        <a href="{% url 'agency_service_detail' service.pk %}" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-2 px-4 rounded-lg font-semibold text-sm text-center transition duration-300">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full text-center py-12">
+                <div class="max-w-md mx-auto">
+                    <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No services found</h3>
+                    <p class="text-gray-500">
+                        {% if agency %}
+                            This agency hasn't added any services yet.
+                        {% else %}
+                            No agency services are currently available.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="mt-12 flex justify-center">
+            <nav class="flex items-center space-x-2">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                        Previous
+                    </a>
+                {% endif %}
+                
+                <span class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+                
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                        Next
+                    </a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+
+        <!-- Back to Agency -->
+        {% if agency %}
+        <div class="mt-12 text-center">
+            <a href="{% url 'public_agency_detail' agency.pk %}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition duration-300">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                Back to {{ agency.name }}
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

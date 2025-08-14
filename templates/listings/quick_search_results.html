@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Quick Search Results - TravelsKe{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Search Header -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Quick Search Results</h1>
+                    <p class="mt-2 text-gray-600">Results for "{{ query }}"</p>
+                </div>
+                <a href="{% url 'advanced_search' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    Advanced Search
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Summary -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-6">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold text-gray-900">Quick Search Results</h2>
+                <div class="text-sm text-gray-500">
+                    {{ total_results }} results found for "{{ query }}"
+                </div>
+            </div>
+        </div>
+
+        <!-- Places Results -->
+        {% if results.places %}
+            <div class="mb-8">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Places ({{ results.places|length }})</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for place in results.places %}
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                            {% if place.profile_picture %}
+                                <img src="{{ place.profile_picture.url }}" alt="{{ place.name }}" class="w-full h-48 object-cover">
+                            {% else %}
+                                <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                                    <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                    </svg>
+                                </div>
+                            {% endif %}
+                            <div class="p-4">
+                                <h4 class="font-semibold text-lg text-gray-900 mb-2">{{ place.name }}</h4>
+                                <p class="text-gray-600 text-sm mb-2">{{ place.category.name }}</p>
+                                <p class="text-gray-500 text-sm mb-3">{{ place.location }}</p>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        {% if place.average_rating > 0 %}
+                                            <div class="flex items-center">
+                                                <span class="text-yellow-400">★</span>
+                                                <span class="ml-1 text-sm text-gray-600">{{ place.average_rating }}/5</span>
+                                                <span class="ml-2 text-xs text-gray-500">({{ place.total_ratings }})</span>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-gray-400 text-sm">No ratings yet</span>
+                                        {% endif %}
+                                    </div>
+                                    <a href="{% url 'public_place_detail' place.pk %}" class="text-teal-600 hover:text-teal-700 text-sm font-medium">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if results.places|length >= 5 %}
+                    <div class="mt-6 text-center">
+                        <a href="{% url 'advanced_search' %}?query={{ query }}&search_type=places" class="text-teal-600 hover:text-teal-700 font-medium">
+                            View all places results →
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <!-- Tours Results -->
+        {% if results.tours %}
+            <div class="mb-8">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Tours ({{ results.tours|length }})</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for tour in results.tours %}
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                            <div class="p-4">
+                                <h4 class="font-semibold text-lg text-gray-900 mb-2">{{ tour.name }}</h4>
+                                <p class="text-gray-600 text-sm mb-2">{{ tour.description|truncatewords:20 }}</p>
+                                <div class="flex items-center justify-between text-sm text-gray-500 mb-3">
+                                    <span>{{ tour.start_date|date:"M d" }} - {{ tour.end_date|date:"M d, Y" }}</span>
+                                    <span class="text-teal-600 font-semibold">${{ tour.price_per_person }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        {% if tour.available_spots > 0 %}
+                                            <span class="text-green-600 text-sm">{{ tour.available_spots }} spots left</span>
+                                        {% else %}
+                                            <span class="text-red-600 text-sm">Fully booked</span>
+                                        {% endif %}
+                                    </div>
+                                    <a href="{% url 'public_grouptours_detail' tour.pk %}" class="text-teal-600 hover:text-teal-700 text-sm font-medium">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if results.tours|length >= 5 %}
+                    <div class="mt-6 text-center">
+                        <a href="{% url 'advanced_search' %}?query={{ query }}&search_type=tours" class="text-teal-600 hover:text-teal-700 font-medium">
+                            View all tours results →
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <!-- Agencies Results -->
+        {% if results.agencies %}
+            <div class="mb-8">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Agencies ({{ results.agencies|length }})</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for agency in results.agencies %}
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                            <div class="p-4">
+                                <div class="flex items-center mb-3">
+                                    {% if agency.logo %}
+                                        <img src="{{ agency.logo.url }}" alt="{{ agency.name }}" class="w-12 h-12 rounded-full object-cover mr-3">
+                                    {% else %}
+                                        <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mr-3">
+                                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                            </svg>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <h4 class="font-semibold text-lg text-gray-900">{{ agency.name }}</h4>
+                                        <p class="text-gray-600 text-sm">{{ agency.get_agency_type_display }}</p>
+                                    </div>
+                                </div>
+                                <p class="text-gray-600 text-sm mb-3">{{ agency.city }}, {{ agency.country }}</p>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        {% if agency.average_rating > 0 %}
+                                            <div class="flex items-center">
+                                                <span class="text-yellow-400">★</span>
+                                                <span class="ml-1 text-sm text-gray-600">{{ agency.average_rating }}/5</span>
+                                                <span class="ml-2 text-xs text-gray-500">({{ agency.total_ratings }})</span>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-gray-400 text-sm">No ratings yet</span>
+                                        {% endif %}
+                                    </div>
+                                    <a href="{% url 'public_agency_detail' agency.pk %}" class="text-teal-600 hover:text-teal-700 text-sm font-medium">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if results.agencies|length >= 5 %}
+                    <div class="mt-6 text-center">
+                        <a href="{% url 'advanced_search' %}?query={{ query }}&search_type=agencies" class="text-teal-600 hover:text-teal-700 font-medium">
+                            View all agencies results →
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <!-- Events Results -->
+        {% if results.events %}
+            <div class="mb-8">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Events ({{ results.events|length }})</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for event in results.events %}
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                            <div class="p-4">
+                                <h4 class="font-semibold text-lg text-gray-900 mb-2">{{ event.name }}</h4>
+                                <p class="text-gray-600 text-sm mb-2">{{ event.description|truncatewords:20 }}</p>
+                                <div class="flex items-center justify-between text-sm text-gray-500 mb-3">
+                                    <span>{{ event.start_date|date:"M d" }} - {{ event.end_date|date:"M d, Y" }}</span>
+                                    <span class="text-teal-600 font-semibold">${{ event.price_per_person }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        {% if event.current_participants < event.max_participants %}
+                                            <span class="text-green-600 text-sm">{{ event.max_participants|add:"-"|add:event.current_participants }} spots left</span>
+                                        {% else %}
+                                            <span class="text-red-600 text-sm">Fully booked</span>
+                                        {% endif %}
+                                    </div>
+                                    <a href="{% url 'public_event_detail' event.pk %}" class="text-teal-600 hover:text-teal-700 text-sm font-medium">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if results.events|length >= 5 %}
+                    <div class="mt-6 text-center">
+                        <a href="{% url 'advanced_search' %}?query={{ query }}&search_type=events" class="text-teal-600 hover:text-teal-700 font-medium">
+                            View all events results →
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <!-- No Results -->
+        {% if total_results == 0 %}
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No results found</h3>
+                <p class="mt-1 text-sm text-gray-500">Try adjusting your search terms or browse our trending destinations.</p>
+                <div class="mt-6">
+                    <a href="{% url 'trending' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700">
+                        Browse Trending
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Search Suggestions -->
+        <div class="mt-12 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Search Suggestions</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <h4 class="font-medium text-gray-900 mb-2">Try these searches:</h4>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li>• "Beach resorts in Mombasa"</li>
+                        <li>• "Safari tours Nairobi"</li>
+                        <li>• "Adventure activities"</li>
+                        <li>• "Luxury travel agencies"</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-medium text-gray-900 mb-2">Popular destinations:</h4>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li>• <a href="{% url 'advanced_search' %}?location=Nairobi" class="text-teal-600 hover:text-teal-700">Nairobi</a></li>
+                        <li>• <a href="{% url 'advanced_search' %}?location=Mombasa" class="text-teal-600 hover:text-teal-700">Mombasa</a></li>
+                        <li>• <a href="{% url 'advanced_search' %}?location=Kisumu" class="text-teal-600 hover:text-teal-700">Kisumu</a></li>
+                        <li>• <a href="{% url 'advanced_search' %}?location=Nakuru" class="text-teal-600 hover:text-teal-700">Nakuru</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Trending - TravelsKe{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-teal-600 to-teal-800 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="text-center">
+                <h1 class="text-4xl font-bold mb-4">Trending Now</h1>
+                <p class="text-xl text-teal-100">Discover what's popular and trending in Kenya's travel scene</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Trending Places -->
+        <div class="mb-12">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">🔥 Trending Places</h2>
+                <a href="{% url 'advanced_search' %}?search_type=places&sort_by=popular" class="text-teal-600 hover:text-teal-700 font-medium">
+                    View all places →
+                </a>
+            </div>
+            
+            {% if trending_places %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for place in trending_places %}
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                            {% if place.profile_picture %}
+                                <img src="{{ place.profile_picture.url }}" alt="{{ place.name }}" class="w-full h-48 object-cover">
+                            {% else %}
+                                <div class="w-full h-48 bg-gradient-to-br from-teal-100 to-teal-200 flex items-center justify-center">
+                                    <svg class="w-16 h-16 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                    </svg>
+                                </div>
+                            {% endif %}
+                            <div class="p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        🔥 Trending
+                                    </span>
+                                    <span class="text-sm text-gray-500">{{ place.category.name }}</span>
+                                </div>
+                                <h3 class="font-semibold text-lg text-gray-900 mb-2">{{ place.name }}</h3>
+                                <p class="text-gray-600 text-sm mb-3">{{ place.location }}</p>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        {% if place.avg_rating %}
+                                            <div class="flex items-center">
+                                                <span class="text-yellow-400">★</span>
+                                                <span class="ml-1 text-sm text-gray-600">{{ place.avg_rating|floatformat:1 }}/5</span>
+                                                <span class="ml-2 text-xs text-gray-500">({{ place.recent_rating_count }} recent)</span>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-gray-400 text-sm">No ratings yet</span>
+                                        {% endif %}
+                                    </div>
+                                    <a href="{% url 'public_place_detail' place.pk %}" class="text-teal-600 hover:text-teal-700 text-sm font-medium">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <p class="text-gray-500">No trending places at the moment.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Popular Tours -->
+        <div class="mb-12">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">⭐ Popular Tours</h2>
+                <a href="{% url 'advanced_search' %}?search_type=tours&sort_by=popular" class="text-teal-600 hover:text-teal-700 font-medium">
+                    View all tours →
+                </a>
+            </div>
+            
+            {% if popular_tours %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for tour in popular_tours %}
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                            <div class="p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        ⭐ Popular
+                                    </span>
+                                    <span class="text-sm text-gray-500">{{ tour.status|title }}</span>
+                                </div>
+                                <h3 class="font-semibold text-lg text-gray-900 mb-2">{{ tour.name }}</h3>
+                                <p class="text-gray-600 text-sm mb-3">{{ tour.description|truncatewords:15 }}</p>
+                                <div class="flex items-center justify-between text-sm text-gray-500 mb-3">
+                                    <span>{{ tour.start_date|date:"M d" }} - {{ tour.end_date|date:"M d, Y" }}</span>
+                                    <span class="text-teal-600 font-semibold">${{ tour.price_per_person }}</span>
+                                </div>
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                        <span>❤️ {{ tour.like_count }}</span>
+                                        <span>🔖 {{ tour.bookmark_count }}</span>
+                                    </div>
+                                    {% if tour.available_spots > 0 %}
+                                        <span class="text-green-600 text-sm">{{ tour.available_spots }} spots left</span>
+                                    {% else %}
+                                        <span class="text-red-600 text-sm">Fully booked</span>
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'public_grouptours_detail' tour.pk %}" class="block w-full text-center bg-teal-600 text-white py-2 px-4 rounded-md hover:bg-teal-700 transition-colors">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <p class="text-gray-500">No popular tours at the moment.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Top-Rated Agencies -->
+        <div class="mb-12">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">🏆 Top-Rated Agencies</h2>
+                <a href="{% url 'advanced_search' %}?search_type=agencies&sort_by=rating" class="text-teal-600 hover:text-teal-700 font-medium">
+                    View all agencies →
+                </a>
+            </div>
+            
+            {% if top_agencies %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for agency in top_agencies %}
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                            <div class="p-4">
+                                <div class="flex items-center mb-3">
+                                    {% if agency.logo %}
+                                        <img src="{{ agency.logo.url }}" alt="{{ agency.name }}" class="w-12 h-12 rounded-full object-cover mr-3">
+                                    {% else %}
+                                        <div class="w-12 h-12 bg-gradient-to-br from-teal-100 to-teal-200 rounded-full flex items-center justify-center mr-3">
+                                            <svg class="w-6 h-6 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                            </svg>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="flex items-center mb-1">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 mr-2">
+                                                🏆 Top Rated
+                                            </span>
+                                        </div>
+                                        <h3 class="font-semibold text-lg text-gray-900">{{ agency.name }}</h3>
+                                        <p class="text-gray-600 text-sm">{{ agency.get_agency_type_display }}</p>
+                                    </div>
+                                </div>
+                                <p class="text-gray-600 text-sm mb-3">{{ agency.city }}, {{ agency.country }}</p>
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center">
+                                        {% if agency.avg_rating %}
+                                            <div class="flex items-center">
+                                                <span class="text-yellow-400">★</span>
+                                                <span class="ml-1 text-sm text-gray-600">{{ agency.avg_rating|floatformat:1 }}/5</span>
+                                                <span class="ml-2 text-xs text-gray-500">({{ agency.rating_count }} reviews)</span>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-gray-400 text-sm">No ratings yet</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if agency.is_verified %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            ✓ Verified
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'public_agency_detail' agency.pk %}" class="block w-full text-center bg-teal-600 text-white py-2 px-4 rounded-md hover:bg-teal-700 transition-colors">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <p class="text-gray-500">No top-rated agencies at the moment.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Call to Action -->
+        <div class="bg-gradient-to-r from-teal-600 to-teal-800 rounded-lg text-white p-8 text-center">
+            <h3 class="text-2xl font-bold mb-4">Ready to Explore?</h3>
+            <p class="text-teal-100 mb-6">Use our advanced search to find exactly what you're looking for</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{% url 'advanced_search' %}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-teal-600 bg-white hover:bg-gray-50">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    Advanced Search
+                </a>
+                <a href="{% url 'recommendations' %}" class="inline-flex items-center px-6 py-3 border border-white text-base font-medium rounded-md text-white hover:bg-teal-700">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                    Get Recommendations
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

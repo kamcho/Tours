@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book Tour - {{ tour.name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Book Your Tour</h1>
+            <p class="text-gray-600">Complete your booking and choose your payment method</p>
+        </div>
+
+        <!-- Tour Summary Card -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div class="flex items-center space-x-4">
+                {% if tour.image %}
+                <img src="{{ tour.image.url }}" alt="{{ tour.name }}" class="w-20 h-20 object-cover rounded-lg">
+                {% else %}
+                <div class="w-20 h-20 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                </div>
+                {% endif %}
+                <div class="flex-1">
+                    <h2 class="text-xl font-semibold text-gray-900">{{ tour.name }}</h2>
+                    <p class="text-gray-600">{{ tour.destination }}</p>
+                    <div class="flex items-center space-x-4 mt-2">
+                        <span class="text-sm text-gray-500">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            {{ tour.start_date|date:"M d, Y" }} - {{ tour.end_date|date:"M d, Y" }}
+                        </span>
+                        <span class="text-sm text-gray-500">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            {{ available_spots }} spots available
+                        </span>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-2xl font-bold text-emerald-600">${{ tour.price_per_person }}</div>
+                    <div class="text-sm text-gray-500">per person</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Form -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <form method="POST" id="bookingForm">
+                {% csrf_token %}
+                
+                <!-- Participants and Special Requests -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div>
+                        <label for="participants" class="block text-sm font-medium text-gray-700 mb-2">
+                            Number of Participants
+                        </label>
+                        <select name="participants" id="participants" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent" required>
+                            {% for i in "123456789"|make_list %}
+                                {% if forloop.counter <= available_spots %}
+                                <option value="{{ forloop.counter }}">{{ forloop.counter }} {% if forloop.counter == 1 %}person{% else %}people{% endif %}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="special_requests" class="block text-sm font-medium text-gray-700 mb-2">
+                            Special Requests (Optional)
+                        </label>
+                        <textarea name="special_requests" id="special_requests" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent" placeholder="Any special requirements or requests..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Payment Method Selection -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Select Payment Method</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {% for method in payment_methods %}
+                        <label class="relative flex cursor-pointer rounded-lg border border-gray-300 bg-white p-4 shadow-sm focus:outline-none">
+                            <input type="radio" name="payment_method" value="{{ method.id }}" class="sr-only" required {% if forloop.first %}checked{% endif %}>
+                            <span class="flex flex-1">
+                                <span class="flex flex-col">
+                                    <span class="block text-sm font-medium text-gray-900">{{ method.name }}</span>
+                                    <span class="mt-1 flex items-center text-sm text-gray-500">
+                                        <span class="mr-2">{{ method.icon }}</span>
+                                        {{ method.description }}
+                                    </span>
+                                    {% if method.processing_fee_percentage > 0 or method.processing_fee_fixed > 0 %}
+                                    <span class="mt-1 text-xs text-gray-400">
+                                        Fee: {% if method.processing_fee_percentage > 0 %}{{ method.processing_fee_percentage }}%{% endif %}{% if method.processing_fee_fixed > 0 %}{% if method.processing_fee_percentage > 0 %} + {% endif %}${{ method.processing_fee_fixed }}{% endif %}
+                                    </span>
+                                    {% endif %}
+                                </span>
+                            </span>
+                            <span class="pointer-events-none absolute -inset-px rounded-lg border-2" aria-hidden="true"></span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- M-Pesa Payment Section (Hidden by default) -->
+                <div id="mpesaSection" class="hidden mb-8 p-6 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div class="flex items-center mb-4">
+                        <div class="flex-shrink-0">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h4 class="text-lg font-medium text-blue-900">M-Pesa Payment</h4>
+                            <p class="text-sm text-blue-700">Complete your payment using M-Pesa mobile money</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="phone_number" class="block text-sm font-medium text-gray-700 mb-2">
+                            Phone Number
+                        </label>
+                                                <input type="tel" name="phone_number" id="phone_number" value="{{ user_phone }}" 
+                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                 placeholder="254XXXXXXXXX" required>
+                        <p class="mt-1 text-sm text-gray-500">Enter your M-Pesa registered phone number</p>
+                    </div>
+                    
+                    <!-- M-Pesa Instructions -->
+                    <div class="bg-white p-4 rounded-lg border border-blue-200">
+                        <h5 class="font-medium text-gray-900 mb-3">Payment Instructions:</h5>
+                        <ol class="list-decimal list-inside space-y-2 text-sm text-gray-700">
+                            <li>Click "Pay with M-Pesa" below</li>
+                            <li>You'll receive an STK push notification on your phone</li>
+                            <li>Enter your M-Pesa PIN when prompted</li>
+                            <li>Confirm the payment amount and details</li>
+                            <li>Wait for payment confirmation</li>
+                        </ol>
+                        
+                        <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                                <span class="text-sm text-yellow-800">
+                                    <strong>Pay-bill:</strong> 4161900 | <strong>Account:</strong> <span id="accountNumber">{{ tour.id }}</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Amount Display -->
+                <div class="bg-gray-50 p-4 rounded-lg mb-8">
+                    <div class="flex justify-between items-center">
+                        <span class="text-lg font-medium text-gray-900">Total Amount:</span>
+                        <span class="text-2xl font-bold text-emerald-600" id="totalAmount">${{ tour.price_per_person }}</span>
+                    </div>
+                    <div class="text-sm text-gray-500 mt-1" id="totalBreakdown">
+                        {{ tour.price_per_person }} × 1 person
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-end space-x-4">
+                    <a href="{% url 'public_grouptours_detail' tour.pk %}" 
+                       class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </a>
+                    <button type="submit" id="submitBtn" 
+                            class="px-8 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-200 transition-colors">
+                        Complete Booking
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const participantsSelect = document.getElementById('participants');
+    const totalAmount = document.getElementById('totalAmount');
+    const totalBreakdown = document.getElementById('totalBreakdown');
+    const tourPrice = {{ tour.price_per_person }};
+    const mpesaSection = document.getElementById('mpesaSection');
+    const paymentMethodInputs = document.querySelectorAll('input[name="payment_method"]');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    // Update total amount when participants change
+    participantsSelect.addEventListener('change', function() {
+        const participants = parseInt(this.value);
+        const total = tourPrice * participants;
+        totalAmount.textContent = '$' + total.toFixed(2);
+        totalBreakdown.textContent = `${tourPrice} × ${participants} ${participants === 1 ? 'person' : 'people'}`;
+    });
+    
+    // Show/hide M-Pesa section based on payment method
+    function toggleMpesaSection() {
+        const selectedMethod = document.querySelector('input[name="payment_method"]:checked');
+        if (selectedMethod) {
+            const methodId = selectedMethod.value;
+            // You'll need to check if this is M-Pesa method
+            // For now, we'll show it when the first method is selected (assuming it's M-Pesa)
+            if (methodId === '1') { // Adjust this ID based on your M-Pesa method ID
+                mpesaSection.classList.remove('hidden');
+                submitBtn.textContent = 'Pay with M-Pesa';
+            } else {
+                mpesaSection.classList.add('hidden');
+                submitBtn.textContent = 'Complete Booking';
+            }
+        }
+    }
+    
+    // Add event listeners to payment method radio buttons
+    paymentMethodInputs.forEach(input => {
+        input.addEventListener('change', toggleMpesaSection);
+    });
+    
+    // Initial call to set correct state
+    toggleMpesaSection();
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,176 @@
+{% extends 'users/base.html' %}
+{% block content %}
+
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">
+    <div class="max-w-4xl mx-auto px-4">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Create Your Place</h1>
+            <p class="text-xl text-gray-600">Share the amazing destinations you've discovered with the world</p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Step 2: Contact & Media</h2>
+                <span class="text-sm font-medium text-teal-600 bg-teal-50 px-3 py-1 rounded-full">2 of 3</span>
+            </div>
+            
+            <!-- Progress Steps -->
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-teal-600 text-white rounded-full flex items-center justify-center font-bold">1</div>
+                    <div class="ml-3">
+                        <div class="text-sm font-medium text-gray-900">Basic Info</div>
+                        <div class="text-sm text-gray-500">Name & Description</div>
+                    </div>
+                </div>
+                <div class="flex-1 h-1 bg-teal-200 mx-4"></div>
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-teal-600 text-white rounded-full flex items-center justify-center font-bold">2</div>
+                    <div class="ml-3">
+                        <div class="text-sm font-medium text-gray-900">Contact & Media</div>
+                        <div class="text-sm text-gray-500">Details & Photos</div>
+                    </div>
+                </div>
+                <div class="flex-1 h-1 bg-gray-200 mx-4"></div>
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-gray-200 text-gray-400 rounded-full flex items-center justify-center font-bold">3</div>
+                    <div class="ml-3">
+                        <div class="text-sm font-medium text-gray-400">Review & Submit</div>
+                        <div class="text-sm text-gray-400">Final Step</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Address Field -->
+                <div>
+                    <label for="{{ form.address.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Street Address
+                    </label>
+                    {{ form.address }}
+                    {% if form.address.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.address.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Optional: Provide the exact street address for better navigation.</p>
+                </div>
+
+                <!-- Website Field -->
+                <div>
+                    <label for="{{ form.website.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Website
+                    </label>
+                    {{ form.website }}
+                    {% if form.website.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.website.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Optional: Link to the place's official website or social media.</p>
+                </div>
+
+                <!-- Contact Email Field -->
+                <div>
+                    <label for="{{ form.contact_email.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Contact Email
+                    </label>
+                    {{ form.contact_email }}
+                    {% if form.contact_email.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.contact_email.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Optional: Email for inquiries about this place.</p>
+                </div>
+
+                <!-- Contact Phone Field -->
+                <div>
+                    <label for="{{ form.contact_phone.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Contact Phone
+                    </label>
+                    {{ form.contact_phone }}
+                    {% if form.contact_phone.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.contact_phone.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Optional: Phone number for direct contact.</p>
+                </div>
+
+                <!-- Profile Picture Field -->
+                <div>
+                    <label for="{{ form.profile_picture.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Profile Picture
+                    </label>
+                    {{ form.profile_picture }}
+                    {% if form.profile_picture.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.profile_picture.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Optional: Upload a beautiful image that represents this place.</p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex justify-between items-center pt-6">
+                    <a href="{% url 'place_create_step' step=1 %}" class="text-teal-600 hover:text-teal-700 font-semibold flex items-center transition duration-200">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                        Back to Basic Info
+                    </a>
+                    <button type="submit" class="bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white px-8 py-3 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                        Continue to Review
+                        <svg class="w-5 h-5 inline ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Help Section -->
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+            <div class="flex items-start">
+                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Photo Tips for Your Place</h3>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li>• Choose a high-quality image that showcases the place's beauty</li>
+                        <li>• Ensure good lighting and clear visibility</li>
+                        <li>• Include recognizable landmarks or unique features</li>
+                        <li>• Recommended size: at least 800x600 pixels</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+</style>
+{% endblock %} 

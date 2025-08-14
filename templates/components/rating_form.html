@@ -1,0 +1,133 @@
+{% comment %}
+Rating Form Component
+Usage: {% include 'components/rating_form.html' with rating_type='place' item_id=place.pk %}
+{% endcomment %}
+
+<div class="rating-form bg-gray-50 rounded-xl p-6 mb-6">
+    <h4 class="text-lg font-semibold text-gray-800 mb-4">Rate this {{ rating_type|default:"place" }}</h4>
+    
+    <form id="ratingForm" class="space-y-4">
+        {% csrf_token %}
+        
+        <!-- Star Selection -->
+        <div class="star-selection">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Your Rating</label>
+            <div class="flex items-center gap-1" id="starContainer">
+                {% for i in "12345" %}
+                    <button type="button" class="star-btn w-8 h-8 text-gray-300 hover:text-yellow-400 transition-colors duration-200" data-rating="{{ forloop.counter }}">
+                        <svg class="w-full h-full fill-current" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        </svg>
+                    </button>
+                {% endfor %}
+            </div>
+            <input type="hidden" name="rating" id="selectedRating" value="">
+        </div>
+        
+        <!-- Comment -->
+        <div>
+            <label for="comment" class="block text-sm font-medium text-gray-700 mb-2">Your Review</label>
+            <textarea name="comment" id="comment" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none" placeholder="Share your experience..."></textarea>
+        </div>
+        
+        <!-- Service Type (for agencies) -->
+        {% if rating_type == 'agency' %}
+        <div>
+            <label for="service_type" class="block text-sm font-medium text-gray-700 mb-2">Service Type</label>
+            <input type="text" name="service_type" id="service_type" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent" placeholder="e.g., Tour, Booking, Consultation">
+        </div>
+        {% endif %}
+        
+        <!-- Submit Button -->
+        <button type="submit" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-3 px-6 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl">
+            Submit Rating
+        </button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const starContainer = document.getElementById('starContainer');
+    const selectedRatingInput = document.getElementById('selectedRating');
+    const ratingForm = document.getElementById('ratingForm');
+    
+    if (starContainer && selectedRatingInput && ratingForm) {
+        let selectedRating = 0;
+        
+        // Star selection functionality
+        starContainer.addEventListener('click', function(e) {
+            if (e.target.closest('.star-btn')) {
+                const starBtn = e.target.closest('.star-btn');
+                const rating = parseInt(starBtn.dataset.rating);
+                selectedRating = rating;
+                selectedRatingInput.value = rating;
+                
+                // Update star display
+                updateStars(rating);
+            }
+        });
+        
+        // Hover effects
+        starContainer.addEventListener('mouseover', function(e) {
+            if (e.target.closest('.star-btn')) {
+                const starBtn = e.target.closest('.star-btn');
+                const rating = parseInt(starBtn.dataset.rating);
+                updateStars(rating);
+            }
+        });
+        
+        starContainer.addEventListener('mouseout', function() {
+            updateStars(selectedRating);
+        });
+        
+        function updateStars(rating) {
+            const stars = starContainer.querySelectorAll('.star-btn');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.remove('text-gray-300');
+                    star.classList.add('text-yellow-400');
+                } else {
+                    star.classList.remove('text-yellow-400');
+                    star.classList.add('text-gray-300');
+                }
+            });
+        }
+        
+        // Form submission
+        ratingForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!selectedRating) {
+                alert('Please select a rating');
+                return;
+            }
+            
+            const formData = new FormData(ratingForm);
+            const submitUrl = '{% if rating_type == "agency" %}{% url "submit_agency_rating" agency_id=item_id %}{% else %}{% url "submit_place_rating" place_id=item_id %}{% endif %}';
+            
+            fetch(submitUrl, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    alert(data.message);
+                    // Reload page to show updated rating
+                    location.reload();
+                } else {
+                    alert(data.error || 'An error occurred');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while submitting your rating');
+            });
+        });
+    }
+});
+</script> 
