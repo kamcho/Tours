@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Contact, PaymentMethod, PaymentTransaction, CardPayment, MPesaPayment, PaymentWebhook, Refund, PaymentSettings
+from .models import Contact, PaymentMethod, PaymentTransaction, CardPayment, MPesaPayment, PaymentWebhook, Refund, PaymentSettings, Subscription, SubscriptionPlan, VerificationRequest, Payment
+from django.utils import timezone
 
 # Register your models here.
 
@@ -236,3 +237,87 @@ class PaymentSettingsAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         # Don't allow deletion of payment settings
         return False
+
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ['id', 'verification_request', 'amount', 'payment_method', 'payment_status', 'transaction_date', 'completed_date']
+    list_filter = ['payment_status', 'payment_method', 'transaction_date']
+    search_fields = ['verification_request__user__email', 'payment_reference', 'mpesa_checkout_request_id']
+    readonly_fields = ['transaction_date', 'completed_date']
+    
+    fieldsets = (
+        ('Payment Information', {
+            'fields': ('verification_request', 'amount', 'payment_method', 'payment_status')
+        }),
+        ('M-Pesa Details', {
+            'fields': ('mpesa_checkout_request_id', 'mpesa_merchant_request_id', 'mpesa_result_code', 'mpesa_result_desc')
+        }),
+        ('Timestamps', {
+            'fields': ('transaction_date', 'completed_date'),
+            'classes': ('collapse',)
+        }),
+    )
+
+@admin.register(VerificationRequest)
+class VerificationRequestAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user', 'verification_type', 'status', 'phone_number', 'created_at', 'reviewed_at']
+    list_filter = ['status', 'verification_type', 'created_at', 'reviewed_at']
+    search_fields = ['user__email', 'user__username', 'business_name', 'phone_number']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('user', 'verification_type', 'status')
+        }),
+        ('Contact Details', {
+            'fields': ('phone_number', 'email')
+        }),
+        ('Business Information', {
+            'fields': ('business_name', 'business_registration', 'address'),
+            'classes': ('collapse',)
+        }),
+        ('Documents', {
+            'fields': ('id_document', 'business_license', 'address_proof'),
+            'classes': ('collapse',)
+        }),
+        ('Review Information', {
+            'fields': ('reviewed_by', 'reviewed_at', 'review_notes'),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    actions = ['approve_verification', 'reject_verification', 'mark_under_review']
+    
+    def approve_verification(self, request, queryset):
+        """Approve selected verification requests"""
+        updated = queryset.update(
+            status='approved',
+            reviewed_by=request.user,
+            reviewed_at=timezone.now()
+        )
+        self.message_user(request, f'{updated} verification request(s) were successfully approved.')
+    approve_verification.short_description = "Approve selected verification requests"
+    
+    def reject_verification(self, request, queryset):
+        """Reject selected verification requests"""
+        updated = queryset.update(
+            status='rejected',
+            reviewed_by=request.user,
+            reviewed_at=timezone.now()
+        )
+        self.message_user(request, f'{updated} verification request(s) were successfully rejected.')
+    reject_verification.short_description = "Reject selected verification requests"
+    
+    def mark_under_review(self, request, queryset):
+        """Mark selected verification requests as under review"""
+        updated = queryset.update(
+            status='under_review',
+            reviewed_by=request.user,
+            reviewed_at=timezone.now()
+        )
+        self.message_user(request, f'{updated} verification request(s) were marked as under review.')
+    mark_under_review.short_description = "Mark selected verification requests as under review"

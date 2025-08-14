@@ -14,161 +14,60 @@
             </p>
         </div>
 
-        <!-- Verification Form -->
+        <!-- Verification Type Selection -->
         <div class="max-w-4xl mx-auto">
             <div class="bg-white rounded-2xl shadow-xl p-8">
-                <form method="POST" action="{% url 'core:verification_request' %}" enctype="multipart/form-data" class="space-y-8" id="verificationForm">
-                    {% csrf_token %}
-                    
-                    <!-- Step 1: Verification Type -->
-                    <div id="step1" class="verification-step active">
-                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Step 1: Choose Verification Type</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
-                                <input type="radio" name="verification_type" value="user" class="mr-3 text-blue-600" required>
-                                <div>
-                                    <div class="font-medium text-gray-800">Individual User</div>
-                                    <div class="text-sm text-gray-600">Personal verification</div>
-                                </div>
-                            </label>
-                            <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
-                                <input type="radio" name="verification_type" value="place" class="mr-3 text-blue-600" required>
-                                <div>
-                                    <div class="font-medium text-gray-800">Place/Business</div>
-                                    <div class="text-sm text-gray-600">Business verification</div>
-                                </div>
-                            </label>
-                            <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
-                                <input type="radio" name="verification_type" value="agency" class="mr-3 text-blue-600" required>
-                                <div>
-                                    <div class="font-medium text-gray-800">Travel Agency</div>
-                                    <div class="text-sm text-gray-600">Agency verification</div>
-                                </div>
-                            </label>
+                <h2 class="text-2xl font-bold text-gray-800 mb-8 text-center">Choose What You Want to Verify</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Individual User Verification -->
+                    <a href="{% url 'core:verify_user' %}" class="group">
+                        <div class="bg-blue-50 rounded-xl p-6 text-center hover:bg-blue-100 transition-all duration-300 border-2 border-transparent hover:border-blue-300">
+                            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-200 transition-colors">
+                                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-blue-800 mb-2">Individual User</h3>
+                            <p class="text-blue-600 mb-4">Personal verification for your account</p>
+                            <div class="text-sm text-blue-700 font-medium">
+                                KES 100 per 3 months
+                            </div>
                         </div>
-                        
-                        <div class="text-center mt-6">
-                            <button type="button" class="next-step bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-                                Next Step
-                            </button>
-                        </div>
-                    </div>
+                    </a>
 
-                    <!-- Step 2: ID Upload (for individual users) -->
-                    <div id="step2" class="verification-step hidden">
-                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Step 2: Upload ID Document</h2>
-                        <div class="bg-blue-50 rounded-lg p-6">
-                            <div class="text-center mb-6">
-                                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                    </svg>
-                                </div>
-                                <h3 class="text-lg font-semibold text-blue-800 mb-2">Front Side of National ID</h3>
-                                <p class="text-blue-600">Please upload a clear photo of the front side of your National ID</p>
+                    <!-- Place Verification -->
+                    <a href="{% url 'core:verify_place' %}" class="group">
+                        <div class="bg-green-50 rounded-xl p-6 text-center hover:bg-green-100 transition-all duration-300 border-2 border-transparent hover:border-green-300">
+                            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-green-200 transition-colors">
+                                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
                             </div>
-                            
-                            <div class="max-w-md mx-auto">
-                                <label for="id_document" class="block text-sm font-semibold text-gray-700 mb-2">
-                                    ID Document *
-                                </label>
-                                <input type="file" name="id_document" id="id_document" 
-                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
-                                       accept=".jpg,.jpeg,.png" required>
-                                <p class="text-xs text-gray-500 mt-1">JPG, JPEG, or PNG files only</p>
-                            </div>
-                            
-                            <div class="text-center mt-6 space-x-4">
-                                <button type="button" class="prev-step bg-gray-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-gray-600 transition-colors">
-                                    Previous
-                                </button>
-                                <button type="button" class="next-step bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
-                                    Next Step
-                                </button>
+                            <h3 class="text-xl font-bold text-green-800 mb-2">Place/Business</h3>
+                            <p class="text-green-600 mb-4">Verify your business location</p>
+                            <div class="text-sm text-green-700 font-medium">
+                                KES 1,000 per year
                             </div>
                         </div>
-                    </div>
+                    </a>
 
-                    <!-- Step 3: Payment -->
-                    <div id="step3" class="verification-step hidden">
-                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Step 3: Payment</h2>
-                        <div class="bg-green-50 rounded-lg p-6">
-                            <div class="text-center mb-6">
-                                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                                    </svg>
-                                </div>
-                                <h3 class="text-lg font-semibold text-green-800 mb-2">Verification Fee</h3>
-                                <p class="text-green-600">KES 100 per 3 months</p>
+                    <!-- Agency Verification -->
+                    <a href="{% url 'core:verify_agency' %}" class="group">
+                        <div class="bg-purple-50 rounded-xl p-6 text-center hover:bg-purple-100 transition-all duration-300 border-2 border-transparent hover:border-purple-300">
+                            <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-200 transition-colors">
+                                <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
                             </div>
-                            
-                            <div class="max-w-md mx-auto space-y-4">
-                                <div>
-                                    <label for="phone_number" class="block text-sm font-semibold text-gray-700 mb-2">
-                                        M-Pesa Phone Number *
-                                    </label>
-                                    <input type="tel" name="phone_number" id="phone_number" 
-                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200"
-                                           placeholder="+254 XXX XXX XXX" required>
-                                    <p class="text-xs text-gray-500 mt-1">Enter the phone number registered with M-Pesa</p>
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                        Verification Duration *
-                                    </label>
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
-                                            <input type="radio" name="duration_months" value="3" class="mr-2 text-green-600" checked>
-                                            <div>
-                                                <div class="font-medium text-gray-800">3 Months</div>
-                                                <div class="text-sm text-gray-600">KES 100</div>
-                                            </div>
-                                        </label>
-                                        <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
-                                            <input type="radio" name="duration_months" value="6" class="mr-2 text-green-600">
-                                            <div>
-                                                <div class="font-medium text-gray-800">6 Months</div>
-                                                <div class="text-sm text-gray-600">KES 200</div>
-                                            </div>
-                                        </label>
-                                        <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
-                                            <input type="radio" name="duration_months" value="9" class="mr-2 text-green-600">
-                                            <div>
-                                                <div class="font-medium text-gray-800">9 Months</div>
-                                                <div class="text-sm text-gray-600">KES 300</div>
-                                            </div>
-                                        </label>
-                                        <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
-                                            <input type="radio" name="duration_months" value="12" class="mr-2 text-green-600">
-                                            <div>
-                                                <div class="font-medium text-gray-800">12 Months</div>
-                                                <div class="text-sm text-gray-600">KES 400</div>
-                                            </div>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="text-center mt-6 space-x-4">
-                                <button type="button" class="prev-step bg-gray-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-gray-600 transition-colors">
-                                    Previous
-                                </button>
-                                <button type="submit" 
-                                        class="bg-gradient-to-r from-green-600 to-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:from-green-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl">
-                                    Pay & Submit Verification
-                                </button>
-                                
-                                <!-- Test button to bypass JavaScript -->
-                                <button type="button" onclick="testFormSubmission()" 
-                                        class="bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors">
-                                    Test Submit (Bypass JS)
-                                </button>
+                            <h3 class="text-xl font-bold text-purple-800 mb-2">Travel Agency</h3>
+                            <p class="text-purple-600 mb-4">Verify your travel agency</p>
+                            <div class="text-sm text-purple-700 font-medium">
+                                KES 1,000 per year
                             </div>
                         </div>
-                    </div>
-                </form>
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -182,121 +81,25 @@
                             <span class="text-blue-600 font-bold text-xl">1</span>
                         </div>
                         <h4 class="font-semibold text-blue-800 mb-2">Choose Type</h4>
-                        <p class="text-blue-700 text-sm">Select your verification type</p>
+                        <p class="text-blue-700 text-sm">Select what you want to verify</p>
                     </div>
                     <div class="text-center">
                         <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
                             <span class="text-blue-600 font-bold text-xl">2</span>
                         </div>
-                        <h4 class="font-semibold text-blue-800 mb-2">Upload ID</h4>
-                        <p class="text-blue-700 text-sm">Upload your National ID document</p>
+                        <h4 class="font-semibold text-blue-800 mb-2">Payment</h4>
+                        <p class="text-blue-700 text-sm">Pay via M-Pesa</p>
                     </div>
                     <div class="text-center">
                         <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
                             <span class="text-blue-600 font-bold text-xl">3</span>
                         </div>
-                        <h4 class="font-semibold text-blue-800 mb-2">Payment</h4>
-                        <p class="text-blue-700 text-sm">Pay via M-Pesa and get verified</p>
+                        <h4 class="font-semibold text-blue-800 mb-2">Verification</h4>
+                        <p class="text-blue-700 text-sm">Get verified within 24-48 hours</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<!-- JavaScript for Step Navigation -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const steps = document.querySelectorAll('.verification-step');
-    const nextButtons = document.querySelectorAll('.next-step');
-    const prevButtons = document.querySelectorAll('.prev-step');
-    const form = document.getElementById('verificationForm');
-    
-    // Show step based on verification type
-    document.querySelectorAll('input[name="verification_type"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (this.value === 'user') {
-                // For individual users, show ID upload step
-                document.getElementById('step2').classList.remove('hidden');
-            } else {
-                // For businesses, skip ID upload
-                document.getElementById('step2').classList.add('hidden');
-            }
-        });
-    });
-    
-    // Next button functionality
-    nextButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const currentStep = this.closest('.verification-step');
-            const nextStep = currentStep.nextElementSibling;
-            
-            if (nextStep && nextStep.classList.contains('verification-step')) {
-                currentStep.classList.add('hidden');
-                nextStep.classList.remove('hidden');
-            }
-        });
-    });
-    
-    // Previous button functionality
-    prevButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const currentStep = this.closest('.verification-step');
-            const prevStep = currentStep.previousElementSibling;
-            
-            if (prevStep && prevStep.classList.contains('verification-step')) {
-                currentStep.classList.add('hidden');
-                prevStep.classList.remove('hidden');
-            }
-        });
-    });
-    
-    // Form submission - simplified to just submit
-    form.addEventListener('submit', function(e) {
-        console.log('🔍 Form submitted!');
-        console.log('🔍 Form action:', this.action);
-        console.log('🔍 Form method:', this.method);
-        
-        // Validate required fields
-        const verificationType = document.querySelector('input[name="verification_type"]:checked');
-        const phoneNumber = document.getElementById('phone_number').value;
-        const durationMonths = document.querySelector('input[name="duration_months"]:checked');
-        
-        console.log('🔍 verification_type:', verificationType ? verificationType.value : 'NOT SELECTED');
-        console.log('🔍 phone_number:', phoneNumber);
-        console.log('🔍 duration_months:', durationMonths ? durationMonths.value : 'NOT SELECTED');
-        
-        if (!verificationType || !phoneNumber || !durationMonths) {
-            e.preventDefault();
-            alert('Please fill in all required fields');
-            return;
-        }
-        
-        // If individual user, check ID document
-        if (verificationType.value === 'user') {
-            const idDocument = document.getElementById('id_document').files[0];
-            console.log('🔍 id_document:', idDocument ? idDocument.name : 'NOT UPLOADED');
-            if (!idDocument) {
-                e.preventDefault();
-                alert('Please upload your ID document');
-                return;
-            }
-        }
-        
-        // Allow form to submit normally
-        console.log('🔍 All validation passed, submitting form...');
-        console.log('🔍 Form will submit to:', this.action);
-    });
-    
-    // Test function to bypass JavaScript validation
-    window.testFormSubmission = function() {
-        console.log('🔍 Test submit button clicked');
-        console.log('🔍 Form action:', form.action);
-        console.log('🔍 Form method:', form.method);
-        
-        // Manually submit the form
-        form.submit();
-    };
-});
-</script>
 {% endblock %} 

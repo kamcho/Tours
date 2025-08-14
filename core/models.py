@@ -541,7 +541,9 @@ class SubscriptionPlan(models.Model):
 class VerificationRequest(models.Model):
     """Verification requests for users, places, and agencies"""
     STATUS_CHOICES = [
-        ('pending', 'Pending Review'),
+        ('pending', 'Pending'),
+        ('payment_completed', 'Payment Completed'),
+        ('under_review', 'Under Review'),
         ('approved', 'Approved'),
         ('rejected', 'Rejected'),
         ('requires_info', 'Requires More Information'),
@@ -556,6 +558,13 @@ class VerificationRequest(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='verification_requests')
     verification_type = models.CharField(max_length=20, choices=VERIFICATION_TYPES)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    # Link to specific place or agency being verified
+    place = models.ForeignKey('listings.Place', on_delete=models.CASCADE, null=True, blank=True, related_name='verification_requests')
+    agency = models.ForeignKey('listings.Agency', on_delete=models.CASCADE, null=True, blank=True, related_name='verification_requests')
+    
+    # Verification duration in years
+    duration_years = models.PositiveIntegerField(default=1, help_text="Number of years for verification")
     
     # Verification details
     business_name = models.CharField(max_length=200, blank=True, null=True)
@@ -581,7 +590,31 @@ class VerificationRequest(models.Model):
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"{self.user.username} - {self.get_verification_type_display()} Verification"
+        if self.place:
+            return f"{self.user.username} - {self.place.name} Verification"
+        elif self.agency:
+            return f"{self.user.username} - {self.agency.name} Verification"
+        else:
+            return f"{self.user.username} - {self.get_verification_type_display()} Verification"
+    
+    def get_verification_target(self):
+        """Get the place or agency being verified"""
+        if self.place:
+            return self.place
+        elif self.agency:
+            return self.agency
+        return None
+    
+    def get_verification_target_name(self):
+        """Get the name of the place or agency being verified"""
+        target = self.get_verification_target()
+        if target:
+            return target.name
+        return "N/A"
+    
+    def calculate_amount(self):
+        """Calculate verification fee based on years"""
+        return self.duration_years * 1000  # KES 1000 per year
     
     def approve(self, reviewer):
         """Approve verification request"""
@@ -590,9 +623,17 @@ class VerificationRequest(models.Model):
         self.reviewed_at = timezone.now()
         self.save()
         
-        # Mark user as verified
-        self.user.is_verified = True
-        self.user.save()
+        # Mark the specific place or agency as verified
+        if self.place:
+            self.place.verified = True
+            self.place.save()
+        elif self.agency:
+            self.agency.verified = True
+            self.agency.save()
+        else:
+            # Mark user as verified for individual verification
+            self.user.is_verified = True
+            self.user.save()
     
     def reject(self, reviewer, notes):
         """Reject verification request"""
@@ -600,4 +641,53 @@ class VerificationRequest(models.Model):
         self.reviewed_by = reviewer
         self.reviewed_at = timezone.now()
         self.review_notes = notes
+        self.save()
+
+class Payment(models.Model):
+    """Track payments for verification requests"""
+    PAYMENT_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+    ]
+    
+    PAYMENT_METHOD_CHOICES = [
+        ('mpesa', 'M-Pesa'),
+        ('card', 'Credit/Debit Card'),
+    ]
+    
+    verification_request = models.OneToOneField(VerificationRequest, on_delete=models.CASCADE, related_name='payment')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='mpesa')
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
+    payment_reference = models.CharField(max_length=100, blank=True, null=True)
+    mpesa_checkout_request_id = models.CharField(max_length=100, blank=True, null=True)
+    mpesa_merchant_request_id = models.CharField(max_length=100, blank=True, null=True)
+    mpesa_result_code = models.CharField(max_length=10, blank=True, null=True)
+    mpesa_result_desc = models.TextField(blank=True, null=True)
+    transaction_date = models.DateTimeField(auto_now_add=True)
+    completed_date = models.DateTimeField(blank=True, null=True)
+    
+    class Meta:
+        ordering = ['-transaction_date']
+    
+    def __str__(self):
+        return f"Payment {self.id} - {self.verification_request.user.email} - KES {self.amount}"
+    
+    def mark_completed(self):
+        """Mark payment as completed and update verification status"""
+        self.payment_status = 'completed'
+        self.completed_date = timezone.now()
+        self.save()
+        
+        # Update verification request status
+        self.verification_request.status = 'payment_completed'
+        self.verification_request.save()
+    
+    def mark_failed(self, error_message=""):
+        """Mark payment as failed"""
+        self.payment_status = 'failed'
+        self.mpesa_result_desc = error_message
         self.save()

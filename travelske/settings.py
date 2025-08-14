@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-nci(^yh7#)g)kq54rn@r#ply@&0e3(b#2aave_^c5*+q-#5@_m
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1','kevin254.pythonanywhere.com']
 
 
 # Application definition
@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add WhiteNoise after SecurityMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -123,6 +124,13 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+
+# WhiteNoise Configuration
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+
+# WhiteNoise settings for development
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = True  # Auto-refresh static files during development
 
 # Media files (User uploads)
 MEDIA_URL = '/media/'

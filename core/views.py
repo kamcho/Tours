@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from datetime import timedelta
-from .models import Subscription, SubscriptionPlan, VerificationRequest
+from .models import Subscription, SubscriptionPlan, VerificationRequest, Payment
 from listings.models import Place, Agency
 import base64
 import requests
@@ -104,54 +104,113 @@ def verification_request(request):  # Temporarily removed @login_required for de
     print(f"🔍 DEBUG: User: {request.user}")
     print(f"🔍 DEBUG: URL: {request.path}")
     print(f"🔍 DEBUG: Request headers: {dict(request.headers)}")
-    print(f"🔍 DEBUG: Request body: {request.body}")
     
     if request.method == 'POST':
+        print(f"🔍 DEBUG: Processing POST request")
+        
+        # Get form data
         verification_type = request.POST.get('verification_type')
         phone_number = request.POST.get('phone_number', '')
-        duration_months = int(request.POST.get('duration_months', 3))
+        duration_years = int(request.POST.get('duration_years', 1))
+        place_id = request.POST.get('place_id', '')
+        agency_id = request.POST.get('agency_id', '')
         
-        # Calculate amount based on duration
-        amount = (duration_months // 3) * 100
+        print(f"🔍 DEBUG: verification_type: {verification_type}")
+        print(f"🔍 DEBUG: phone_number: {phone_number}")
+        print(f"🔍 DEBUG: duration_years: {duration_years}")
+        print(f"🔍 DEBUG: place_id: {place_id}")
+        print(f"🔍 DEBUG: agency_id: {agency_id}")
+        print(f"🔍 DEBUG: FILES data: {request.FILES}")
         
-        # Check if user already has a pending verification request
-        existing_request = VerificationRequest.objects.filter(
-            user=request.user,
-            status='pending'
-        ).first()
+        # Calculate amount based on years (KES 1000 per year)
+        amount = duration_years * 1000
+        print(f"🔍 DEBUG: calculated amount: {amount}")
+        
+        # Validate place/agency selection for business verifications
+        if verification_type in ['place', 'agency']:
+            if verification_type == 'place' and not place_id:
+                messages.error(request, 'Please select a place to verify.')
+                return redirect('core:verification_request')
+            elif verification_type == 'agency' and not agency_id:
+                messages.error(request, 'Please select an agency to verify.')
+                return redirect('core:verification_request')
+        
+        # Check if user already has a pending verification request for the same target
+        existing_request = None
+        if verification_type == 'place' and place_id:
+            existing_request = VerificationRequest.objects.filter(
+                user=request.user,
+                place_id=place_id,
+                status='pending'
+            ).first()
+        elif verification_type == 'agency' and agency_id:
+            existing_request = VerificationRequest.objects.filter(
+                user=request.user,
+                agency_id=agency_id,
+                status='pending'
+            ).first()
+        elif verification_type == 'user':
+            existing_request = VerificationRequest.objects.filter(
+                user=request.user,
+                verification_type='user',
+                status='pending'
+            ).first()
         
         if existing_request:
-            messages.warning(request, 'You already have a pending verification request.')
-            return redirect('core:subscription_page')
+            print(f"🔍 DEBUG: Found existing pending request: {existing_request.id}, updating it...")
+            verification = existing_request
+            # Update existing request with new data
+            verification.verification_type = verification_type
+            verification.phone_number = phone_number
+            verification.duration_years = duration_years
+            if place_id:
+                verification.place_id = place_id
+            if agency_id:
+                verification.agency_id = agency_id
+            verification.save()
+        else:
+            print(f"🔍 DEBUG: Creating new verification request...")
+            # Create new verification request
+            verification_data = {
+                'user': request.user,
+                'verification_type': verification_type,
+                'phone_number': phone_number,
+                'duration_years': duration_years,
+            }
+            
+            if place_id:
+                verification_data['place_id'] = place_id
+            if agency_id:
+                verification_data['agency_id'] = agency_id
+                
+            verification = VerificationRequest.objects.create(**verification_data)
         
-        # Create verification request
-        verification = VerificationRequest.objects.create(
-            user=request.user,
-            verification_type=verification_type,
-            phone_number=phone_number,
-        )
+        print(f"🔍 DEBUG: Using verification request ID: {verification.id}")
         
         # Handle ID document upload for individual users
         if verification_type == 'user' and 'id_document' in request.FILES:
+            print(f"🔍 DEBUG: Processing ID document upload")
             verification.id_document = request.FILES['id_document']
             verification.save()
         
-        # Process M-Pesa payment
-        print(f"🔍 DEBUG: Starting M-Pesa payment for verification {verification.id}")
-        print(f"🔍 DEBUG: Phone: {phone_number}, Amount: {amount}")
+        print(f"🔍 DEBUG: About to call process_verification_payment...")
         
+        # Process M-Pesa payment
         success = process_verification_payment(verification, phone_number, amount)
         
-        print(f"🔍 DEBUG: Payment result: {success}")
+        print(f"🔍 DEBUG: process_verification_payment returned: {success}")
         
         if success:
-            messages.success(request, f'Verification request submitted successfully! Payment of KES {amount} processed via M-Pesa. We will review your application within 24-48 hours.')
+            messages.success(request, f'Verification request submitted successfully! Payment of KES {amount} initiated via M-Pesa. Please complete the payment on your phone.')
         else:
             messages.warning(request, 'Verification request submitted but payment failed. Please contact support.')
         
         return redirect('core:subscription_page')
+    else:
+        # No context needed for the selection page
+        context = {}
     
-    return render(request, 'core/verification_request.html')
+    return render(request, 'core/verification_request.html', context)
 
 @login_required
 def my_subscriptions(request):
@@ -178,6 +237,85 @@ def cancel_subscription(request, subscription_id):
         'subscription': subscription,
     }
     return render(request, 'core/cancel_subscription.html', context)
+
+@login_required
+def admin_verification_dashboard(request):
+    """Admin dashboard for managing verification requests"""
+    if not request.user.is_staff:
+        messages.error(request, 'Access denied. Staff only.')
+        return redirect('core:subscription_page')
+    
+    # Get all verification requests
+    verification_requests = VerificationRequest.objects.all().order_by('-created_at')
+    
+    # Get payment statistics
+    total_payments = Payment.objects.count()
+    completed_payments = Payment.objects.filter(payment_status='completed').count()
+    pending_payments = Payment.objects.filter(payment_status='pending').count()
+    failed_payments = Payment.objects.filter(payment_status='failed').count()
+    
+    # Get verification statistics
+    total_verifications = verification_requests.count()
+    pending_verifications = verification_requests.filter(status='pending').count()
+    payment_completed = verification_requests.filter(status='payment_completed').count()
+    under_review = verification_requests.filter(status='under_review').count()
+    approved_verifications = verification_requests.filter(status='approved').count()
+    rejected_verifications = verification_requests.filter(status='rejected').count()
+    
+    context = {
+        'verification_requests': verification_requests,
+        'total_payments': total_payments,
+        'completed_payments': completed_payments,
+        'pending_payments': pending_payments,
+        'failed_payments': failed_payments,
+        'total_verifications': total_verifications,
+        'pending_verifications': pending_verifications,
+        'payment_completed': payment_completed,
+        'under_review': under_review,
+        'approved_verifications': approved_verifications,
+        'rejected_verifications': rejected_verifications,
+    }
+    
+    return render(request, 'core/admin_verification_dashboard.html', context)
+
+@login_required
+def admin_payment_dashboard(request):
+    """Admin dashboard for managing payments"""
+    if not request.user.is_staff:
+        messages.error(request, 'Access denied. Staff only.')
+        return redirect('core:subscription_page')
+    
+    # Get all payments
+    payments = Payment.objects.all().order_by('-transaction_date')
+    
+    # Get payment statistics
+    total_amount = sum(payment.amount for payment in payments if payment.payment_status == 'completed')
+    mpesa_payments = payments.filter(payment_method='mpesa')
+    card_payments = payments.filter(payment_method='card')
+    
+    # Calculate percentages
+    total_payments_count = payments.count()
+    mpesa_percentage = (mpesa_payments.count() / total_payments_count * 100) if total_payments_count > 0 else 0
+    card_percentage = (card_payments.count() / total_payments_count * 100) if total_payments_count > 0 else 0
+    
+    # Get payment status counts
+    payment_status_counts = {}
+    for status_choice in Payment.PAYMENT_STATUS_CHOICES:
+        status = status_choice[0]
+        count = payments.filter(payment_status=status).count()
+        payment_status_counts[status] = count
+    
+    context = {
+        'payments': payments,
+        'total_amount': total_amount,
+        'mpesa_payments': mpesa_payments,
+        'card_payments': card_payments,
+        'mpesa_percentage': round(mpesa_percentage, 1),
+        'card_percentage': round(card_percentage, 1),
+        'payment_status_counts': payment_status_counts,
+    }
+    
+    return render(request, 'core/admin_payment_dashboard.html', context)
 
 def process_mpesa_payment(subscription, phone_number):
     """Process M-Pesa payment for subscription"""
@@ -340,7 +478,21 @@ def process_verification_payment(verification, phone_number, amount):
             result = response.json()
             print(f"✅ DEBUG: STK push successful: {result}")
             
-            # Update verification with payment details
+            # Create payment record
+            from core.models import Payment
+            payment = Payment.objects.create(
+                verification_request=verification,
+                amount=amount,
+                payment_method='mpesa',
+                payment_status='processing',
+                mpesa_checkout_request_id=result.get('CheckoutRequestID', ''),
+                mpesa_merchant_request_id=result.get('MerchantRequestID', ''),
+                payment_reference=f"VER_{verification.id}_{timestamp}"
+            )
+            
+            print(f"🔍 DEBUG: Created payment record: {payment.id}")
+            
+            # Update verification status
             verification.status = 'pending'
             verification.save()
             return True
@@ -353,3 +505,208 @@ def process_verification_payment(verification, phone_number, amount):
         import traceback
         traceback.print_exc()
         return False
+
+def mpesa_callback(request):
+    """Handle M-Pesa STK push callback"""
+    if request.method == 'POST':
+        try:
+            data = request.POST
+            print(f"🔍 DEBUG: M-Pesa callback received: {data}")
+            
+            # Extract callback data
+            checkout_request_id = data.get('CheckoutRequestID')
+            merchant_request_id = data.get('MerchantRequestID')
+            result_code = data.get('ResultCode')
+            result_desc = data.get('ResultDesc')
+            
+            # Find the payment by checkout request ID
+            try:
+                from core.models import Payment
+                payment = Payment.objects.get(mpesa_checkout_request_id=checkout_request_id)
+                print(f"🔍 DEBUG: Found payment: {payment.id}")
+                
+                if result_code == '0':
+                    # Payment successful
+                    payment.mpesa_result_code = result_code
+                    payment.mpesa_result_desc = result_desc
+                    payment.mpesa_merchant_request_id = merchant_request_id
+                    payment.mark_completed()
+                    
+                    print(f"✅ Payment {payment.id} completed successfully")
+                    return JsonResponse({'status': 'success'})
+                else:
+                    # Payment failed
+                    payment.mpesa_result_code = result_code
+                    payment.mpesa_result_desc = result_desc
+                    payment.mark_failed(result_desc)
+                    
+                    print(f"❌ Payment {payment.id} failed: {result_desc}")
+                    return JsonResponse({'status': 'failed', 'error': result_desc})
+                    
+            except Payment.DoesNotExist:
+                print(f"❌ Payment not found for checkout request ID: {checkout_request_id}")
+                return JsonResponse({'status': 'error', 'error': 'Payment not found'})
+                
+        except Exception as e:
+            print(f"❌ Error processing M-Pesa callback: {str(e)}")
+            return JsonResponse({'status': 'error', 'error': str(e)})
+    
+    return JsonResponse({'status': 'error', 'error': 'Invalid request method'})
+
+@login_required
+def verify_user(request):
+    """User verification page"""
+    if request.method == 'POST':
+        phone_number = request.POST.get('phone_number', '')
+        duration_months = int(request.POST.get('duration_months', 3))
+        
+        # Calculate amount based on months (KES 100 per 3 months)
+        amount = (duration_months // 3) * 100
+        
+        # Check if user already has a pending verification request
+        existing_request = VerificationRequest.objects.filter(
+            user=request.user,
+            verification_type='user',
+            status='pending'
+        ).first()
+        
+        # Convert months to years for storage (round up to nearest year)
+        duration_years = (duration_months + 11) // 12  # Round up to nearest year
+        
+        if existing_request:
+            verification = existing_request
+            verification.phone_number = phone_number
+            verification.duration_years = duration_years
+            verification.save()
+        else:
+            verification = VerificationRequest.objects.create(
+                user=request.user,
+                verification_type='user',
+                phone_number=phone_number,
+                duration_years=duration_years,
+            )
+        
+        # Handle ID document upload
+        if 'id_document' in request.FILES:
+            verification.id_document = request.FILES['id_document']
+            verification.save()
+        
+        # Process M-Pesa payment
+        success = process_verification_payment(verification, phone_number, amount)
+        
+        if success:
+            messages.success(request, f'Verification request submitted successfully! Payment of KES {amount} initiated via M-Pesa. Please complete the payment on your phone.')
+        else:
+            messages.warning(request, 'Verification request submitted but payment failed. Please contact support.')
+        
+        return redirect('core:subscription_page')
+    
+    return render(request, 'core/verify_user.html')
+
+@login_required
+def verify_place(request):
+    """Place verification page"""
+    if request.method == 'POST':
+        place_id = request.POST.get('place_id')
+        phone_number = request.POST.get('phone_number', '')
+        duration_years = int(request.POST.get('duration_years', 1))
+        
+        if not place_id:
+            messages.error(request, 'Please select a place to verify.')
+            return redirect('core:verify_place')
+        
+        # Calculate amount based on years (KES 1000 per year)
+        amount = duration_years * 1000
+        
+        # Check if user already has a pending verification request for this place
+        existing_request = VerificationRequest.objects.filter(
+            user=request.user,
+            place_id=place_id,
+            status='pending'
+        ).first()
+        
+        if existing_request:
+            verification = existing_request
+            verification.phone_number = phone_number
+            verification.duration_years = duration_years
+            verification.save()
+        else:
+            verification = VerificationRequest.objects.create(
+                user=request.user,
+                verification_type='place',
+                place_id=place_id,
+                phone_number=phone_number,
+                duration_years=duration_years,
+            )
+        
+        # Process M-Pesa payment
+        success = process_verification_payment(verification, phone_number, amount)
+        
+        if success:
+            messages.success(request, f'Verification request submitted successfully! Payment of KES {amount} initiated via M-Pesa. Please complete the payment on your phone.')
+        else:
+            messages.warning(request, 'Verification request submitted but payment failed. Please contact support.')
+        
+        return redirect('core:subscription_page')
+    
+    # Get user's unverified places
+    user_places = Place.objects.filter(created_by=request.user, verified=False)
+    
+    context = {
+        'user_places': user_places,
+    }
+    return render(request, 'core/verify_place.html', context)
+
+@login_required
+def verify_agency(request):
+    """Agency verification page"""
+    if request.method == 'POST':
+        agency_id = request.POST.get('agency_id')
+        phone_number = request.POST.get('phone_number', '')
+        duration_years = int(request.POST.get('duration_years', 1))
+        
+        if not agency_id:
+            messages.error(request, 'Please select an agency to verify.')
+            return redirect('core:verify_agency')
+        
+        # Calculate amount based on years (KES 1000 per year)
+        amount = duration_years * 1000
+        
+        # Check if user already has a pending verification request for this agency
+        existing_request = VerificationRequest.objects.filter(
+            user=request.user,
+            agency_id=agency_id,
+            status='pending'
+        ).first()
+        
+        if existing_request:
+            verification = existing_request
+            verification.phone_number = phone_number
+            verification.duration_years = duration_years
+            verification.save()
+        else:
+            verification = VerificationRequest.objects.create(
+                user=request.user,
+                verification_type='agency',
+                agency_id=agency_id,
+                phone_number=phone_number,
+                duration_years=duration_years,
+            )
+        
+        # Process M-Pesa payment
+        success = process_verification_payment(verification, phone_number, amount)
+        
+        if success:
+            messages.success(request, f'Verification request submitted successfully! Payment of KES {amount} initiated via M-Pesa. Please complete the payment on your phone.')
+        else:
+            messages.warning(request, 'Verification request submitted but payment failed. Please contact support.')
+        
+        return redirect('core:subscription_page')
+    
+    # Get user's unverified agencies
+    user_agencies = Agency.objects.filter(owner=request.user, verified=False)
+    
+    context = {
+        'user_agencies': user_agencies,
+    }
+    return render(request, 'core/verify_agency.html', context)

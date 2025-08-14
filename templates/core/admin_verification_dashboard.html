@@ -1,0 +1,191 @@
+{% extends 'users/base.html' %}
+{% load static %}
+
+{% block title %}Admin - Verification Dashboard{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Verification Management Dashboard</h1>
+            <p class="text-gray-600 mt-2">Manage verification requests and track payment status</p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Verifications -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Verifications</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ total_verifications }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Verifications -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Pending</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ pending_verifications }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Completed -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-green-100 text-green-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Payment Completed</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ payment_completed }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Approved -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-emerald-100 text-emerald-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Approved</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ approved_verifications }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Payment Status</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Completed:</span>
+                        <span class="font-semibold text-green-600">{{ completed_payments }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Pending:</span>
+                        <span class="font-semibold text-yellow-600">{{ pending_payments }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Failed:</span>
+                        <span class="font-semibold text-red-600">{{ failed_payments }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Verification Status</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Under Review:</span>
+                        <span class="font-semibold text-blue-600">{{ under_review }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Rejected:</span>
+                        <span class="font-semibold text-red-600">{{ rejected_verifications }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                <div class="space-y-2">
+                    <a href="{% url 'core:admin_payment_dashboard' %}" class="block w-full bg-blue-600 text-white text-center py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                        View Payments
+                    </a>
+                    <a href="/admin/core/verificationrequest/" class="block w-full bg-gray-600 text-white text-center py-2 px-4 rounded-lg hover:bg-gray-700 transition-colors">
+                        Admin Panel
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Verification Requests Table -->
+        <div class="bg-white rounded-lg shadow">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Recent Verification Requests</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for verification in verification_requests|slice:":10" %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="text-sm font-medium text-gray-900">{{ verification.user.email }}</div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
+                                    {% if verification.verification_type == 'user' %}bg-blue-100 text-blue-800
+                                    {% elif verification.verification_type == 'place' %}bg-green-100 text-green-800
+                                    {% else %}bg-purple-100 text-purple-800{% endif %}">
+                                    {{ verification.get_verification_type_display }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
+                                    {% if verification.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                    {% elif verification.status == 'payment_completed' %}bg-blue-100 text-blue-800
+                                    {% elif verification.status == 'under_review' %}bg-indigo-100 text-indigo-800
+                                    {% elif verification.status == 'approved' %}bg-green-100 text-green-800
+                                    {% else %}bg-red-100 text-red-800{% endif %}">
+                                    {{ verification.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ verification.phone_number|default:"-" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ verification.created_at|date:"M d, Y" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <a href="/admin/core/verificationrequest/{{ verification.id }}/change/" class="text-blue-600 hover:text-blue-900">
+                                    Review
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-6 py-4 text-center text-gray-500">No verification requests found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

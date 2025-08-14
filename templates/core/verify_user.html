@@ -1,0 +1,148 @@
+{% extends 'users/base.html' %}
+{% load static %}
+
+{% block title %}Verify User - TravelsKe{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="container mx-auto px-4">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-800 mb-4">Verify Your Account</h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                Get verified to build trust with other users and unlock premium features.
+            </p>
+        </div>
+
+        <!-- Verification Form -->
+        <div class="max-w-2xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-xl p-8">
+                <form method="POST" enctype="multipart/form-data" class="space-y-8">
+                    {% csrf_token %}
+                    
+                    <!-- ID Document Upload -->
+                    <div class="bg-blue-50 rounded-lg p-6">
+                        <div class="text-center mb-6">
+                            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-semibold text-blue-800 mb-2">Front Side of National ID</h3>
+                            <p class="text-blue-600">Please upload a clear photo of the front side of your National ID</p>
+                        </div>
+                        
+                        <div class="max-w-md mx-auto">
+                            <label for="id_document" class="block text-sm font-semibold text-gray-700 mb-2">
+                                ID Document *
+                            </label>
+                            <input type="file" name="id_document" id="id_document" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                                   accept=".jpg,.jpeg,.png" required>
+                            <p class="text-xs text-gray-500 mt-1">JPG, JPEG, or PNG files only</p>
+                        </div>
+                    </div>
+
+                    <!-- Payment Section -->
+                    <div class="bg-green-50 rounded-lg p-6">
+                        <div class="text-center mb-6">
+                            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-semibold text-green-800 mb-2">Verification Fee</h3>
+                            <p class="text-green-600">KES 100 per 3 months</p>
+                        </div>
+                        
+                        <div class="max-w-md mx-auto space-y-4">
+                            <div>
+                                <label for="phone_number" class="block text-sm font-semibold text-gray-700 mb-2">
+                                    M-Pesa Phone Number *
+                                </label>
+                                <input type="tel" name="phone_number" id="phone_number" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200"
+                                       placeholder="+254 XXX XXX XXX" required>
+                                <p class="text-xs text-gray-500 mt-1">Enter the phone number registered with M-Pesa</p>
+                            </div>
+                            
+                                                            <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                        Verification Duration *
+                                    </label>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
+                                            <input type="radio" name="duration_months" value="3" class="mr-2 text-green-600" checked>
+                                            <div>
+                                                <div class="font-medium text-gray-800">3 Months</div>
+                                                <div class="text-sm text-gray-600">KES 100</div>
+                                            </div>
+                                        </label>
+                                        <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
+                                            <input type="radio" name="duration_months" value="6" class="mr-2 text-green-600">
+                                            <div>
+                                                <div class="font-medium text-gray-800">6 Months</div>
+                                                <div class="text-sm text-gray-600">KES 200</div>
+                                            </div>
+                                        </label>
+                                        <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
+                                            <input type="radio" name="duration_months" value="9" class="mr-2 text-green-600">
+                                            <div>
+                                                <div class="font-medium text-gray-800">9 Months</div>
+                                                <div class="text-sm text-gray-600">KES 300</div>
+                                            </div>
+                                        </label>
+                                        <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
+                                            <input type="radio" name="duration_months" value="12" class="mr-2 text-green-600">
+                                            <div>
+                                                <div class="font-medium text-gray-800">12 Months</div>
+                                                <div class="text-sm text-gray-600">KES 400</div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                        </div>
+                        
+                        <div class="text-center mt-6">
+                            <button type="submit" 
+                                    class="bg-gradient-to-r from-green-600 to-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:from-green-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl">
+                                Pay & Submit Verification
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Information Section -->
+        <div class="max-w-2xl mx-auto mt-12">
+            <div class="bg-blue-50 rounded-2xl p-8">
+                <h3 class="text-2xl font-bold text-blue-800 mb-4">What happens next?</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <span class="text-blue-600 font-bold text-xl">1</span>
+                        </div>
+                        <h4 class="font-semibold text-blue-800 mb-2">Upload ID</h4>
+                        <p class="text-blue-700 text-sm">Upload your National ID document</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <span class="text-blue-600 font-bold text-xl">2</span>
+                        </div>
+                        <h4 class="font-semibold text-blue-800 mb-2">Payment</h4>
+                        <p class="text-blue-700 text-sm">Pay via M-Pesa</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <span class="text-blue-600 font-bold text-xl">3</span>
+                        </div>
+                        <h4 class="font-semibold text-blue-800 mb-2">Verification</h4>
+                        <p class="text-blue-700 text-sm">Get verified within 24-48 hours</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

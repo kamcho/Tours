@@ -37,6 +37,10 @@
                     {% if user.is_authenticated %}
                         <a href="{% url 'place_create_step' step=1 %}" class="text-gray-300 hover:text-teal-400 font-medium transition duration-300">Add Place</a>
                     {% endif %}
+                    {% if user.is_staff %}
+                        <a href="{% url 'core:admin_verification_dashboard' %}" class="text-gray-300 hover:text-teal-400 font-medium transition duration-300">Verifications</a>
+                        <a href="{% url 'core:admin_payment_dashboard' %}" class="text-gray-300 hover:text-teal-400 font-medium transition duration-300">Payments</a>
+                    {% endif %}
                 </div>
                 
                 <!-- Desktop Auth Buttons -->
