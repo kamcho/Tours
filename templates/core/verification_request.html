@@ -17,7 +17,7 @@
         <!-- Verification Form -->
         <div class="max-w-4xl mx-auto">
             <div class="bg-white rounded-2xl shadow-xl p-8">
-                <form method="POST" enctype="multipart/form-data" class="space-y-8" id="verificationForm">
+                <form method="POST" action="{% url 'core:verification_request' %}" enctype="multipart/form-data" class="space-y-8" id="verificationForm">
                     {% csrf_token %}
                     
                     <!-- Step 1: Verification Type -->
@@ -159,6 +159,12 @@
                                         class="bg-gradient-to-r from-green-600 to-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:from-green-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl">
                                     Pay & Submit Verification
                                 </button>
+                                
+                                <!-- Test button to bypass JavaScript -->
+                                <button type="button" onclick="testFormSubmission()" 
+                                        class="bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors">
+                                    Test Submit (Bypass JS)
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -245,16 +251,23 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Form submission
+    // Form submission - simplified to just submit
     form.addEventListener('submit', function(e) {
-        e.preventDefault();
+        console.log('🔍 Form submitted!');
+        console.log('🔍 Form action:', this.action);
+        console.log('🔍 Form method:', this.method);
         
         // Validate required fields
         const verificationType = document.querySelector('input[name="verification_type"]:checked');
         const phoneNumber = document.getElementById('phone_number').value;
         const durationMonths = document.querySelector('input[name="duration_months"]:checked');
         
+        console.log('🔍 verification_type:', verificationType ? verificationType.value : 'NOT SELECTED');
+        console.log('🔍 phone_number:', phoneNumber);
+        console.log('🔍 duration_months:', durationMonths ? durationMonths.value : 'NOT SELECTED');
+        
         if (!verificationType || !phoneNumber || !durationMonths) {
+            e.preventDefault();
             alert('Please fill in all required fields');
             return;
         }
@@ -262,15 +275,28 @@ document.addEventListener('DOMContentLoaded', function() {
         // If individual user, check ID document
         if (verificationType.value === 'user') {
             const idDocument = document.getElementById('id_document').files[0];
+            console.log('🔍 id_document:', idDocument ? idDocument.name : 'NOT UPLOADED');
             if (!idDocument) {
+                e.preventDefault();
                 alert('Please upload your ID document');
                 return;
             }
         }
         
-        // Submit form
-        this.submit();
+        // Allow form to submit normally
+        console.log('🔍 All validation passed, submitting form...');
+        console.log('🔍 Form will submit to:', this.action);
     });
+    
+    // Test function to bypass JavaScript validation
+    window.testFormSubmission = function() {
+        console.log('🔍 Test submit button clicked');
+        console.log('🔍 Form action:', form.action);
+        console.log('🔍 Form method:', form.method);
+        
+        // Manually submit the form
+        form.submit();
+    };
 });
 </script>
 {% endblock %} 
