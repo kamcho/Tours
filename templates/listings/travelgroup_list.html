@@ -1,6 +1,9 @@
 {% extends 'users/base.html' %}
 {% block content %}
 
+<!-- CSRF Token for JavaScript -->
+{% csrf_token %}
+
 <!-- Hero Section -->
 <div class="relative bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-900 py-24">
     <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20" style="background-image: url('https://images.unsplash.com/photo-1523050854058-8df90110c9a1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2025&q=80');"></div>
@@ -116,6 +119,41 @@
         </div>
     </div>
 </div>
+
+<!-- Django Messages Display -->
+{% if messages %}
+<div class="max-w-7xl mx-auto px-4 mb-8">
+    {% for message in messages %}
+    <div class="{% if message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% elif message.tags == 'warning' %}bg-yellow-100 border-yellow-400 text-yellow-700{% elif message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %} border px-4 py-3 rounded-lg mb-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            {% if message.tags == 'error' %}
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+            {% elif message.tags == 'warning' %}
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+            {% elif message.tags == 'success' %}
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+            {% else %}
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+            {% endif %}
+            <span class="font-medium">{{ message }}</span>
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-gray-500 hover:text-gray-700">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+        </button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 
 <!-- Groups Grid -->
 <div class="bg-gradient-to-br from-gray-50 to-gray-100 py-20">
@@ -240,13 +278,49 @@
                             {% endif %}
                         </div>
                         
-                        <!-- Enhanced Action Button -->
-                        <a href="{% url 'travelgroup_detail' group.pk %}" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-4 px-6 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 group-hover:shadow-xl transform group-hover:scale-105">
-                            <span>Explore Group</span>
-                            <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-                            </svg>
-                        </a>
+                        <!-- Action Buttons -->
+                        <div class="flex gap-3">
+                            <!-- Explore Button -->
+                            <a href="{% url 'travelgroup_detail' group.pk %}" class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 group-hover:shadow-xl transform group-hover:scale-105">
+                                <span>Explore</span>
+                                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                                </svg>
+                            </a>
+                            
+                            <!-- Join/Leave Button -->
+                            {% if user.is_authenticated %}
+                                {% if group.can_join %}
+                                    <button onclick="handleGroupAction('join', {{ group.id }}, this)" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 group-hover:shadow-xl transform group-hover:scale-105">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                        </svg>
+                                        <span>Join</span>
+                                    </button>
+                                {% elif group.is_member %}
+                                    <div class="flex-1 bg-green-100 text-green-700 py-3 px-4 rounded-xl font-semibold flex items-center justify-center gap-2">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                        <span>Member</span>
+                                    </div>
+                                {% elif group.is_creator %}
+                                    <div class="flex-1 bg-purple-100 text-purple-700 py-3 px-4 rounded-xl font-semibold flex items-center justify-center gap-2">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                        </svg>
+                                        <span>Creator</span>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <a href="{% url 'login' %}" class="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 group-hover:shadow-xl transform group-hover:scale-105">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                    <span>Sign In</span>
+                                </a>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
                 {% endfor %}
@@ -386,6 +460,77 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize
     updateActiveFilters();
+    
+    // Handle join/leave actions
+    function handleGroupAction(action, groupId, buttonElement) {
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        
+        fetch(`/travel-group/${groupId}/${action}/`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update the button to show success state
+                const card = buttonElement.closest('.group');
+                const actionButtons = card.querySelector('.flex.gap-3');
+                
+                if (action === 'join') {
+                    actionButtons.innerHTML = `
+                        <a href="/travel-group/${groupId}/" class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 group-hover:shadow-xl transform group-hover:scale-105">
+                            <span>Explore</span>
+                            <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                            </svg>
+                        </a>
+                        <div class="flex-1 bg-green-100 text-green-700 py-3 px-4 rounded-xl font-semibold flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Member</span>
+                        </div>
+                    `;
+                }
+                
+                // Show success message
+                showMessage('Success! You have joined the group.', 'success');
+            } else {
+                showMessage(data.error || 'An error occurred. Please try again.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('An error occurred. Please try again.', 'error');
+        });
+    }
+    
+    function showMessage(message, type) {
+        const messageContainer = document.createElement('div');
+        messageContainer.className = `fixed top-4 right-4 z-50 ${type === 'success' ? 'bg-green-100 border-green-400 text-green-700' : 'bg-red-100 border-red-400 text-red-700'} border px-4 py-3 rounded-lg shadow-lg`;
+        messageContainer.innerHTML = `
+            <div class="flex items-center gap-3">
+                <span class="font-medium">${message}</span>
+                <button onclick="this.parentElement.parentElement.remove()" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+        document.body.appendChild(messageContainer);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (messageContainer.parentElement) {
+                messageContainer.remove();
+            }
+        }, 5000);
+    }
 });
 
 // Theme toggle functionality

@@ -151,10 +151,10 @@ def verification_request(request):  # Temporarily removed @login_required for de
             ).first()
         elif verification_type == 'user':
             existing_request = VerificationRequest.objects.filter(
-                user=request.user,
+            user=request.user,
                 verification_type='user',
-                status='pending'
-            ).first()
+            status='pending'
+        ).first()
         
         if existing_request:
             print(f"🔍 DEBUG: Found existing pending request: {existing_request.id}, updating it...")

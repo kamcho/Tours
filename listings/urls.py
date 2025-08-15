@@ -20,6 +20,9 @@ urlpatterns = [
     # Travel Group URLs
     path('travel-groups/', views.TravelGroupListView.as_view(), name='travelgroup_list'),
     path('travel-group/<int:pk>/', views.TravelGroupDetailView.as_view(), name='travelgroup_detail'),
+    path('travel-group/<int:group_id>/add-member/', views.add_travel_group_member, name='add_travel_group_member'),
+    path('travel-group/<int:group_id>/join/', views.join_travel_group, name='join_travel_group'),
+    path('travel-group/<int:group_id>/leave/', views.leave_travel_group, name='leave_travel_group'),
     path('travel-group/create/', views.TravelGroupCreateView.as_view(), name='travelgroup_create'),
     path('travel-group/<int:pk>/edit/', views.TravelGroupUpdateView.as_view(), name='travelgroup_update'),
     path('travel-group/<int:pk>/delete/', views.TravelGroupDeleteView.as_view(), name='travelgroup_delete'),

@@ -634,7 +634,7 @@ class VerificationRequest(models.Model):
             # Mark user as verified for individual verification
             self.user.is_verified = True
             self.user.save()
-    
+        
     def reject(self, reviewer, notes):
         """Reject verification request"""
         self.status = 'rejected'

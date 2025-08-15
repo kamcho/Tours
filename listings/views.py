@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
 from django.views import View
 from django import forms
-from .models import Place, PlaceCategory, TourBooking, EventBooking, TravelGroup, GroupTours, Agency, AgencyService
+from .models import Place, PlaceCategory, TourBooking, EventBooking, TravelGroup, GroupTours, Agency, AgencyService, TourComment
+from users.models import MyUser
 from django.urls import reverse
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, DetailView, UpdateView, DeleteView, TemplateView, CreateView
@@ -12,7 +13,7 @@ from django.utils.decorators import method_decorator
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
-from .forms import MenuCategoryForm, MenuItemForm, TourCommentForm, EventCommentForm, TourBookingForm, EventBookingForm, EnhancedTourBookingForm, PlaceRatingForm, AgencyRatingForm, GroupToursForm, AgencyServiceForm
+from .forms import MenuCategoryForm, MenuItemForm, TourCommentForm, EventCommentForm, TourBookingForm, EventBookingForm, EnhancedTourBookingForm, PlaceRatingForm, AgencyRatingForm, GroupToursForm, AgencyServiceForm, AdvancedSearchForm
 from .models import Features
 from .forms import FeatureForm
 from django.contrib import messages
@@ -21,11 +22,13 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q, Avg, Count, Case, When, Value
 from core.models import PaymentMethod, PaymentTransaction, MPesaPayment, PaymentSettings
 from core.mpesa_service import MPesaService
+from django.utils import timezone
+from django.core.paginator import Paginator
 import json
 import base64
 import requests
 from requests.auth import HTTPBasicAuth
-import datetime
+from datetime import datetime, timedelta
 
 # Step 1: Basic Information
 class PlaceBasicForm(forms.Form):
@@ -349,11 +352,54 @@ class TravelGroupListView(ListView):
 
     def get_queryset(self):
         return TravelGroup.objects.filter(is_public=True)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Add membership information for each group
+        if self.request.user.is_authenticated:
+            for group in context['travel_groups']:
+                group.is_member = self.request.user in group.members.all()
+                group.is_creator = self.request.user == group.creator
+                group.can_join = (
+                    group.is_public and 
+                    not group.is_member and 
+                    not group.is_creator
+                )
+        else:
+            for group in context['travel_groups']:
+                group.is_member = False
+                group.is_creator = False
+                group.can_join = False
+        
+        return context
 
 class TravelGroupDetailView(DetailView):
     model = TravelGroup
     template_name = 'listings/travelgroup_detail.html'
     context_object_name = 'travel_group'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['members'] = self.object.members.all()
+        
+        # Add membership information for the current user
+        if self.request.user.is_authenticated:
+            context['is_member'] = self.request.user in self.object.members.all()
+            context['is_creator'] = self.request.user == self.object.creator
+            context['can_join'] = (
+                self.object.is_public and 
+                not context['is_member'] and 
+                not context['is_creator']
+            )
+            context['can_leave'] = context['is_member'] and not context['is_creator']
+        else:
+            context['is_member'] = False
+            context['is_creator'] = False
+            context['can_join'] = False
+            context['can_leave'] = False
+        
+        return context
 
 class TravelGroupCreateView(LoginRequiredMixin, CreateView):
     model = TravelGroup
@@ -391,6 +437,154 @@ class UserTravelGroupListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         return TravelGroup.objects.filter(creator=self.request.user)
 
+
+@login_required
+@require_POST
+def add_travel_group_member(request, group_id):
+    """Add a member to a travel group by email or user ID"""
+    try:
+        group = TravelGroup.objects.get(id=group_id)
+        
+        # Check if user is the creator of the group
+        if request.user != group.creator:
+            messages.error(request, 'Only the group creator can add members')
+            return redirect('travelgroup_detail', pk=group_id)
+        
+        email = request.POST.get('email', '').strip()
+        user_id = request.POST.get('user_id', '').strip()
+        
+        if not email or not user_id:
+            messages.error(request, 'Both email and user ID are required')
+            return redirect('travelgroup_detail', pk=group_id)
+        
+        user_to_add = None
+        
+        # Find user by both email and user ID for verification
+        try:
+            user_to_add = MyUser.objects.get(email=email, id=user_id)
+        except MyUser.DoesNotExist:
+            messages.error(request, f'No user found with email: {email} and ID: {user_id}. Please verify both fields are correct.')
+            return redirect('travelgroup_detail', pk=group_id)
+        except ValueError:
+            messages.error(request, f'Invalid user ID format: {user_id}')
+            return redirect('travelgroup_detail', pk=group_id)
+        
+        if not user_to_add:
+            messages.error(request, 'User not found')
+            return redirect('travelgroup_detail', pk=group_id)
+        
+        # Check if user is already a member
+        if user_to_add in group.members.all():
+            messages.error(request, f'{user_to_add.email} is already a member of this group')
+            return redirect('travelgroup_detail', pk=group_id)
+        
+        # Check if user is the creator
+        if user_to_add == group.creator:
+            messages.error(request, 'The creator is automatically a member')
+            return redirect('travelgroup_detail', pk=group_id)
+        
+        # Add user to group
+        group.members.add(user_to_add)
+        
+        messages.success(request, f'{user_to_add.email} has been added to the group successfully')
+        return redirect('travelgroup_detail', pk=group_id)
+        
+    except TravelGroup.DoesNotExist:
+        messages.error(request, 'Travel group not found')
+        return redirect('travelgroup_list')
+    except Exception as e:
+        messages.error(request, f'An error occurred: {str(e)}')
+        return redirect('travelgroup_detail', pk=group_id)
+
+@login_required
+@require_POST
+def join_travel_group(request, group_id):
+    """Allow a user to join a travel group"""
+    try:
+        group = TravelGroup.objects.get(id=group_id)
+        
+        # Check if group is public
+        if not group.is_public:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'error': 'This group is private and requires an invitation to join.'})
+            messages.error(request, 'This group is private and requires an invitation to join.')
+            return redirect('travelgroup_detail', pk=group_id)
+        
+        # Check if user is already a member
+        if request.user in group.members.all():
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'error': 'You are already a member of this group.'})
+            messages.warning(request, 'You are already a member of this group.')
+            return redirect('travelgroup_detail', pk=group_id)
+        
+        # Check if user is the creator
+        if request.user == group.creator:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'error': 'You are the creator of this group.'})
+            messages.info(request, 'You are the creator of this group.')
+            return redirect('travelgroup_detail', pk=group_id)
+        
+        # Add user to group
+        group.members.add(request.user)
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': True, 'message': f'You have successfully joined {group.name}!'})
+        
+        messages.success(request, f'You have successfully joined {group.name}!')
+        return redirect('travelgroup_detail', pk=group_id)
+        
+    except TravelGroup.DoesNotExist:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Travel group not found'})
+        messages.error(request, 'Travel group not found')
+        return redirect('travelgroup_list')
+    except Exception as e:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': f'An error occurred: {str(e)}'})
+        messages.error(request, f'An error occurred: {str(e)}')
+        return redirect('travelgroup_detail', pk=group_id)
+
+@login_required
+@require_POST
+def leave_travel_group(request, group_id):
+    """Allow a user to leave a travel group"""
+    try:
+        group = TravelGroup.objects.get(id=group_id)
+        
+        # Check if user is a member
+        if request.user not in group.members.all():
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'error': 'You are not a member of this group.'})
+            messages.warning(request, 'You are not a member of this group.')
+            return redirect('travelgroup_detail', pk=group_id)
+        
+        # Check if user is the creator
+        if request.user == group.creator:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'error': 'Group creators cannot leave their own group. Please delete the group instead.'})
+            messages.error(request, 'Group creators cannot leave their own group. Please delete the group instead.')
+            return redirect('travelgroup_detail', pk=group_id)
+        
+        # Remove user from group
+        group.members.remove(request.user)
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': True, 'message': f'You have left {group.name}.'})
+        
+        messages.success(request, f'You have left {group.name}.')
+        return redirect('travelgroup_list')
+        
+    except TravelGroup.DoesNotExist:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Travel group not found'})
+        messages.error(request, 'Travel group not found')
+        return redirect('travelgroup_list')
+    except Exception as e:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': f'An error occurred: {str(e)}'})
+        messages.error(request, f'An error occurred: {str(e)}')
+        return redirect('travelgroup_detail', pk=group_id)
+
 class GroupToursListView(ListView):
     model = GroupTours
     template_name = 'listings/grouptours_list.html'
@@ -421,12 +615,10 @@ class GroupToursListView(ListView):
         if date_range:
             # Simple date filtering - you can enhance this with date picker
             if date_range == 'this_month':
-                from datetime import datetime, timedelta
                 start_date = datetime.now().replace(day=1)
                 queryset = queryset.filter(start_date__gte=start_date)
                 print(f"Debug - Applied this_month filter, queryset count: {queryset.count()}")
             elif date_range == 'next_month':
-                from datetime import datetime, timedelta
                 next_month = datetime.now().replace(day=1) + timedelta(days=32)
                 start_date = next_month.replace(day=1)
                 end_date = (start_date + timedelta(days=32)).replace(day=1) - timedelta(days=1)
@@ -838,10 +1030,12 @@ def add_tour_comment(request, tour_id):
         form = TourCommentForm(request.POST)
         
         if form.is_valid():
-            comment = form.save(commit=False)
-            comment.tour = tour
-            comment.user = request.user
-            comment.save()
+            # Create the comment manually since TourCommentForm is not a ModelForm
+            comment = TourComment.objects.create(
+                tour=tour,
+                user=request.user,
+                content=form.cleaned_data['content']
+            )
             
             return JsonResponse({
                 'success': True,
@@ -851,9 +1045,14 @@ def add_tour_comment(request, tour_id):
                 'created_at': comment.created_at.strftime('%B %d, %Y at %I:%M %p')
             })
         else:
-            return JsonResponse({'error': 'Invalid comment data'}, status=400)
+            return JsonResponse({'error': 'Invalid comment data', 'form_errors': form.errors}, status=400)
     except GroupTours.DoesNotExist:
         return JsonResponse({'error': 'Tour not found'}, status=404)
+    except Exception as e:
+        print(f"Unexpected error in add_tour_comment: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'error': f'Server error: {str(e)}'}, status=500)
 
 @login_required
 @require_POST
@@ -1505,8 +1704,6 @@ class AgencyRatingListView(ListView):
 # Search and Discovery Views
 from django.db.models import Q, Avg, Count, F
 from django.core.paginator import Paginator
-from django.utils import timezone
-from datetime import datetime, timedelta
 
 class AdvancedSearchView(View):
     """Advanced search view for places, tours, agencies, and events"""
