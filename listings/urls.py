@@ -40,6 +40,7 @@ urlpatterns = [
     # Enhanced Booking URL
     path('group-tour/<int:pk>/book/', views.EnhancedTourBookingView.as_view(), name='enhanced_tour_booking'),
     path('group-tour/<int:pk>/book-payment/', views.TourBookingWithPaymentView.as_view(), name='tour_booking_payment'),
+    path('booking/<int:booking_id>/additional-payment/', views.AdditionalPaymentView.as_view(), name='additional_payment'),
     path('payment/status/<str:transaction_id>/', views.PaymentStatusView.as_view(), name='payment_status'),
     path('mpesa/webhook/', views.MPesaWebhookView.as_view(), name='mpesa_webhook'),
     

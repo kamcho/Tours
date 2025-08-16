@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.views import View
 from django import forms
-from .models import Place, PlaceCategory, TourBooking, EventBooking, TravelGroup, GroupTours, Agency, AgencyService, TourComment
+from .models import Place, PlaceCategory, TourBooking, EventBooking, TravelGroup, GroupTours, Agency, AgencyService, TourComment, TourBookingPayment
 from users.models import MyUser
 from django.urls import reverse
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -19,7 +19,7 @@ from .forms import FeatureForm
 from django.contrib import messages
 from .models import PlaceRating, AgencyRating, RatingHelpful
 from django.shortcuts import get_object_or_404
-from django.db.models import Q, Avg, Count, Case, When, Value
+from django.db.models import Q, Avg, Count, Case, When, Value, F
 from core.models import PaymentMethod, PaymentTransaction, MPesaPayment, PaymentSettings
 from core.mpesa_service import MPesaService
 from django.utils import timezone
@@ -28,7 +28,8 @@ import json
 import base64
 import requests
 from requests.auth import HTTPBasicAuth
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
+from decimal import Decimal
 
 # Step 1: Basic Information
 class PlaceBasicForm(forms.Form):
@@ -2292,7 +2293,7 @@ def agency_service_toggle_active(request, pk):
 
 
 class TourBookingWithPaymentView(LoginRequiredMixin, View):
-    """Tour booking view with payment integration"""
+    """Tour booking view with payment integration and Lipa Mdogo Mdogo feature"""
     template_name = 'listings/tour_booking_payment.html'
     
     def get(self, request, pk):
@@ -2315,21 +2316,16 @@ class TourBookingWithPaymentView(LoginRequiredMixin, View):
                 status__in=['pending', 'confirmed']
             ).first()
             
-            if existing_booking:
-                messages.warning(request, 'You have already booked this tour.')
-                return redirect('user_bookings')
-            
-            # Get available payment methods
-            payment_methods = PaymentMethod.objects.filter(is_active=True)
+            # existing_booking will be passed to template to show balance and allow additional payments
             
             # Get user's phone number from profile if available
             user_phone = request.user.phone if hasattr(request.user, 'phone') else ''
             
             context = {
                 'tour': tour,
-                'payment_methods': payment_methods,
                 'user_phone': user_phone,
                 'available_spots': tour.available_spots,
+                'existing_booking': existing_booking,
             }
             
             return render(request, self.template_name, context)
@@ -2345,172 +2341,116 @@ class TourBookingWithPaymentView(LoginRequiredMixin, View):
             tour = GroupTours.objects.get(pk=pk)
             print(f"🎯 DEBUG: Found tour: {tour.name}")
             
-            # Get form data
+            # Get form data (M-Pesa only)
             participants = int(request.POST.get('participants', 1))
             special_requests = request.POST.get('special_requests', '')
-            payment_method_id = request.POST.get('payment_method')
             phone_number = request.POST.get('phone_number', '')
+            payment_amount = Decimal(request.POST.get('payment_amount', '0'))
             
-            print(f"📋 DEBUG: Form data - participants: {participants}, payment_method: {payment_method_id}, phone: {phone_number}")
+            print(f"📋 DEBUG: Form data - participants: {participants}, phone: {phone_number}, payment_amount: {payment_amount}")
             
-            # Validate participants
-            if participants < 1 or participants > tour.available_spots:
-                messages.error(request, 'Invalid number of participants.')
+            # Check if user has already booked this tour (any status)
+            existing_booking = TourBooking.objects.filter(
+                tour=tour, 
+                user=request.user
+            ).first()
+            
+            if existing_booking:
+                # Use existing booking
+                print(f"💰 DEBUG: Using existing booking {existing_booking.id}")
+                booking = existing_booking
+            else:
+                # Create new booking
+                print(f"🎯 DEBUG: Creating new booking")
+                
+                # Validate participants
+                if participants < 1 or participants > tour.available_spots:
+                    messages.error(request, 'Invalid number of participants.')
+                    return redirect('tour_booking_payment', pk=pk)
+                
+                # Calculate total amount
+                total_amount = tour.price_per_person * participants
+                
+                # Create the booking
+                booking = TourBooking.objects.create(
+                    tour=tour,
+                    user=request.user,
+                    participants=participants,
+                    special_requests=special_requests,
+                    total_amount=total_amount,
+                    status='pending'
+                )
+            
+            # Validate payment amount (flexible for M-Pesa)
+            if payment_amount < 1:
+                messages.error(request, 'Payment amount must be at least KES 1.')
                 return redirect('tour_booking_payment', pk=pk)
             
-            # Calculate total amount
-            total_amount = tour.price_per_person * participants
+            # For existing bookings, check remaining amount
+            if existing_booking:
+                remaining_amount = existing_booking.remaining_amount
+                if payment_amount > remaining_amount:
+                    messages.error(request, f'Payment amount cannot exceed the remaining balance of KES {remaining_amount}.')
+                    return redirect('tour_booking_payment', pk=pk)
+            else:
+                # For new bookings, check total amount
+                if payment_amount > booking.total_amount:
+                    messages.error(request, 'Payment amount cannot exceed the total tour cost.')
+                    return redirect('tour_booking_payment', pk=pk)
             
-            # Get payment method
-            try:
-                payment_method = PaymentMethod.objects.get(id=payment_method_id, is_active=True)
-            except PaymentMethod.DoesNotExist:
-                messages.error(request, 'Invalid payment method selected.')
-                return redirect('tour_booking_payment', pk=pk)
-            
-            # Create the booking
-            booking = TourBooking.objects.create(
-                tour=tour,
+            # Create the payment transaction record (M-Pesa only)
+            tour_payment = TourBookingPayment.objects.create(
+                booking=booking,
                 user=request.user,
-                participants=participants,
-                special_requests=special_requests,
-                total_amount=total_amount,
-                status='pending'
+                amount=payment_amount,
+                payment_method='mpesa',
+                payment_status='pending',
+                description=f"{'Additional' if existing_booking else 'Initial'} payment for {tour.name} - {booking.participants} participant(s)"
             )
             
-            # Process payment based on method
-            if payment_method.payment_type == 'mpesa':
-                return self._process_mpesa_payment(request, booking, phone_number, total_amount)
-            elif payment_method.payment_type == 'card':
-                # Redirect to card payment page or process card payment
-                messages.info(request, 'Card payment will be processed separately.')
-                return redirect('user_bookings')
+            # Initialize M-Pesa STK push
+            from core.tests import initiate_tour_payment
+            print(f"🔍 DEBUG: Initiating M-Pesa payment for phone: {phone_number}, account: {f'Tour_{booking.id}_{tour_payment.id}'}, total: {payment_amount}")
+            
+            # Call the function with required arguments
+            response = initiate_tour_payment(
+                phone=phone_number,
+                account=f"Tour_{booking.id}_{tour_payment.id}",
+                total=payment_amount
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                tour_payment.external_reference = result.get('CheckoutRequestID', '')
+                tour_payment.payment_status = 'processing'
+                tour_payment.metadata = {
+                    'mpesa_request_id': result.get('MerchantRequestID', ''),
+                    'checkout_request_id': result.get('CheckoutRequestID', ''),
+                    'response_code': result.get('ResponseCode', ''),
+                    'response_description': result.get('ResponseDescription', ''),
+                    'customer_message': result.get('CustomerMessage', ''),
+                                            'timestamp': datetime.now().strftime("%Y%m%d%H%M%S")
+                }
+                tour_payment.save()
+                
+                # Update booking status to confirmed since payment is processing
+                booking.status = 'confirmed'
+                booking.save()
+                
+                messages.success(request, f'✅ Tour booking {"updated" if existing_booking else "created"}! M-Pesa STK push sent to {phone_number}. Please complete the payment on your phone.')
+                return redirect('payment_status', transaction_id=tour_payment.payment_reference)
             else:
-                # Other payment methods (cash, bank transfer)
-                messages.success(request, f'Booking created successfully! Please complete payment via {payment_method.name}.')
-                return redirect('user_bookings')
+                messages.warning(request, f'{"Additional payment" if existing_booking else "Tour booking"} {"failed" if existing_booking else "created but payment failed"}. Please contact support.')
+                return redirect('tour_booking_payment', pk=booking.tour.pk)
                 
         except GroupTours.DoesNotExist:
             messages.error(request, 'Tour not found.')
             return redirect('grouptours_list')
         except Exception as e:
-            messages.error(request, f'An error occurred: {str(e)}')
+            print(f"❌ DEBUG: Error in TourBookingWithPaymentView.post: {str(e)}")
+            messages.error(request, f'An error occurred while processing your booking: {str(e)}')
             return redirect('tour_booking_payment', pk=pk)
     
-    def _process_mpesa_payment(self, request, booking, phone_number, total_amount):
-        """Process M-Pesa payment for the booking using working implementation from tests.py"""
-        print(f"💰 DEBUG: _process_mpesa_payment called for booking {booking.id}, phone: {phone_number}, amount: {total_amount}")
-        try:
-            if not phone_number or phone_number.strip() == '':
-                print("❌ DEBUG: No phone number provided")
-                messages.error(request, 'Phone number is required for M-Pesa payment.')
-                return redirect('tour_booking_payment', pk=booking.tour.pk)
-            
-            # Use the working implementation from tests.py
-            print("🚀 DEBUG: Using working M-Pesa implementation...")
-            
-            # Process phone number
-            if phone_number.startswith('0'):
-                phone = '254' + phone_number[1:]
-            elif phone_number.startswith('254'):
-                phone = phone_number
-            else:
-                phone = phone_number
-            
-            print(f"📱 DEBUG: Processed phone number: {phone}")
-            
-            # Get M-Pesa credentials from database
-            try:
-                settings = PaymentSettings.get_settings()
-                consumer_key = settings.mpesa_consumer_key
-                consumer_secret = settings.mpesa_consumer_secret
-                passkey = settings.mpesa_passkey
-                business_shortcode = settings.mpesa_business_shortcode
-                callback_url = settings.mpesa_callback_url
-                print(f"🔑 DEBUG: Using credentials from database - shortcode: {business_shortcode}")
-            except Exception as e:
-                print(f"❌ DEBUG: Failed to get payment settings: {e}")
-                messages.error(request, 'Payment settings not configured.')
-                return redirect('tour_booking_payment', pk=booking.tour.pk)
-            
-            # Generate timestamp and password (working approach from tests.py)
-            import datetime
-            timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-            concatenated_string = f"{business_shortcode}{passkey}{timestamp}"
-            password = base64.b64encode(concatenated_string.encode()).decode('utf-8')
-            
-            print(f"🔐 DEBUG: Generated password and timestamp: {timestamp}")
-            
-            # Generate access token
-            access_token_url = 'https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
-            response = requests.get(access_token_url, auth=HTTPBasicAuth(consumer_key, consumer_secret))
-            
-            if response.status_code != 200:
-                print(f"❌ DEBUG: Failed to generate access token: {response.status_code}")
-                messages.error(request, 'Failed to authenticate with M-Pesa.')
-                return redirect('tour_booking_payment', pk=booking.tour.pk)
-            
-            access_token = response.json()['access_token']
-            print(f"🎫 DEBUG: Generated access token: {access_token[:20]}...")
-            
-            # Prepare STK push request
-            headers = {
-                'Authorization': f'Bearer {access_token}',
-                'Content-Type': 'application/json'
-            }
-            
-            payload = {
-                "BusinessShortCode": int(business_shortcode),
-                "Password": password,
-                "Timestamp": timestamp,
-                "TransactionType": "CustomerPayBillOnline",
-                "Amount": int(total_amount),
-                "PartyA": phone,
-                "PartyB": int(business_shortcode),
-                "PhoneNumber": phone,
-                "CallBackURL": callback_url,
-                "AccountReference": str(booking.id),
-                "TransactionDesc": f"Payment for {booking.tour.name} tour",
-            }
-            
-            print(f"📦 DEBUG: STK push payload prepared")
-            print(f"   Amount: KES {total_amount}")
-            print(f"   Phone: {phone}")
-            print(f"   Business: {business_shortcode}")
-            
-            # Make STK push request
-            url = 'https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
-            response = requests.post(url, headers=headers, json=payload, timeout=30)
-            
-            print(f"📡 DEBUG: STK push response status: {response.status_code}")
-            print(f"📡 DEBUG: STK push response: {response.text}")
-            
-            if response.status_code == 200:
-                result = response.json()
-                print(f"✅ DEBUG: STK push successful: {result}")
-                
-                # Update booking with payment details
-                booking.payment_reference = f"MPESA_{booking.id}_{timestamp}"
-                booking.payment_method = 'mpesa'
-                booking.payment_status = 'processing'
-                booking.status = 'payment_pending'
-                booking.save()
-                
-                messages.success(request, 'M-Pesa payment initiated! Please check your phone for the STK push notification.')
-                return redirect('payment_status', transaction_id=booking.payment_reference)
-            else:
-                # Payment initiation failed
-                print(f"❌ DEBUG: STK push failed with status {response.status_code}")
-                messages.error(request, f'M-Pesa payment failed: {response.text}')
-                # Delete the failed booking
-                booking.delete()
-                return redirect('tour_booking_payment', pk=booking.tour.pk)
-                
-        except Exception as e:
-            messages.error(request, f'Error processing M-Pesa payment: {str(e)}')
-            # Delete the failed booking
-            booking.delete()
-            return redirect('tour_booking_payment', pk=booking.tour.pk)
 
 
 class PaymentStatusView(LoginRequiredMixin, View):
@@ -2519,35 +2459,63 @@ class PaymentStatusView(LoginRequiredMixin, View):
     
     def get(self, request, transaction_id):
         try:
-            transaction = PaymentTransaction.objects.get(
-                transaction_id=transaction_id,
-                user=request.user
-            )
-            
-            # Get M-Pesa payment details if available
+            # First try to find a TourBookingPayment
             try:
-                mpesa_payment = MPesaPayment.objects.get(transaction=transaction)
-            except MPesaPayment.DoesNotExist:
-                mpesa_payment = None
-            
-            context = {
-                'transaction': transaction,
-                'mpesa_payment': mpesa_payment,
-                'tour': None,
-            }
-            
-            # Get tour details if this is a tour booking
-            if transaction.content_type == 'mpesa_payment':
+                tour_payment = TourBookingPayment.objects.get(
+                    payment_reference=transaction_id,
+                    user=request.user
+                )
+                
+                # Get tour details
+                tour = tour_payment.booking.tour
+                
+                context = {
+                    'tour_payment': tour_payment,
+                    'tour': tour,
+                    'booking': tour_payment.booking,
+                    'is_tour_booking': True,
+                }
+                
+                return render(request, self.template_name, context)
+                
+            except TourBookingPayment.DoesNotExist:
+                # Fall back to old PaymentTransaction model
                 try:
-                    booking = TourBooking.objects.get(id=transaction.object_id)
-                    context['tour'] = booking.tour
-                except TourBooking.DoesNotExist:
-                    pass
+                    transaction = PaymentTransaction.objects.get(
+                        transaction_id=transaction_id,
+                        user=request.user
+                    )
+                    
+                    # Get M-Pesa payment details if available
+                    try:
+                        mpesa_payment = MPesaPayment.objects.get(transaction=transaction)
+                    except MPesaPayment.DoesNotExist:
+                        mpesa_payment = None
+                    
+                    context = {
+                        'transaction': transaction,
+                        'mpesa_payment': mpesa_payment,
+                        'tour': None,
+                        'is_tour_booking': False,
+                    }
+                    
+                    # Get tour details if this is a tour booking
+                    if transaction.content_type == 'mpesa_payment':
+                        try:
+                            booking = TourBooking.objects.get(id=transaction.object_id)
+                            context['tour'] = booking.tour
+                        except TourBooking.DoesNotExist:
+                            pass
+                    
+                    return render(request, self.template_name, context)
+                    
+                except PaymentTransaction.DoesNotExist:
+                    messages.error(request, 'Payment transaction not found.')
+                    return redirect('user_bookings')
             
-            return render(request, self.template_name, context)
-            
-        except PaymentTransaction.DoesNotExist:
-            messages.error(request, 'Payment transaction not found.')
+        except Exception as e:
+            print(f"❌ DEBUG: Error in PaymentStatusView: {str(e)}")
+            messages.error(request, 'An error occurred while loading payment status.')
             return redirect('user_bookings')
 
 class EventBookingWithPaymentView(LoginRequiredMixin, View):
@@ -2574,15 +2542,11 @@ class EventBookingWithPaymentView(LoginRequiredMixin, View):
                 messages.warning(request, 'You have already booked this event.')
                 return redirect('user_bookings')
             
-            # Get available payment methods
-            payment_methods = PaymentMethod.objects.filter(is_active=True)
-            
             # Get user's phone number from profile if available
             user_phone = request.user.phone if hasattr(request.user, 'phone') else ''
             
             context = {
                 'event': event,
-                'payment_methods': payment_methods,
                 'user_phone': user_phone,
             }
             
@@ -2599,199 +2563,75 @@ class EventBookingWithPaymentView(LoginRequiredMixin, View):
             event = Event.objects.get(pk=pk)
             print(f"🎯 DEBUG: Found event: {event.name}")
             
-            # Get form data
+            # Get form data (M-Pesa only)
             participants = int(request.POST.get('participants', 1))
             special_requests = request.POST.get('special_requests', '')
-            payment_method = request.POST.get('payment_method', 'mpesa')
-            phone = request.POST.get('phone', '').strip()
+            phone_number = request.POST.get('phone_number', '')
+            
+            print(f"📋 DEBUG: Form data - participants: {participants}, phone: {phone_number}")
             
             # Validate phone number
-            if not phone:
-                messages.error(request, 'Phone number is required for booking.')
-                return redirect('simple_event_booking', pk=pk)
+            if not phone_number:
+                messages.error(request, 'Phone number is required for M-Pesa payment.')
+                return redirect('event_booking_payment', pk=pk)
             
             # Calculate total amount
             total_amount = event.price_per_person * participants if event.price_per_person else 0
             
-            # Get user info based on authentication status
-            if request.user.is_authenticated:
-                name = request.user.get_full_name() or request.user.username
-                email = request.user.email
-                
-                # Create booking record
-                booking = EventBooking.objects.create(
-                    event=event,
-                    user=request.user,
-                    participants=participants,
-                    special_requests=special_requests,
-                    total_amount=total_amount,
-                    status='pending'
-                )
-                
-                # Handle payment method
-                if payment_method == 'mpesa':
-                    # Initiate M-Pesa STK push
-                    print(f"🔍 DEBUG: Initiating M-Pesa payment for phone: {phone}, user: {name}, amount: {total_amount}")
-                    response, error = initiate_mpesa_payment(phone, name, total_amount)
-                    
-                    if response and response.status_code == 200:
-                        response_data = response.json()
-                        print(f"🔍 DEBUG: M-Pesa response: {response_data}")
-                        if response_data.get('ResponseCode') == '0':
-                            # STK push successful
-                            checkout_request_id = response_data.get('CheckoutRequestID')
-                            messages.success(request, f'✅ Booking created! M-Pesa STK push sent to {phone}. Please check your phone and enter M-Pesa PIN to complete payment.')
-                            
-                            # Store checkout request ID for tracking
-                            booking.payment_reference = checkout_request_id
-                            booking.payment_method = 'mpesa'
-                            booking.save()
-                        else:
-                            messages.warning(request, f'⚠️ Booking created but M-Pesa STK push failed: {response_data.get("ResponseDescription", "Unknown error")}')
-                    else:
-                        print(f"🔍 DEBUG: M-Pesa error: {error}")
-                        messages.warning(request, f'⚠️ Booking created but M-Pesa STK push failed: {error or "Network error"}')
-                elif payment_method == 'card':
-                    booking.payment_method = 'card'
-                    booking.save()
-                    messages.success(request, f'✅ Booking created successfully! Your booking ID is {booking.id}. Please complete card payment.')
-                else:
-                    messages.success(request, f'✅ Booking created successfully! Your booking ID is {booking.id}.')
-                    
-            else:
-                # For unauthenticated users, get form data
-                name = request.POST.get('name', '')
-                email = request.POST.get('email', '')
-                
-                # Create a temporary booking record or just show success message
-                messages.success(request, f'✅ Booking request received for {participants} participant(s)! Please log in to complete your booking.')
+            # Create booking record
+            booking = EventBooking.objects.create(
+                event=event,
+                user=request.user,
+                participants=participants,
+                special_requests=special_requests,
+                total_amount=total_amount,
+                status='pending'
+            )
             
-            return redirect('public_event_detail', pk=pk)
+            # Initialize M-Pesa STK push
+            from core.tests import initiate_tour_payment
+            print(f"🔍 DEBUG: Initiating M-Pesa payment for phone: {phone_number}, account: {f'Event_{booking.id}'}, total: {total_amount}")
+            
+            # Call the function with required arguments
+            response = initiate_tour_payment(
+                phone=phone_number,
+                account=f"Event_{booking.id}",
+                total=total_amount
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                booking.payment_reference = result.get('CheckoutRequestID', '')
+                booking.payment_method = 'mpesa'
+                booking.metadata = {
+                    'mpesa_request_id': result.get('MerchantRequestID', ''),
+                    'checkout_request_id': result.get('CheckoutRequestID', ''),
+                    'response_code': result.get('ResponseCode', ''),
+                    'response_description': result.get('ResponseDescription', ''),
+                    'customer_message': result.get('CustomerMessage', ''),
+                    'timestamp': datetime.now().strftime("%Y%m%d%H%M%S")
+                }
+                booking.save()
+                
+                # Update booking status to confirmed since payment is processing
+                booking.status = 'confirmed'
+                booking.save()
+                
+                messages.success(request, f'✅ Event booking created! M-Pesa STK push sent to {phone_number}. Please complete the payment on your phone.')
+                return redirect('payment_status', transaction_id=booking.payment_reference)
+            else:
+                messages.warning(request, f'Event booking created but payment failed. Please contact support.')
+                return redirect('event_booking_payment', pk=event.pk)
             
         except Event.DoesNotExist:
             messages.error(request, 'Event not found.')
             return redirect('event_list')
         except Exception as e:
-            messages.error(request, f'❌ An error occurred: {str(e)}')
-            return redirect('public_event_detail', pk=pk)
+            print(f"❌ DEBUG: Error in EventBookingWithPaymentView.post: {str(e)}")
+            messages.error(request, f'An error occurred while processing your booking: {str(e)}')
+            return redirect('event_booking_payment', pk=pk)
     
-    def _process_mpesa_payment(self, request, booking, phone_number, total_amount):
-        """Process M-Pesa payment for the event booking using working implementation from tests.py"""
-        print(f"💰 DEBUG: _process_mpesa_payment called for event booking {booking.id}, phone: {phone_number}, amount: {total_amount}")
-        try:
-            if not phone_number or phone_number.strip() == '':
-                print("❌ DEBUG: No phone number provided")
-                messages.error(request, 'Phone number is required for M-Pesa payment.')
-                return redirect('event_booking_payment', pk=booking.event.pk)
-            
-            # Use the working implementation from tests.py
-            print("🚀 DEBUG: Using working M-Pesa implementation...")
-            
-            # Process phone number
-            if phone_number.startswith('0'):
-                phone = '254' + phone_number[1:]
-            elif phone_number.startswith('254'):
-                phone = phone_number
-            else:
-                phone = phone_number
-            
-            print(f"📱 DEBUG: Processed phone number: {phone}")
-            
-            # Get M-Pesa credentials from database
-            try:
-                settings = PaymentSettings.get_settings()
-                consumer_key = settings.mpesa_consumer_key
-                consumer_secret = settings.mpesa_consumer_secret
-                passkey = settings.mpesa_passkey
-                business_shortcode = settings.mpesa_business_shortcode
-                callback_url = settings.mpesa_callback_url
-                print(f"🔑 DEBUG: Using credentials from database - shortcode: {business_shortcode}")
-            except Exception as e:
-                print(f"❌ DEBUG: Failed to get payment settings: {e}")
-                messages.error(request, 'Payment settings not configured.')
-                return redirect('event_booking_payment', pk=booking.event.pk)
-            
-            # Generate timestamp and password (working approach from tests.py)
-            import datetime
-            timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-            concatenated_string = f"{business_shortcode}{passkey}{timestamp}"
-            password = base64.b64encode(concatenated_string.encode()).decode('utf-8')
-            
-            print(f"🔐 DEBUG: Generated password and timestamp: {timestamp}")
-            
-            # Generate access token
-            access_token_url = 'https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
-            response = requests.get(access_token_url, auth=HTTPBasicAuth(consumer_key, consumer_secret))
-            
-            if response.status_code != 200:
-                print(f"❌ DEBUG: Failed to generate access token: {response.status_code}")
-                messages.error(request, 'Failed to authenticate with M-Pesa.')
-                return redirect('event_booking_payment', pk=booking.event.pk)
-            
-            access_token = response.json()['access_token']
-            print(f"🎫 DEBUG: Generated access token: {access_token[:20]}...")
-            
-            # Prepare STK push request
-            headers = {
-                'Authorization': f'Bearer {access_token}',
-                'Content-Type': 'application/json'
-            }
-            
-            payload = {
-                "BusinessShortCode": int(business_shortcode),
-                "Password": password,
-                "Timestamp": timestamp,
-                "TransactionType": "CustomerPayBillOnline",
-                "Amount": int(total_amount),
-                "PartyA": phone,
-                "PartyB": int(business_shortcode),
-                "PhoneNumber": phone,
-                "CallBackURL": callback_url,
-                "AccountReference": str(booking.id),
-                "TransactionDesc": f"Payment for {booking.event.name} event",
-            }
-            
-            print(f"📦 DEBUG: STK push payload prepared")
-            print(f"   Amount: KES {total_amount}")
-            print(f"   Phone: {phone}")
-            print(f"   Business: {business_shortcode}")
-            
-            # Make STK push request
-            url = 'https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
-            response = requests.post(url, headers=headers, json=payload, timeout=30)
-            
-            print(f"📡 DEBUG: STK push response status: {response.status_code}")
-            print(f"📡 DEBUG: STK push response: {response.text}")
-            
-            if response.status_code == 200:
-                result = response.json()
-                print(f"✅ DEBUG: STK push successful: {result}")
-                
-                # Update booking with payment details
-                booking.payment_reference = f"MPESA_{booking.id}_{timestamp}"
-                booking.payment_method = 'mpesa'
-                booking.payment_status = 'processing'
-                booking.status = 'payment_pending'
-                booking.save()
-                
-                messages.success(request, 'M-Pesa payment initiated! Please check your phone for the STK push notification.')
-                return redirect('payment_status', transaction_id=booking.payment_reference)
-            else:
-                # Payment initiation failed
-                print(f"❌ DEBUG: STK push failed with status {response.status_code}")
-                messages.error(request, f'M-Pesa payment failed: {response.text}')
-                # Delete the failed booking
-                booking.delete()
-                return redirect('event_booking_payment', pk=booking.event.pk)
-                
-        except Exception as e:
-            print(f"❌ DEBUG: Exception in _process_mpesa_payment: {e}")
-            import traceback
-            traceback.print_exc()
-            messages.error(request, f'Error processing M-Pesa payment: {str(e)}')
-            # Delete the failed booking
-            booking.delete()
-            return redirect('event_booking_payment', pk=booking.event.pk)
+
 
 
 class MPesaWebhookView(View):
@@ -3169,3 +3009,272 @@ class SimpleEventBookingView(View):
             print(f"❌ DEBUG: Error in M-Pesa payment: {str(e)}")
             messages.error(request, f'❌ Error processing M-Pesa payment: {str(e)}')
             return redirect('public_event_detail', pk=booking.event.pk)
+
+
+class AdditionalPaymentView(LoginRequiredMixin, View):
+    """View to handle additional payments for existing tour bookings (Lipa Mdogo Mdogo)"""
+    template_name = 'listings/additional_payment.html'
+    
+    def get(self, request, booking_id):
+        try:
+            booking = TourBooking.objects.get(id=booking_id, user=request.user)
+            
+            # Check if booking is still active
+            if booking.status not in ['pending', 'confirmed']:
+                messages.error(request, 'This booking is no longer active.')
+                return redirect('user_bookings')
+            
+            # Get available payment methods
+            payment_methods = PaymentMethod.objects.filter(is_active=True)
+            
+            # Get user's phone number from profile if available
+            user_phone = request.user.phone if hasattr(request.user, 'phone') else ''
+            
+            # Get payment history
+            payment_history = booking.payment_transactions.all().order_by('-created_at')
+            
+            context = {
+                'booking': booking,
+                'payment_methods': payment_methods,
+                'user_phone': user_phone,
+                'payment_history': payment_history,
+            }
+            
+            return render(request, self.template_name, context)
+            
+        except TourBooking.DoesNotExist:
+            messages.error(request, 'Booking not found.')
+            return redirect('user_bookings')
+    
+    def post(self, request, booking_id):
+        try:
+            booking = TourBooking.objects.get(id=booking_id, user=request.user)
+            
+            # Get form data
+            payment_amount = Decimal(request.POST.get('payment_amount', '0'))
+            payment_method_id = request.POST.get('payment_method')
+            phone_number = request.POST.get('phone_number', '')
+            
+            # Validate payment amount
+            if payment_amount < 100:
+                messages.error(request, 'Minimum payment amount is KES 100.')
+                return redirect('additional_payment', booking_id=booking_id)
+            
+            remaining_amount = booking.remaining_amount
+            if payment_amount > remaining_amount:
+                messages.error(request, f'Payment amount cannot exceed the remaining amount of KES {remaining_amount}.')
+                return redirect('additional_payment', booking_id=booking_id)
+            
+            # Get payment method
+            try:
+                payment_method = PaymentMethod.objects.get(id=payment_method_id, is_active=True)
+            except PaymentMethod.DoesNotExist:
+                messages.error(request, 'Invalid payment method selected.')
+                return redirect('additional_payment', booking_id=booking_id)
+            
+            # Create the payment transaction record
+            tour_payment = TourBookingPayment.objects.create(
+                booking=booking,
+                user=request.user,
+                amount=payment_amount,
+                payment_method=payment_method.name.lower(),
+                payment_status='pending',
+                description=f"Additional payment for {booking.tour.name} - {booking.participants} participant(s)"
+            )
+            
+            # Process payment based on method
+            if payment_method.name.lower() == 'mpesa':
+                return self._process_mpesa_payment(request, booking, tour_payment, phone_number, payment_amount)
+            else:
+                # For other payment methods, redirect to payment status
+                messages.success(request, f'Additional payment of KES {payment_amount} is pending.')
+                return redirect('payment_status', transaction_id=tour_payment.payment_reference)
+                
+        except TourBooking.DoesNotExist:
+            messages.error(request, 'Booking not found.')
+            return redirect('user_bookings')
+        except Exception as e:
+            print(f"❌ DEBUG: Error in AdditionalPaymentView.post: {str(e)}")
+            messages.error(request, f'An error occurred while processing your payment: {str(e)}')
+            return redirect('additional_payment', booking_id=booking_id)
+    
+    def _process_mpesa_payment(self, request, booking, tour_payment, phone_number, payment_amount):
+        """Process M-Pesa payment for additional payment using working implementation"""
+        try:
+            print(f"🔍 DEBUG: _process_mpesa_payment called for additional payment {tour_payment.id}, phone: {phone_number}, amount: {payment_amount}")
+            
+            # Use the working implementation from verification
+            print("🚀 DEBUG: Using working M-Pesa implementation from verification...")
+            
+            # Process phone number
+            if phone_number.startswith('0'):
+                phone = '254' + phone_number[1:]
+            elif phone_number.startswith('254'):
+                phone = phone_number
+            else:
+                phone = phone_number
+            
+            print(f"📱 DEBUG: Processed phone number: {phone}")
+            
+            # Get M-Pesa credentials from database
+            try:
+                from core.models import PaymentSettings
+                settings = PaymentSettings.get_settings()
+                consumer_key = settings.mpesa_consumer_key
+                consumer_secret = settings.mpesa_consumer_secret
+                passkey = settings.mpesa_passkey
+                business_shortcode = settings.mpesa_business_shortcode
+                callback_url = settings.mpesa_callback_url
+                print(f"🔑 DEBUG: Using credentials from database - shortcode: {business_shortcode}")
+            except Exception as e:
+                print(f"❌ DEBUG: Failed to get payment settings: {e}")
+                messages.error(request, 'Payment settings not configured.')
+                return redirect('additional_payment', booking_id=booking.id)
+            
+            # Generate timestamp and password (working approach from verification)
+            import datetime
+            timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+            concatenated_string = f"{business_shortcode}{passkey}{timestamp}"
+            password = base64.b64encode(concatenated_string.encode()).decode('utf-8')
+            
+            print(f"🔐 DEBUG: Generated password and timestamp: {timestamp}")
+            
+            # Generate access token
+            access_token_url = 'https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
+            response = requests.get(access_token_url, auth=HTTPBasicAuth(consumer_key, consumer_secret))
+            
+            if response.status_code != 200:
+                print(f"❌ DEBUG: Failed to generate access token: {response.status_code}")
+                messages.error(request, 'Failed to authenticate with M-Pesa.')
+                return redirect('additional_payment', booking_id=booking.id)
+            
+            access_token = response.json()['access_token']
+            print(f"🎫 DEBUG: Generated access token: {access_token[:20]}...")
+            
+            # Prepare STK push request
+            headers = {
+                'Authorization': f'Bearer {access_token}',
+                'Content-Type': 'application/json'
+            }
+            
+            payload = {
+                "BusinessShortCode": int(business_shortcode),
+                "Password": password,
+                "Timestamp": timestamp,
+                "TransactionType": "CustomerPayBillOnline",
+                "Amount": int(payment_amount),
+                "PartyA": phone,
+                "PartyB": int(business_shortcode),
+                "PhoneNumber": phone,
+                "CallBackURL": callback_url,
+                "AccountReference": f"Tour_{booking.id}_{tour_payment.id}",
+                "TransactionDesc": f"Additional payment - {booking.tour.name}",
+            }
+            
+            print(f"📦 DEBUG: STK push payload prepared")
+            print(f"   Amount: KES {payment_amount}")
+            print(f"   Phone: {phone}")
+            print(f"   Business: {business_shortcode}")
+            
+            # Make STK push request
+            url = 'https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            
+            print(f"📡 DEBUG: STK push response status: {response.status_code}")
+            print(f"📡 DEBUG: STK push response: {response.text}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                print(f"✅ DEBUG: STK push successful: {result}")
+                
+                # Update payment record with M-Pesa details
+                tour_payment.external_reference = result.get('CheckoutRequestID', '')
+                tour_payment.payment_status = 'processing'
+                tour_payment.metadata = {
+                    'mpesa_request_id': result.get('MerchantRequestID', ''),
+                    'checkout_request_id': result.get('CheckoutRequestID', ''),
+                    'response_code': result.get('ResponseCode', ''),
+                    'response_description': result.get('ResponseDescription', ''),
+                    'customer_message': result.get('CustomerMessage', ''),
+                    'timestamp': timestamp
+                }
+                tour_payment.save()
+                
+                messages.success(request, f'✅ Additional payment initiated! M-Pesa STK push sent to {phone}. Please complete the payment on your phone.')
+                return redirect('payment_status', transaction_id=tour_payment.payment_reference)
+            else:
+                print(f"❌ DEBUG: STK push failed with status {response.status_code}")
+                messages.warning(request, 'Additional payment created but payment failed. Please contact support.')
+                return redirect('additional_payment', booking_id=booking.id)
+                
+        except Exception as e:
+            print(f"❌ Error processing additional payment: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            messages.error(request, 'Error processing payment. Please contact support.')
+            return redirect('additional_payment', booking_id=booking.id)
+    
+class PaymentStatusView(LoginRequiredMixin, View):
+    """View to show payment status and instructions"""
+    template_name = 'listings/payment_status.html'
+    
+    def get(self, request, transaction_id):
+        try:
+            # First try to find a TourBookingPayment
+            try:
+                tour_payment = TourBookingPayment.objects.get(
+                    payment_reference=transaction_id,
+                    user=request.user
+                )
+                
+                # Get tour details
+                tour = tour_payment.booking.tour
+                
+                context = {
+                    'tour_payment': tour_payment,
+                    'tour': tour,
+                    'booking': tour_payment.booking,
+                    'is_tour_booking': True,
+                }
+                
+                return render(request, self.template_name, context)
+                
+            except TourBookingPayment.DoesNotExist:
+                # Fall back to old PaymentTransaction model
+                try:
+                    transaction = PaymentTransaction.objects.get(
+                        transaction_id=transaction_id,
+                        user=request.user
+                    )
+                    
+                    # Get M-Pesa payment details if available
+                    try:
+                        mpesa_payment = MPesaPayment.objects.get(transaction=transaction)
+                    except MPesaPayment.DoesNotExist:
+                        mpesa_payment = None
+                    
+                    context = {
+                        'transaction': transaction,
+                        'mpesa_payment': mpesa_payment,
+                        'tour': None,
+                        'is_tour_booking': False,
+                    }
+                    
+                    # Get tour details if this is a tour booking
+                    if transaction.content_type == 'mpesa_payment':
+                        try:
+                            booking = TourBooking.objects.get(id=transaction.object_id)
+                            context['tour'] = booking.tour
+                        except TourBooking.DoesNotExist:
+                            pass
+                    
+                    return render(request, self.template_name, context)
+                    
+                except PaymentTransaction.DoesNotExist:
+                    messages.error(request, 'Payment transaction not found.')
+                    return redirect('user_bookings')
+            
+        except Exception as e:
+            print(f"❌ DEBUG: Error in PaymentStatusView: {str(e)}")
+            messages.error(request, 'An error occurred while loading payment status.')
+            return redirect('user_bookings')

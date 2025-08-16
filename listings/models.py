@@ -2,6 +2,10 @@ from django.db import models
 from django.utils import timezone
 from users.models import MyUser
 import os
+from decimal import Decimal
+from django.core.validators import MinValueValidator
+import uuid
+
 class Agency(models.Model):
     AGENCY_TYPE_CHOICES = [
         ('tour_operator', 'Tour Operator'),
@@ -529,24 +533,13 @@ class TourBooking(models.Model):
     special_requests = models.TextField(blank=True, null=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     
-    # Payment fields
-    payment_reference = models.CharField(max_length=100, blank=True, null=True, help_text="Payment transaction reference")
-    payment_method = models.CharField(max_length=50, blank=True, null=True, help_text="Payment method used")
-    payment_status = models.CharField(max_length=20, choices=[
-        ('pending', 'Pending'),
-        ('processing', 'Processing'),
-        ('completed', 'Completed'),
-        ('failed', 'Failed'),
-        ('cancelled', 'Cancelled'),
-    ], default='pending')
-    payment_date = models.DateTimeField(blank=True, null=True, help_text="Date when payment was completed")
-    
     # Timestamps
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
     
     class Meta:
         ordering = ['-booking_date']
+        unique_together = ['user', 'tour']  # One booking per user per tour
     
     def __str__(self):
         return f'Booking by {self.user.email} for {self.tour.name}'
@@ -560,6 +553,127 @@ class TourBooking(models.Model):
     def can_cancel(self):
         """Check if booking can be cancelled"""
         return self.status in ['pending', 'payment_pending'] and self.payment_status != 'completed'
+    
+    @property
+    def total_paid_amount(self):
+        """Get total amount paid through all payment transactions"""
+        return self.payment_transactions.filter(payment_status='completed').aggregate(
+            total=models.Sum('amount')
+        )['total'] or Decimal('0.00')
+    
+    @property
+    def remaining_amount(self):
+        """Get remaining amount to be paid"""
+        return self.total_amount - self.total_paid_amount
+    
+    @property
+    def payment_progress_percentage(self):
+        """Get payment progress as percentage"""
+        if self.total_amount == 0:
+            return 100
+        return min(100, (self.total_paid_amount / self.total_amount) * 100)
+    
+    @property
+    def is_fully_paid(self):
+        """Check if the full amount has been paid"""
+        return self.total_paid_amount >= self.total_amount
+
+
+class TourBookingPayment(models.Model):
+    """Model to store individual payment transactions for tour bookings (Lipa Mdogo Mdogo)"""
+    PAYMENT_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+        ('refunded', 'Refunded'),
+    ]
+    
+    PAYMENT_METHOD_CHOICES = [
+        ('mpesa', 'M-Pesa'),
+        ('card', 'Credit/Debit Card'),
+        
+    ]
+    
+    # Basic payment info
+    booking = models.ForeignKey(TourBooking, on_delete=models.CASCADE, related_name='payment_transactions')
+    user = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='tour_booking_payments')
+    amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
+    
+    # Link to core payment models
+    payment_transaction = models.ForeignKey('core.PaymentTransaction', on_delete=models.SET_NULL, null=True, blank=True, related_name='tour_booking_payments')
+    mpesa_payment = models.ForeignKey('core.MPesaPayment', on_delete=models.SET_NULL, null=True, blank=True, related_name='tour_booking_payments')
+    card_payment = models.ForeignKey('core.CardPayment', on_delete=models.SET_NULL, null=True, blank=True, related_name='tour_booking_payments')
+    
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES)
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
+    
+    # Transaction references
+    payment_reference = models.CharField(max_length=100, unique=True, blank=True, help_text="Unique payment reference")
+    external_reference = models.CharField(max_length=200, blank=True, help_text="External payment provider reference")
+    
+    # Additional info
+    description = models.TextField(blank=True, help_text="Payment description")
+    metadata = models.JSONField(default=dict, blank=True, help_text="Additional payment metadata")
+    
+    # Timestamps
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
+    completed_at = models.DateTimeField(blank=True, null=True, help_text="When payment was completed")
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Tour Booking Payment'
+        verbose_name_plural = 'Tour Booking Payments'
+        indexes = [
+            models.Index(fields=['payment_reference']),
+            models.Index(fields=['payment_status']),
+            models.Index(fields=['user', 'created_at']),
+            models.Index(fields=['booking', 'created_at']),
+            models.Index(fields=['payment_transaction']),
+            models.Index(fields=['mpesa_payment']),
+            models.Index(fields=['card_payment']),
+        ]
+    
+    def __str__(self):
+        return f"Payment {self.payment_reference} - {self.user.email} - KES {self.amount}"
+    
+    def save(self, *args, **kwargs):
+        if not self.payment_reference:
+            self.payment_reference = f"TBP{self.created_at.strftime('%Y%m%d')}{uuid.uuid4().hex[:8].upper()}"
+        super().save(*args, **kwargs)
+    
+    @property
+    def is_successful(self):
+        return self.payment_status == 'completed'
+    
+    @property
+    def is_pending(self):
+        return self.payment_status in ['pending', 'processing']
+    
+    @property
+    def is_failed(self):
+        return self.payment_status in ['failed', 'cancelled']
+    
+    def mark_completed(self):
+        """Mark payment as completed"""
+        self.payment_status = 'completed'
+        self.completed_at = timezone.now()
+        self.save()
+        
+        # Update booking payment status if this completes the full payment
+        if self.booking.is_fully_paid:
+            self.booking.payment_status = 'completed'
+            self.booking.payment_date = timezone.now()
+            self.booking.save()
+    
+    def mark_failed(self, error_message=""):
+        """Mark payment as failed"""
+        self.payment_status = 'failed'
+        self.metadata['error_message'] = error_message
+        self.save()
+
 
 class EventBooking(models.Model):
     STATUS_CHOICES = [

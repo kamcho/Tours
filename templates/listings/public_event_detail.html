@@ -3,63 +3,114 @@
 {% block content %}
 
 <!-- Hero Section -->
-<div class="relative bg-gradient-to-br from-blue-900 via-indigo-800 to-purple-900 py-12 sm:py-16 lg:py-20">
-    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20" style="background-image: url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+<div class="relative bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-900 py-24 overflow-hidden">
+    <!-- Animated Background Elements -->
+    <div class="absolute inset-0">
+        <div class="absolute top-0 left-0 w-40 h-40 bg-emerald-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+        <div class="absolute top-0 right-0 w-32 h-32 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style="animation-delay: 1s;"></div>
+        <div class="absolute bottom-0 left-1/4 w-48 h-48 bg-cyan-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style="animation-delay: 2s;"></div>
+        <div class="absolute top-1/2 right-1/4 w-24 h-24 bg-green-500 rounded-full mix-blend-multiply filter blur-xl opacity-15 animate-pulse" style="animation-delay: 3s;"></div>
+    </div>
+    
+    <!-- Background Image with Enhanced Overlay -->
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-15" style="background-image: url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+    
     <div class="relative z-10 max-w-7xl mx-auto px-4">
         <div class="text-center">
-            <h1 class="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-4 sm:mb-6">{{ event.name }}</h1>
-            <p class="text-lg sm:text-xl text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto px-4">{{ event.description|truncatewords:40 }}</p>
+            <!-- Excellence Badge -->
+            <div class="inline-flex items-center bg-white/10 backdrop-blur-sm rounded-full px-8 py-4 mb-8 border border-white/20">
+                <span class="text-3xl mr-3">🌟</span>
+                <span class="text-white font-semibold text-lg">Event Excellence</span>
+            </div>
             
-            <!-- Action Buttons -->
-            <div class="flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-4 mb-6 sm:mb-8">
+            <!-- Main Content -->
+            <div class="text-white max-w-5xl mx-auto mb-16">
+                <div class="flex items-center justify-center gap-6 mb-8">
+                    <h1 class="text-6xl lg:text-8xl font-bold leading-tight">
+                        {{ event.name }}
+                    </h1>
+                    {% if event.creator.is_verified %}
+                    <div class="flex items-center gap-3 bg-gradient-to-r from-blue-500/30 to-indigo-500/30 backdrop-blur-sm border border-blue-400/40 px-6 py-3 rounded-full shadow-lg">
+                        <svg class="w-6 h-6 text-blue-300" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745a3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745a3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-xl text-blue-200 font-bold">Verified Creator</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <p class="text-2xl lg:text-3xl mb-12 text-gray-200 leading-relaxed font-medium max-w-4xl mx-auto">
+                    {{ event.description|truncatewords:60 }}
+                </p>
+                
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'login' %}" class="group bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-gray-900 px-12 py-5 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
+                            <div class="flex items-center justify-center">
+                                <svg class="w-7 h-7 mr-3 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                                </svg>
+                                Sign In to Book
+                            </div>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'simple_event_booking' event.pk %}" class="group bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-gray-900 px-12 py-5 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
+                            <div class="flex items-center justify-center">
+                                <svg class="w-7 h-7 mr-3 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                </svg>
+                                Book This Event
+                            </div>
+                        </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'event_list' %}" class="group bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-12 py-5 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+                        <div class="flex items-center justify-center">
+                            <svg class="w-7 h-7 mr-3 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            </svg>
+                            Discover More Events
+                        </div>
+                    </a>
+                </div>
+                
+                <!-- Like and Bookmark Buttons -->
                 {% if user.is_authenticated %}
+                <div class="flex flex-wrap justify-center gap-6">
                     <!-- Like Button -->
-                    <button onclick="likeEvent({{ event.id }})" id="event-like-btn-{{ event.id }}" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300 {% if user in event.likes.all %}text-red-400{% endif %}">
-                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="{% if user in event.likes.all %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
+                    <button onclick="likeEvent({{ event.id }})" id="event-like-btn-{{ event.id }}" class="group flex items-center gap-3 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 {% if user in event.likes.all %}text-red-400{% endif %}">
+                        <svg class="w-6 h-6 group-hover:scale-110 transition-transform duration-300" fill="{% if user in event.likes.all %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                         </svg>
                         <span id="event-like-count-{{ event.id }}">{{ event.total_likes }}</span>
                     </button>
                     
                     <!-- Bookmark Button -->
-                    <button onclick="bookmarkEvent({{ event.id }})" id="event-bookmark-btn-{{ event.id }}" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300 {% if user in event.bookmarks.all %}text-yellow-400{% endif %}">
-                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="{% if user in event.bookmarks.all %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
+                    <button onclick="bookmarkEvent({{ event.id }})" id="event-bookmark-btn-{{ event.id }}" class="group flex items-center gap-3 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 {% if user in event.bookmarks.all %}text-yellow-400{% endif %}">
+                        <svg class="w-6 h-6 group-hover:scale-110 transition-transform duration-300" fill="{% if user in event.likes.all %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v14l-7-3.5L5 18V5z"/>
                         </svg>
                         <span id="event-bookmark-count-{{ event.id }}">{{ event.total_bookmarks }}</span>
                     </button>
-                {% else %}
-                    <!-- Login Prompt for Like/Bookmark -->
-                    <a href="{% url 'login' %}" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300">
-                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                    
+                    <!-- Manage Event Button - Only for event creator -->
+                    {% if event.creator == user %}
+                    <a href="{% url 'event_update' event.pk %}" class="group flex items-center gap-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
+                        <svg class="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                         </svg>
-                        Sign In to Like & Bookmark
+                        Manage Event
                     </a>
+                    {% endif %}
+                </div>
                 {% endif %}
-                
-                <!-- Book Event Button -->
-                <a href="{% url 'simple_event_booking' event.pk %}" class="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl">
-                    Book This Event
-                </a>
-            </div>
-            
-            <!-- Simple Navigation -->
-            <div class="flex flex-wrap justify-center gap-3 sm:gap-4">
-                <a href="{% url 'event_list' %}" class="w-full sm:w-auto bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2">
-                    <svg class="w-4 h-4 sm:w-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                    Discover More Events
-                </a>
-                
-
             </div>
         </div>
     </div>
 </div>
 
-<!-- Booking Navigation Section -->
+<!-- Ready to Book This Event Section -->
 <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 py-8 sm:py-12">
     <div class="max-w-7xl mx-auto px-4">
         <div class="text-center mb-8">
@@ -139,322 +190,305 @@
 </div>
 
 <!-- Event Details -->
-<div class="bg-gradient-to-br from-gray-50 to-gray-100 py-8 sm:py-12 lg:py-16">
-    <div class="max-w-7xl mx-auto px-4">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-12">
-            <!-- Main Content -->
-            <div class="lg:col-span-2">
-                <!-- Event Image -->
-                <div class="relative h-64 sm:h-80 lg:h-96 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-xl sm:rounded-2xl overflow-hidden mb-6 sm:mb-8 shadow-2xl">
-                    {% if event.display_picture %}
-                        <img src="{{ event.display_picture.url }}" alt="{{ event.name }}" class="absolute inset-0 w-full h-full object-cover">
-                    {% else %}
-                        <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
-                    {% endif %}
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                    
-                    <!-- Event Type Badge -->
-                    <div class="absolute top-3 sm:top-6 left-3 sm:left-6">
-                        <span class="bg-blue-500 text-white px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-semibold shadow-lg">
-                            {{ event.event_type|title }}
-                        </span>
-                    </div>
-                    
-                    <!-- Price Badge -->
-                    {% if event.price_per_person %}
-                    <div class="absolute top-3 sm:top-6 right-3 sm:right-6">
-                        <span class="bg-white/90 backdrop-blur-sm text-gray-800 px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-semibold shadow-lg">
-                            ${{ event.price_per_person }}
-                        </span>
-                    </div>
-                    {% endif %}
+<div class="bg-gradient-to-br from-gray-50 to-blue-50 py-20 relative overflow-hidden">
+    <!-- Background Elements -->
+    <div class="absolute inset-0">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
+        <div class="absolute bottom-0 left-0 w-64 h-64 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
+    </div>
+    
+    <div class="max-w-7xl mx-auto px-4 relative z-10">
+        <!-- 3 Cards in Same Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+
+            <!-- Card 1: Event Image -->
+            <div class="group relative h-96 bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600 rounded-3xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-[1.02]">
+                {% if event.display_picture %}
+                    <img src="{{ event.display_picture.url }}" alt="{{ event.name }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                {% else %}
+                    <div class="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700" style="background-image: url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+                {% endif %}
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                
+                <!-- Event Type Badge -->
+                <div class="absolute top-6 left-6">
+                    <span class="bg-white/95 backdrop-blur-sm text-gray-800 px-6 py-3 rounded-full text-sm font-bold shadow-lg">{{ event.event_type|title }}</span>
                 </div>
                 
-                <!-- Description -->
-                <div class="bg-gradient-to-r from-slate-50 to-gray-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 shadow-lg border border-slate-200">
-                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3">
-                        <div class="w-6 h-6 sm:w-8 sm:h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                        About This Event
-                    </h2>
-                    <p class="text-gray-600 leading-relaxed text-base sm:text-lg">{{ event.description }}</p>
-                </div>
-                
-                <!-- Itinerary -->
-                {% if event.itinerary %}
-                <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-8 mb-8 shadow-lg border border-indigo-200">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-                        <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 00-2 2v2h2V5z"/>
-                            </svg>
-                        </div>
-                        Event Itinerary
-                    </h2>
-                    <div class="prose prose-lg max-w-none">
-                        {{ event.itinerary|linebreaks }}
-                    </div>
+                <!-- Price Badge -->
+                {% if event.price_per_person %}
+                <div class="absolute top-6 right-6">
+                    <span class="bg-white/95 backdrop-blur-sm text-gray-800 px-6 py-3 rounded-full text-sm font-bold shadow-lg">
+                        ${{ event.price_per_person }}
+                    </span>
                 </div>
                 {% endif %}
                 
-                <!-- Included Services -->
-                {% if event.included_services %}
-                <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-8 mb-8 shadow-lg border border-green-200">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-                        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                        What's Included
-                    </h2>
-                    <div class="prose prose-lg max-w-none">
-                        {{ event.included_services|linebreaks }}
-                    </div>
-                </div>
-                {% endif %}
-                
-                <!-- Comments Section -->
-                <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-lg border border-purple-200">
-                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
-                        <div class="w-6 h-6 sm:w-8 sm:h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                            </svg>
-                        </div>
-                        Comments & Reviews
-                    </h2>
-                    
-                    <!-- Add Comment Form -->
-                    {% if user.is_authenticated %}
-                    <form id="event-comment-form-{{ event.id }}" class="mb-4 sm:mb-6">
-                        {% csrf_token %}
-                        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                            <div class="flex-1">
-                                <textarea id="event-comment-input-{{ event.id }}" placeholder="Share your thoughts about this event..." class="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" rows="3"></textarea>
-                            </div>
-                            <button type="button" onclick="addEventComment({{ event.id }})" class="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition duration-300 self-end">
-                                Post Comment
-                            </button>
-                        </div>
-                    </form>
-                    {% else %}
-                    <div class="mb-4 sm:mb-6 p-3 sm:p-4 bg-gray-50 rounded-lg text-center">
-                        <p class="text-sm sm:text-base text-gray-600">Please <a href="{% url 'login' %}" class="text-blue-600 hover:text-blue-700 font-semibold">log in</a> to leave a comment.</p>
-                    </div>
-                    {% endif %}
-                    
-                    <!-- Comments List -->
-                    <div id="event-comments-{{ event.id }}">
-                        {% for comment in event.comments.all %}
-                        <div class="bg-gray-50 rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
-                            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-0 mb-2">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-6 h-6 sm:w-8 sm:h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                        <svg class="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"/>
-                                        </svg>
-                                    </div>
-                                    <span class="text-sm sm:text-base font-semibold text-gray-800">{{ comment.user.email }}</span>
-                                </div>
-                                <span class="text-xs sm:text-sm text-gray-500">{{ comment.created_at|date:"M d, Y at g:i A" }}</span>
-                            </div>
-                            <p class="text-sm sm:text-base text-gray-700">{{ comment.content }}</p>
-                        </div>
-                        {% empty %}
-                        <div class="text-center py-6 sm:py-8 text-gray-500">
-                            <p class="text-sm sm:text-base">No comments yet. Be the first to share your thoughts!</p>
-                        </div>
-                        {% endfor %}
-                    </div>
+                <!-- Event Name -->
+                <div class="absolute bottom-6 left-6 right-6">
+                    <h2 class="text-2xl font-bold text-white mb-2">{{ event.name|truncatechars:40 }}</h2>
+                    <p class="text-gray-200 text-sm">{{ event.description|truncatewords:10 }}</p>
                 </div>
             </div>
             
-            <!-- Sidebar -->
-            <div class="space-y-6">
-                <!-- Quick Info Card -->
-                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200 shadow-lg">
-                    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-3">
-                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <!-- Card 2: Event Highlights -->
+            <div class="h-96 bg-white rounded-3xl p-8 shadow-xl border border-gray-100 flex flex-col justify-center">
+                <div class="space-y-6">
+                    <div class="text-center">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">Event Highlights</h3>
+                        <div class="w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl border border-blue-100">
+                            <div class="text-2xl font-bold text-blue-600 mb-1">{{ event.start_date|date:"M d" }}</div>
+                            <div class="text-sm text-gray-600 font-medium">Start Date</div>
+                        </div>
+                        <div class="text-center p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border border-green-100">
+                            <div class="text-2xl font-bold text-green-600 mb-1">{{ event.start_date }}</div>
+                            <div class="text-sm text-gray-600 font-medium">Start Time</div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-100">
+                        <div class="text-2xl font-bold text-purple-600 mb-1">{{ event.event_type|title }}</div>
+                        <div class="text-sm text-gray-600 font-medium">Event Type</div>
+                    </div>
+                    
+                    {% if event.price_per_person %}
+                    <div class="text-center p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl border border-yellow-100">
+                        <div class="text-2xl font-bold text-yellow-600 mb-1">${{ event.price_per_person }}</div>
+                        <div class="text-sm text-gray-600 font-medium">Price per Person</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Card 3: Event Information -->
+            <div class="h-96 bg-white rounded-3xl p-8 shadow-xl border border-gray-100 flex flex-col justify-center">
+                <div class="space-y-6">
+                    <div class="text-center">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">Event Information</h3>
+                        <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                         </div>
-                        Event Information
-                    </h3>
+                    </div>
+                    
                     <div class="space-y-4">
-                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-600">Start Date</p>
-                                <p class="font-semibold text-gray-800">{{ event.start_date|date:"M d, Y" }}</p>
-                            </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <span class="text-gray-700 font-medium">Location</span>
+                            <span class="text-blue-600 font-bold">{{ event.location|default:"TBD" }}</span>
                         </div>
                         
-                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                            <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <svg class="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-600">End Date</p>
-                                <p class="font-semibold text-gray-800">{{ event.end_date|date:"M d, Y" }}</p>
-                            </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <span class="text-gray-700 font-medium">Capacity</span>
+                            <span class="text-green-600 font-bold">{{ event.max_participants|default:"Unlimited" }}</span>
                         </div>
                         
-                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <svg class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-600">Participants</p>
-                                <p class="font-semibold text-gray-800">{{ event.max_participants }} spots</p>
-                            </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <span class="text-gray-700 font-medium">Status</span>
+                            <span class="text-orange-600 font-bold">{{ event.status|title }}</span>
                         </div>
                         
-                        {% if event.price_per_person %}
-                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-600">Price per person</p>
-                                <p class="font-semibold text-gray-800">${{ event.price_per_person }}</p>
-                            </div>
+                        {% if event.creator.is_verified %}
+                        <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                            <span class="text-gray-700 font-medium">Creator</span>
+                            <span class="text-green-600 font-bold">Verified</span>
                         </div>
                         {% endif %}
                     </div>
                 </div>
-                
-                <!-- Contact Actions -->
-                <div class="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-200 shadow-lg">
-                    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-3">
-                        <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                            </svg>
-                        </div>
-                        Get in Touch
-                    </h3>
-                    <div class="space-y-3">
-                        <a href="{% url 'event_list' %}" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white py-3 px-4 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                            </svg>
-                            View All Events
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Creator Actions - Only show if user is the creator -->
-                {% if user.is_authenticated and event.creator == user %}
-                <div class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-200">
-                    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-3">
-                        <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            </svg>
-                        </div>
-                        Manage Event
-                    </h3>
-                    <div class="space-y-3">
-                        <a href="{% url 'event_update' event.pk %}" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white py-3 px-4 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                            </svg>
-                            Edit Event
-                        </a>
-                        <a href="{% url 'event_delete' event.pk %}" class="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-3 px-4 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                            </svg>
-                            Delete Event
-                        </a>
-                    </div>
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
 </div>
-
-<!-- Event Booking Modal -->
-<div id="event-booking-modal-{{ event.id }}" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold text-gray-900">Book This Event</h3>
-                <button onclick="closeEventBookingModal({{ event.id }})" class="text-gray-400 hover:text-gray-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
+                
+<!-- Complete Event Information Section - 100% Page Width -->
+<div class="py-20 bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 relative overflow-hidden">
+    <!-- Background Elements -->
+    <div class="absolute inset-0">
+        <div class="absolute top-0 left-0 w-32 h-32 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+        <div class="absolute top-0 right-0 w-24 h-24 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style="animation-delay: 2s;"></div>
+        <div class="absolute bottom-0 left-1/4 w-40 h-40 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style="animation-delay: 4s;"></div>
+    </div>
+    
+    <div class="max-w-7xl mx-auto px-4 relative z-10">
+        <div class="text-center mb-16">
+            <div class="inline-flex items-center bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 mb-6">
+                <svg class="w-5 h-5 text-yellow-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745a3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745a3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                <span class="text-white font-medium">Complete Event Information</span>
             </div>
             
-            <form id="event-booking-form-{{ event.id }}">
-                {% csrf_token %}
-                <div class="space-y-4">
-                    <div>
-                        <label for="event-participants-{{ event.id }}" class="block text-sm font-medium text-gray-700 mb-2">Number of Participants</label>
-                        <input type="number" id="event-participants-{{ event.id }}" name="participants" min="1" max="{{ event.max_participants }}" value="1" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200">
+            <h2 class="text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+                Everything You Need to 
+                <span class="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">Know</span>
+            </h2>
+            <p class="text-xl lg:text-2xl text-gray-200 mb-8 max-w-3xl mx-auto leading-relaxed">
+                Get all the details about your event, from description to itinerary and what's included.
+            </p>
+        </div>
+        
+        <!-- Content Grid -->
+        <div class="space-y-12">
+            <!-- About This Event -->
+            <div class="bg-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/10">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
                     </div>
-                    
-                    <div>
-                        <label for="event-special-requests-{{ event.id }}" class="block text-sm font-medium text-gray-700 mb-2">Special Requests (Optional)</label>
-                        <textarea id="event-special-requests-{{ event.id }}" name="special_requests" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" placeholder="Any special requirements or requests?"></textarea>
-                    </div>
-                    
-                    {% if event.price_per_person %}
-                    <div class="bg-gray-50 rounded-lg p-4">
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Price per person:</span>
-                            <span class="font-semibold">${{ event.price_per_person }}</span>
-                        </div>
-                        <div class="flex justify-between items-center mt-2">
-                            <span class="text-sm text-gray-600">Total Amount:</span>
-                            <span class="text-lg font-bold text-blue-600" id="event-total-amount-{{ event.id }}">${{ event.price_per_person }}</span>
-                        </div>
-                    </div>
-                    {% endif %}
+                    <h3 class="text-3xl font-bold text-white">About This Event</h3>
                 </div>
+                <div class="prose prose-lg max-w-none text-gray-200">
+                    <p>{{ event.description }}</p>
+                </div>
+            </div>
                 
-                <div class="flex gap-3 mt-6">
-                    <button type="button" onclick="closeEventBookingModal({{ event.id }})" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 px-4 rounded-lg font-semibold transition duration-300">
-                        Cancel
-                    </button>
-                    <button type="button" onclick="bookEvent({{ event.id }})" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 px-4 rounded-lg font-semibold transition duration-300">
-                        Confirm Booking
+            <!-- Event Itinerary -->
+            {% if event.itinerary %}
+            <div class="bg-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/10">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 00-2 2v2h2V5z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-3xl font-bold text-white">Event Itinerary</h3>
+                </div>
+                <div class="prose prose-lg max-w-none text-gray-200">
+                    {{ event.itinerary|linebreaks }}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- What's Included -->
+            {% if event.included_services %}
+            <div class="bg-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/10">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-3xl font-bold text-white">What's Included</h3>
+                </div>
+                <div class="prose prose-lg max-w-none text-gray-200">
+                    {{ event.included_services|linebreaks }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+                
+<!-- Comments & Reviews Section - 100% Page Width -->
+{% if event.creator.is_verified %}
+<div class="py-20 bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-900 relative overflow-hidden">
+    <!-- Background Elements -->
+    <div class="absolute inset-0">
+        <div class="absolute top-0 left-0 w-32 h-32 bg-emerald-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+        <div class="absolute top-0 right-0 w-24 h-24 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style="animation-delay: 2s;"></div>
+        <div class="absolute bottom-0 left-1/4 w-40 h-40 bg-cyan-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style="animation-delay: 4s;"></div>
+    </div>
+    
+    <div class="max-w-7xl mx-auto px-4 relative z-10">
+        <div class="text-center mb-16">
+            <div class="inline-flex items-center bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 mb-6">
+                <svg class="w-5 h-5 text-yellow-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745a3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745a3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                <span class="text-white font-medium">Community Feedback</span>
+            </div>
+            
+            <h2 class="text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+                Comments & 
+                <span class="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">Reviews</span>
+            </h2>
+            <p class="text-xl lg:text-2xl text-gray-200 mb-8 max-w-3xl mx-auto leading-relaxed">
+                Share your thoughts and read what others have to say about this amazing event.
+            </p>
+        </div>
+        
+        <!-- Comments Content -->
+        <div class="bg-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/10">
+            <!-- Add Comment Form -->
+            {% if user.is_authenticated %}
+            <form id="event-comment-form-{{ event.id }}" class="mb-8">
+                {% csrf_token %}
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <div class="flex-1">
+                        <textarea id="event-comment-input-{{ event.id }}" placeholder="Share your thoughts about this event..." class="w-full px-6 py-4 border border-white/20 rounded-2xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-200 text-gray-800 bg-white/20 backdrop-blur-sm placeholder-gray-300" rows="3"></textarea>
+                    </div>
+                    <button type="button" onclick="addEventComment({{ event.id }})" class="w-full sm:w-auto bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-gray-900 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 self-end transform hover:scale-105 hover:shadow-2xl shadow-xl">
+                        Post Comment
                     </button>
                 </div>
             </form>
+            {% else %}
+            <div class="mb-8 p-6 bg-white/10 backdrop-blur-sm rounded-2xl text-center border border-white/20">
+                <p class="text-lg text-gray-200">Please <a href="{% url 'login' %}" class="text-yellow-400 hover:text-yellow-300 font-semibold underline">log in</a> to leave a comment.</p>
+            </div>
+            {% endif %}
+            
+            <!-- Comments List -->
+            <div id="event-comments-{{ event.id }}">
+                {% for comment in event.comments.all %}
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-6 border border-white/20">
+                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-2xl flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <span class="text-lg font-semibold text-white">{{ comment.user.email }}</span>
+                        </div>
+                        <span class="text-sm text-gray-300">{{ comment.created_at|date:"M d, Y at g:i A" }}</span>
+                    </div>
+                    <p class="text-lg text-gray-200 leading-relaxed">{{ comment.content }}</p>
+                </div>
+                {% empty %}
+                <div class="text-center py-12 text-gray-300">
+                    <div class="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-3xl flex items-center justify-center mx-auto mb-6 border border-white/20">
+                        <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
+                    </div>
+                    <p class="text-xl text-gray-200 font-medium">No comments yet</p>
+                    <p class="text-lg text-gray-300">Be the first to share your thoughts about this amazing event!</p>
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </div>
-
-<!-- Floating Action Button for Quick Booking -->
-<div class="fixed bottom-6 right-6 z-50">
-    <a href="{% url 'simple_event_booking' event.pk %}" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white p-4 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 flex items-center justify-center">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-    </a>
-    <div class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold">
-        !
+{% else %}
+<!-- Comments section hidden - Creator not verified -->
+<div class="py-16 bg-gradient-to-r from-yellow-50 to-orange-50">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+        <div class="bg-white rounded-3xl p-8 shadow-xl border border-yellow-200">
+            <div class="w-20 h-20 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                </svg>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Comments & Reviews</h3>
+            <p class="text-lg text-gray-600 leading-relaxed">
+                This feature is only available for events created by <strong>verified users</strong>. The event creator needs to complete verification to enable comments and reviews.
+            </p>
+        </div>
     </div>
 </div>
+{% endif %}
 
 {% endblock %}
 
@@ -466,24 +500,6 @@ window.isAuthenticated = {% if user.is_authenticated %}true{% else %}false{% end
 
 // Debug authentication status
 console.log('Authentication status:', window.isAuthenticated);
-
-{% if event.price_per_person %}
-// Calculate total amount based on participants
-document.getElementById('event-participants-{{ event.id }}').addEventListener('input', function() {
-    const participants = parseInt(this.value) || 1;
-    const pricePerPerson = {{ event.price_per_person }};
-    const totalAmount = participants * pricePerPerson;
-    document.getElementById('event-total-amount-{{ event.id }}').textContent = '$' + totalAmount;
-});
-{% endif %}
-
-function openEventBookingModal(eventId) {
-    document.getElementById(`event-booking-modal-${eventId}`).classList.remove('hidden');
-}
-
-function closeEventBookingModal(eventId) {
-    document.getElementById(`event-booking-modal-${eventId}`).classList.add('hidden');
-}
 
 // Override addEventComment function for debugging
 function addEventComment(eventId) {

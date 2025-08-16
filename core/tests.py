@@ -151,5 +151,38 @@ def initiate_payment(phone, user, total):
     response = requests.request("POST", 'https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest', headers = headers, json = payload)
     
     return response
+
+def initiate_tour_payment(phone, account, total):
+    phone=process_number(phone)
+    paybill = "4161900"
+    timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    consumer_key = 'fa0e41448ce844d1a7a37553cee8bf22b61fec894e1ce3e9c0e32b1c6953b6d9'
+    concatenated_string = f"{paybill}{consumer_key}{timestamp}"
+    base64_encoded = base64.b64encode(concatenated_string.encode()).decode('utf-8')
+    password = str(base64_encoded)
+    access_token = generate_access_token()
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json'
+    }
+
+    payload = {
+        "BusinessShortCode": 4161900,  # Use double quotes for all keys and values
+        "Password": password,  # Use the generated password
+        "Timestamp": timestamp,
+        "TransactionType": "CustomerPayBillOnline",
+        "Amount": total,
+        "PartyA": phone,
+        "PartyB": 4161900,
+        "PhoneNumber": phone,
+        "CallBackURL": "https://knowedge.online/Subscription/callback/",
+        "AccountReference": account,
+        "TransactionDesc": "Subscription",
+
+    }
+
+    response = requests.request("POST", 'https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest', headers = headers, json = payload)
+    
+    return response
 if __name__ == "__main__":
     print(initiate_payment("0742134431", "kevin", 100))

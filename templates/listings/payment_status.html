@@ -1,210 +1,299 @@
-{% extends 'base.html' %}
+{% extends 'users/base.html' %}
 {% load static %}
 
-{% block title %}Payment Status{% endblock %}
+{% block title %}Payment Status - TravelsKe{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-4xl mx-auto px-4">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">Payment Status</h1>
-            <p class="text-gray-600">Track your payment progress</p>
-        </div>
-
-        <!-- Payment Status Card -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <div class="text-center">
-                {% if transaction.status == 'completed' %}
-                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                    </div>
-                    <h2 class="text-2xl font-bold text-green-900 mb-2">Payment Successful!</h2>
-                    <p class="text-green-700">Your payment has been completed successfully.</p>
-                {% elif transaction.status == 'pending' %}
-                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <h2 class="text-2xl font-bold text-yellow-900 mb-2">Payment Pending</h2>
-                    <p class="text-yellow-700">Your payment is being processed. Please wait for confirmation.</p>
-                {% elif transaction.status == 'failed' %}
-                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </div>
-                    <h2 class="text-2xl font-bold text-red-900 mb-2">Payment Failed</h2>
-                    <p class="text-red-700">Your payment could not be processed. Please try again.</p>
-                {% else %}
-                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Payment {{ transaction.status|title }}</h2>
-                    <p class="text-gray-700">Your payment is in {{ transaction.status }} status.</p>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Transaction Details -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Transaction Details</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-500">Transaction ID</label>
-                        <p class="text-sm font-medium text-gray-900">{{ transaction.transaction_id }}</p>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-500">Reference Number</label>
-                        <p class="text-sm font-medium text-gray-900">{{ transaction.reference_number }}</p>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-500">Amount</label>
-                        <p class="text-lg font-bold text-emerald-600">${{ transaction.amount }}</p>
-                    </div>
-                </div>
-                <div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-500">Payment Method</label>
-                        <p class="text-sm font-medium text-gray-900">{{ transaction.payment_method.name }}</p>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-500">Status</label>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                            {% if transaction.status == 'completed' %}bg-green-100 text-green-800
-                            {% elif transaction.status == 'pending' %}bg-yellow-100 text-yellow-800
-                            {% elif transaction.status == 'failed' %}bg-red-100 text-red-800
-                            {% else %}bg-gray-100 text-gray-800{% endif %}">
-                            {{ transaction.status|title }}
-                        </span>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-500">Created</label>
-                        <p class="text-sm font-medium text-gray-900">{{ transaction.created_at|date:"M d, Y H:i" }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- M-Pesa Payment Details -->
-        {% if mpesa_payment %}
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">M-Pesa Payment Details</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-500">Phone Number</label>
-                        <p class="text-sm font-medium text-gray-900">{{ mpesa_payment.phone_number }}</p>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-500">M-Pesa Status</label>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                            {% if mpesa_payment.mpesa_status == 'successful' %}bg-green-100 text-green-800
-                            {% elif mpesa_payment.mpesa_status == 'initiated' %}bg-blue-100 text-blue-800
-                            {% elif mpesa_payment.mpesa_status == 'failed' %}bg-red-100 text-red-800
-                            {% else %}bg-gray-100 text-gray-800{% endif %}">
-                            {{ mpesa_payment.mpesa_status|title }}
-                        </span>
-                    </div>
-                </div>
-                <div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-500">Request ID</label>
-                        <p class="text-sm font-medium text-gray-900">{{ mpesa_payment.mpesa_request_id }}</p>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-500">Amount</label>
-                        <p class="text-lg font-bold text-emerald-600">${{ mpesa_payment.mpesa_amount }}</p>
-                    </div>
-                </div>
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="container mx-auto px-4">
+        <div class="max-w-2xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">Payment Status</h1>
+                <p class="text-gray-600">Check the status of your payment</p>
             </div>
 
-            {% if mpesa_payment.mpesa_status == 'initiated' %}
-            <!-- M-Pesa Instructions -->
-            <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h4 class="font-medium text-blue-900 mb-3">Complete Your M-Pesa Payment:</h4>
-                <div class="bg-white p-4 rounded-lg border border-blue-200">
-                    <h5 class="font-medium text-gray-900 mb-3">Payment Instructions:</h5>
-                    <ol class="list-decimal list-inside space-y-2 text-sm text-gray-700">
-                        <li>Check your phone for the STK push notification</li>
-                        <li>Enter your M-Pesa PIN when prompted</li>
-                        <li>Confirm the payment amount and details</li>
-                        <li>Wait for payment confirmation</li>
-                    </ol>
-                    
-                    <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <div class="flex items-center">
-                            <svg class="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                            </svg>
-                            <span class="text-sm text-yellow-800">
-                                <strong>Pay-bill:</strong> 4161900 | <strong>Account:</strong> 
-                                {% if tour %}{{ tour.id }}{% else %}{{ transaction.object_id }}{% endif %}
-                            </span>
+            {% if is_tour_booking %}
+                <!-- Tour Booking Payment Status -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+                    <div class="text-center mb-6">
+                        {% if tour_payment.payment_status == 'completed' %}
+                            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <h2 class="text-2xl font-bold text-green-600 mb-2">Payment Successful!</h2>
+                            <p class="text-gray-600">Your payment of KES {{ tour_payment.amount|floatformat:0 }} has been processed successfully.</p>
+                        {% elif tour_payment.payment_status == 'processing' %}
+                            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <h2 class="text-2xl font-bold text-blue-600 mb-2">Payment Processing</h2>
+                            <p class="text-gray-600">Your payment of KES {{ tour_payment.amount|floatformat:0 }} is being processed. Please wait...</p>
+                        {% elif tour_payment.payment_status == 'failed' %}
+                            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <h2 class="text-2xl font-bold text-red-600 mb-2">Payment Failed</h2>
+                            <p class="text-gray-600">Your payment of KES {{ tour_payment.amount|floatformat:0 }} could not be processed.</p>
+                        {% else %}
+                            <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <h2 class="text-2xl font-bold text-yellow-600 mb-2">Payment Pending</h2>
+                            <p class="text-gray-600">Your payment of KES {{ tour_payment.amount|floatformat:0 }} is pending.</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Payment Details -->
+                    <div class="bg-gray-50 rounded-xl p-6 mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Payment Details</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Payment Reference:</span>
+                                <span class="font-semibold">{{ tour_payment.payment_reference }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Amount:</span>
+                                <span class="font-semibold text-green-600">KES {{ tour_payment.amount|floatformat:0 }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Payment Method:</span>
+                                <span class="font-semibold">{{ tour_payment.get_payment_method_display }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Status:</span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if tour_payment.payment_status == 'completed' %}bg-green-100 text-green-800
+                                    {% elif tour_payment.payment_status == 'pending' %}bg-yellow-100 text-yellow-800
+                                    {% elif tour_payment.payment_status == 'processing' %}bg-blue-100 text-blue-800
+                                    {% elif tour_payment.payment_status == 'failed' %}bg-red-100 text-red-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ tour_payment.get_payment_status_display }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Date:</span>
+                                <span class="font-semibold">{{ tour_payment.created_at|date:"M d, Y H:i" }}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-        {% endif %}
 
-        <!-- Tour Details (if available) -->
-        {% if tour %}
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Tour Details</h3>
-            <div class="flex items-center space-x-4">
-                {% if tour.image %}
-                <img src="{{ tour.image.url }}" alt="{{ tour.name }}" class="w-16 h-16 object-cover rounded-lg">
-                {% endif %}
-                <div>
-                    <h4 class="text-lg font-medium text-gray-900">{{ tour.name }}</h4>
-                    <p class="text-gray-600">{{ tour.destination }}</p>
-                    <p class="text-sm text-gray-500">{{ tour.start_date|date:"M d, Y" }} - {{ tour.end_date|date:"M d, Y" }}</p>
-                </div>
-            </div>
-        </div>
-        {% endif %}
+                    <!-- Tour Details -->
+                    <div class="bg-white rounded-xl p-6 border border-gray-200 mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Tour Details</h3>
+                        <div class="flex items-center space-x-4">
+                            {% if tour.display_picture %}
+                            <img src="{{ tour.display_picture.url }}" alt="{{ tour.name }}" class="w-16 h-16 object-cover rounded-lg">
+                            {% endif %}
+                            <div>
+                                <h4 class="text-lg font-medium text-gray-900">{{ tour.name }}</h4>
+                                <p class="text-gray-600">{{ tour.destination }}</p>
+                                <p class="text-sm text-gray-500">{{ tour.start_date|date:"M d, Y" }} - {{ tour.end_date|date:"M d, Y" }}</p>
+                            </div>
+                        </div>
+                    </div>
 
-        <!-- Action Buttons -->
-        <div class="flex justify-center space-x-4">
-            {% if transaction.status == 'completed' %}
-                <a href="{% url 'user_bookings' %}" 
-                   class="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
-                    View My Bookings
-                </a>
-            {% elif transaction.status == 'pending' %}
-                <button onclick="location.reload()" 
-                        class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                    Refresh Status
-                </button>
-            {% elif transaction.status == 'failed' %}
-                <a href="{% url 'tour_booking_payment' tour.pk %}" 
-                   class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                    Try Again
-                </a>
+                    <!-- Booking Progress -->
+                    <div class="bg-blue-50 rounded-xl p-6 mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Booking Progress</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Total tour cost:</span>
+                                <span class="font-semibold">KES {{ booking.total_amount|floatformat:0 }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Total paid:</span>
+                                <span class="font-semibold text-green-600">KES {{ booking.total_paid_amount|floatformat:0 }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Remaining:</span>
+                                <span class="font-semibold text-orange-600">KES {{ booking.remaining_amount|floatformat:0 }}</span>
+                            </div>
+                            
+                            <!-- Progress Bar -->
+                            <div class="mt-4">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm font-medium text-gray-700">Payment Progress</span>
+                                    <span class="text-sm font-medium text-gray-700">{{ booking.payment_progress_percentage|floatformat:1 }}%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-3">
+                                    <div class="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-500" 
+                                         style="width: {{ booking.payment_progress_percentage }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex justify-center space-x-4">
+                        {% if tour_payment.payment_status == 'completed' %}
+                            {% if not booking.is_fully_paid %}
+                                <a href="{% url 'additional_payment' booking.id %}" 
+                                   class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors">
+                                    Make Additional Payment
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'user_bookings' %}" 
+                               class="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
+                                View My Bookings
+                            </a>
+                        {% elif tour_payment.payment_status == 'pending' %}
+                            <button onclick="location.reload()" 
+                                    class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                Refresh Status
+                            </button>
+                        {% elif tour_payment.payment_status == 'failed' %}
+                            <a href="{% url 'additional_payment' booking.id %}" 
+                               class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                                Try Again
+                            </a>
+                        {% endif %}
+                        
+                        <a href="{% url 'grouptours_list' %}" 
+                           class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                            Browse More Tours
+                        </a>
+                    </div>
+                </div>
+
+            {% else %}
+                <!-- Legacy Payment Transaction Status -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+                    <div class="text-center mb-6">
+                        {% if transaction.status == 'completed' %}
+                            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <h2 class="text-2xl font-bold text-green-600 mb-2">Payment Successful!</h2>
+                            <p class="text-gray-600">Your payment has been processed successfully.</p>
+                        {% elif transaction.status == 'processing' %}
+                            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <h2 class="text-2xl font-bold text-blue-600 mb-2">Payment Processing</h2>
+                            <p class="text-gray-600">Your payment is being processed. Please wait...</p>
+                        {% elif transaction.status == 'failed' %}
+                            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <h2 class="text-2xl font-bold text-red-600 mb-2">Payment Failed</h2>
+                            <p class="text-gray-600">Your payment could not be processed.</p>
+                        {% else %}
+                            <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <h2 class="text-2xl font-bold text-yellow-600 mb-2">Payment Pending</h2>
+                            <p class="text-gray-600">Your payment is pending.</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Transaction Details -->
+                    <div class="bg-gray-50 rounded-xl p-6 mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Transaction Details</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Transaction ID:</span>
+                                <span class="font-semibold">{{ transaction.transaction_id }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Amount:</span>
+                                <span class="font-semibold text-green-600">KES {{ transaction.amount|floatformat:0 }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Status:</span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if transaction.status == 'completed' %}bg-green-100 text-green-800
+                                    {% elif transaction.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                    {% elif transaction.status == 'processing' %}bg-blue-100 text-blue-800
+                                    {% elif transaction.status == 'failed' %}bg-red-100 text-red-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ transaction.get_status_display }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Date:</span>
+                                <span class="font-semibold">{{ transaction.created_at|date:"M d, Y H:i" }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tour Details (if available) -->
+                    {% if tour %}
+                    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Tour Details</h3>
+                        <div class="flex items-center space-x-4">
+                            {% if tour.display_picture %}
+                            <img src="{{ tour.display_picture.url }}" alt="{{ tour.name }}" class="w-16 h-16 object-cover rounded-lg">
+                            {% endif %}
+                            <div>
+                                <h4 class="text-lg font-medium text-gray-900">{{ tour.name }}</h4>
+                                <p class="text-gray-600">{{ tour.destination }}</p>
+                                <p class="text-sm text-gray-500">{{ tour.start_date|date:"M d, Y" }} - {{ tour.end_date|date:"M d, Y" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Action Buttons -->
+                    <div class="flex justify-center space-x-4">
+                        {% if transaction.status == 'completed' %}
+                            <a href="{% url 'user_bookings' %}" 
+                               class="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
+                                View My Bookings
+                            </a>
+                        {% elif transaction.status == 'pending' %}
+                            <button onclick="location.reload()" 
+                                    class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                Refresh Status
+                            </button>
+                        {% elif transaction.status == 'failed' %}
+                            <a href="{% url 'tour_booking_payment' tour.pk %}" 
+                               class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                                Try Again
+                            </a>
+                        {% endif %}
+                        
+                        <a href="{% url 'grouptours_list' %}" 
+                           class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                            Browse More Tours
+                        </a>
+                    </div>
+                </div>
             {% endif %}
-            
-            <a href="{% url 'grouptours_list' %}" 
-               class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                Browse More Tours
-            </a>
         </div>
     </div>
 </div>
 
 <script>
 // Auto-refresh the page every 30 seconds if payment is pending
-{% if transaction.status == 'pending' %}
-setTimeout(function() {
-    location.reload();
-}, 30000);
+{% if is_tour_booking %}
+    {% if tour_payment.payment_status == 'pending' or tour_payment.payment_status == 'processing' %}
+        setTimeout(function() {
+            location.reload();
+        }, 30000);
+    {% endif %}
+{% else %}
+    {% if transaction.status == 'pending' or transaction.status == 'processing' %}
+        setTimeout(function() {
+            location.reload();
+        }, 30000);
+    {% endif %}
 {% endif %}
 </script>
 {% endblock %} 

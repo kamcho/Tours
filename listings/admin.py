@@ -92,6 +92,34 @@ class AgencyAdmin(admin.ModelAdmin):
     )
 admin.site.register(Event)
 
+@admin.register(TourBookingPayment)
+class TourBookingPaymentAdmin(admin.ModelAdmin):
+    list_display = ['payment_reference', 'user', 'booking', 'amount', 'payment_method', 'payment_status', 'created_at']
+    list_filter = ['payment_method', 'payment_status', 'created_at', 'booking__tour']
+    search_fields = ['payment_reference', 'user__email', 'booking__tour__name', 'external_reference']
+    list_editable = ['payment_status']
+    readonly_fields = ['payment_reference', 'created_at', 'updated_at', 'completed_at']
+    date_hierarchy = 'created_at'
+    
+    fieldsets = (
+        ('Payment Information', {
+            'fields': ('payment_reference', 'amount', 'payment_method', 'payment_status')
+        }),
+        ('Booking Details', {
+            'fields': ('booking', 'user')
+        }),
+        ('Transaction Details', {
+            'fields': ('external_reference', 'description', 'metadata')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at', 'completed_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user', 'booking', 'booking__tour')
+
 @admin.register(AgencyService)
 class AgencyServiceAdmin(admin.ModelAdmin):
     list_display = ['name', 'agency', 'service_type', 'availability', 'is_featured', 'is_active', 'created_at']

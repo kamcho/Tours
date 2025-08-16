@@ -1,166 +1,276 @@
 {% extends 'users/base.html' %}
 {% load static %}
 
-{% block title %}Book Event - {{ event.name }}{% endblock %}
+{% block title %}Book {{ event.name }} - TravelsKe{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-4xl mx-auto px-4">
-        <!-- Header -->
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header Section -->
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">Book Your Event</h1>
-            <p class="text-gray-600">Complete your booking and choose your payment method</p>
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Book Your Event</h1>
+            <p class="text-xl text-gray-600">Complete your booking for {{ event.name }}</p>
         </div>
 
         <!-- Event Summary Card -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <div class="flex items-center space-x-4">
-                {% if event.image %}
-                <img src="{{ event.image.url }}" alt="{{ event.name }}" class="w-20 h-20 object-cover rounded-lg">
-                {% else %}
-                <div class="w-20 h-20 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
-                </div>
-                {% endif %}
-                <div class="flex-1">
-                    <h2 class="text-xl font-semibold text-gray-900">{{ event.name }}</h2>
-                    <p class="text-gray-600">{{ event.place.name }}</p>
-                    <div class="flex items-center space-x-4 mt-2">
-                        <span class="text-sm text-gray-500">
-                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                            {{ event.date|date:"M d, Y" }}
-                        </span>
-                        <span class="text-sm text-gray-500">
-                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            {{ event.time|time:"g:i A" }}
-                        </span>
-                    </div>
-                </div>
-                <div class="text-right">
-                    {% if event.price_per_person %}
-                    <div class="text-2xl font-bold text-emerald-600">${{ event.price_per_person }}</div>
-                    <div class="text-sm text-gray-500">per person</div>
+        <div class="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
+            <div class="flex flex-col lg:flex-row gap-8">
+                <!-- Event Image -->
+                <div class="lg:w-1/3">
+                    {% if event.image %}
+                        <img src="{{ event.image.url }}" alt="{{ event.name }}" class="w-full h-64 object-cover rounded-xl shadow-lg">
                     {% else %}
-                    <div class="text-lg font-semibold text-gray-600">Free Event</div>
+                        <div class="w-full h-64 bg-gradient-to-br from-blue-400 to-green-500 rounded-xl flex items-center justify-center">
+                            <svg class="w-24 h-24 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
                     {% endif %}
+                </div>
+
+                <!-- Event Details -->
+                <div class="lg:w-2/3">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">{{ event.name }}</h2>
+                    <p class="text-gray-600 mb-6">{{ event.description|truncatewords:30 }}</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2 bg-blue-100 rounded-lg">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Location</p>
+                                <p class="text-gray-900">{{ event.place.name }}</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2 bg-green-100 rounded-lg">
+                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Date & Time</p>
+                                <p class="text-gray-900">{{ event.date|date:"M d, Y" }} at {{ event.time|time:"g:i A" }}</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2 bg-purple-100 rounded-lg">
+                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Price</p>
+                                <p class="text-gray-900 font-semibold">
+                                    {% if event.price_per_person %}
+                                        KES {{ event.price_per_person|floatformat:0 }} per person
+                                    {% else %}
+                                        Free Event
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2 bg-orange-100 rounded-lg">
+                                <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Duration</p>
+                                <p class="text-gray-900">{{ event.duration|default:"TBD" }}</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <!-- M-Pesa Payment Method Info -->
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100 mb-8">
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900">M-Pesa Payment</h3>
+                    <p class="text-gray-600">Secure mobile money payment via Safaricom</p>
+                </div>
+            </div>
+            <p class="text-sm text-gray-600">You'll receive an STK push notification on your phone to complete the payment securely.</p>
+        </div>
+
         <!-- Booking Form -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <form method="POST" id="bookingForm">
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+            <h3 class="text-2xl font-bold text-gray-900 mb-6">Complete Your Booking</h3>
+            
+            <form method="POST" class="space-y-6">
                 {% csrf_token %}
                 
-                <!-- Participants and Special Requests -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <div>
-                        <label for="participants" class="block text-sm font-medium text-gray-700 mb-2">
-                            Number of Participants
-                        </label>
-                        <select name="participants" id="participants" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent" required>
-                            {% for i in "123456789"|make_list %}
-                            <option value="{{ forloop.counter }}">{{ forloop.counter }} {% if forloop.counter == 1 %}person{% else %}people{% endif %}</option>
-                            {% endfor %}
-                        </select>
+                <!-- Participants Selection -->
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <label class="block text-lg font-semibold text-gray-900 mb-4">
+                        Number of Participants
+                    </label>
+                    <div class="flex items-center space-x-4">
+                        <button type="button" onclick="decreaseParticipants()" class="w-12 h-12 bg-white border-2 border-gray-300 rounded-full flex items-center justify-center hover:border-blue-500 transition-colors">
+                            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                            </svg>
+                        </button>
+                        
+                        <input type="number" name="participants" id="participants" value="1" min="1" max="10" 
+                               class="w-20 text-center text-2xl font-bold text-gray-900 bg-transparent border-none focus:outline-none">
+                        
+                        <button type="button" onclick="increaseParticipants()" class="w-12 h-12 bg-white border-2 border-gray-300 rounded-full flex items-center justify-center hover:border-blue-500 transition-colors">
+                            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                        </button>
                     </div>
-                    
-                    <div>
-                        <label for="special_requests" class="block text-sm font-medium text-gray-700 mb-2">
-                            Special Requests (Optional)
-                        </label>
-                        <textarea name="special_requests" id="special_requests" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent" placeholder="Any special requirements or requests..."></textarea>
-                    </div>
+                    <p class="text-sm text-gray-600 mt-2">Maximum 10 participants allowed</p>
+                </div>
+                
+                <!-- Phone Number -->
+                <div>
+                    <label for="phone_number" class="block text-lg font-semibold text-gray-900 mb-3">
+                        Phone Number for M-Pesa
+                    </label>
+                    <input type="tel" name="phone_number" id="phone_number" value="{{ user_phone }}"
+                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-lg transition-all"
+                           placeholder="254 700 000 000" required>
+                    <p class="text-sm text-gray-600 mt-2">We'll send payment instructions to this number</p>
                 </div>
 
-                <!-- Payment Method Selection -->
-                <div class="mb-8">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Select Payment Method</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {% for method in payment_methods %}
-                        <label class="relative flex cursor-pointer rounded-lg border border-gray-300 bg-white p-4 shadow-sm focus:outline-none">
-                            <input type="radio" name="payment_method" value="{{ method.id }}" class="sr-only" required {% if forloop.first %}checked{% endif %}>
-                            <span class="flex flex-1">
-                                <span class="flex flex-col">
-                                    <span class="block text-sm font-medium text-gray-900">{{ method.name }}</span>
-                                    <span class="mt-1 flex items-center text-sm text-gray-500">
-                                        <span class="mr-2">{{ method.icon }}</span>
-                                        {{ method.description }}
-                                    </span>
-                                    {% if method.processing_fee_percentage > 0 or method.processing_fee_fixed > 0 %}
-                                    <span class="mt-1 text-xs text-gray-400">
-                                        Fee: {% if method.processing_fee_percentage > 0 %}{{ method.processing_fee_percentage }}%{% endif %}{% if method.processing_fee_fixed > 0 %}{% if method.processing_fee_percentage > 0 %} + {% endif %}${{ method.processing_fee_fixed }}{% endif %}
-                                    </span>
+                <!-- Special Requests -->
+                <div>
+                    <label for="special_requests" class="block text-lg font-semibold text-gray-900 mb-3">
+                        Special Requests (Optional)
+                    </label>
+                    <textarea name="special_requests" id="special_requests" rows="4" 
+                              class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all resize-none"
+                              placeholder="Any special dietary requirements, accessibility needs, or other requests..."></textarea>
+                </div>
+
+                <!-- Payment Summary -->
+                <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-100">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4">Payment Summary</h4>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Price per person:</span>
+                            <span class="font-semibold">
+                                {% if event.price_per_person %}
+                                    KES {{ event.price_per_person|floatformat:0 }}
+                                {% else %}
+                                    Free
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Participants:</span>
+                            <span class="font-semibold" id="participants-display">1</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Total amount:</span>
+                            <span class="font-semibold text-gray-900" id="total-tour-cost">
+                                {% if event.price_per_person %}
+                                    KES {{ event.price_per_person|floatformat:0 }}
+                                {% else %}
+                                    Free
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="border-t border-blue-200 pt-3">
+                            <div class="flex justify-between">
+                                <span class="text-lg font-semibold text-blue-600">Amount to pay:</span>
+                                <span class="text-2xl font-bold text-blue-600" id="payment-amount-display">
+                                    {% if event.price_per_person %}
+                                        KES {{ event.price_per_person|floatformat:0 }}
+                                    {% else %}
+                                        Free
                                     {% endif %}
                                 </span>
-                            </span>
-                            <span class="pointer-events-none absolute -inset-px rounded-lg border-2" aria-hidden="true"></span>
-                        </label>
-                        {% endfor %}
+                            </div>
+                        </div>
                     </div>
-                </div>
-
-                <!-- Phone Number -->
-                <div class="mb-8">
-                    <label for="phone_number" class="block text-sm font-medium text-gray-700 mb-2">
-                        Phone Number
-                    </label>
-                    <input type="tel" name="phone_number" id="phone_number" value="{{ user_phone }}" 
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                           placeholder="254XXXXXXXXX" required>
-                    <p class="mt-1 text-sm text-gray-500">Required for M-Pesa payments</p>
-                </div>
-
-                <!-- Total Amount Display -->
-                <div class="bg-gray-50 rounded-lg p-4 mb-8">
-                    <div class="flex justify-between items-center">
-                        <span class="text-lg font-medium text-gray-900">Total Amount:</span>
-                        <span class="text-2xl font-bold text-emerald-600" id="totalAmount">
-                            {% if event.price_per_person %}
-                            ${{ event.price_per_person }}
-                            {% else %}
-                            Free
-                            {% endif %}
-                        </span>
-                    </div>
-                    <p class="text-sm text-gray-500 mt-1">Amount will be calculated based on number of participants</p>
                 </div>
 
                 <!-- Submit Button -->
-                <div class="flex justify-end">
-                    <button type="submit" class="bg-emerald-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-200 transition duration-200">
-                        Complete Booking
-                    </button>
-                </div>
+                <button type="submit" 
+                        class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 px-6 rounded-xl text-lg font-semibold hover:from-green-700 hover:to-emerald-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
+                    <span class="flex items-center justify-center space-x-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                        <span>Book Event & Pay via M-Pesa</span>
+                    </span>
+                </button>
             </form>
+        </div>
+
+        <!-- Important Information -->
+        <div class="mt-8 text-center">
+            <p class="text-sm text-gray-500">
+                By completing this booking, you agree to our 
+                <a href="#" class="text-blue-600 hover:underline">Terms of Service</a> and 
+                <a href="#" class="text-blue-600 hover:underline">Privacy Policy</a>
+            </p>
         </div>
     </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const participantsSelect = document.getElementById('participants');
-    const totalAmountSpan = document.getElementById('totalAmount');
+    const participantsInput = document.getElementById('participants');
+    const participantsDisplay = document.getElementById('participants-display');
+    const totalTourCost = document.getElementById('total-tour-cost');
+    const paymentAmountDisplay = document.getElementById('payment-amount-display');
+    
     const eventPrice = {{ event.price_per_person|default:0 }};
     
-    function updateTotalAmount() {
-        const participants = parseInt(participantsSelect.value);
+    function updateDisplay() {
+        const participants = parseInt(participantsInput.value);
+        participantsDisplay.textContent = participants;
+        
         if (eventPrice > 0) {
             const total = eventPrice * participants;
-            totalAmountSpan.textContent = '$' + total.toFixed(2);
+            totalTourCost.textContent = `KES ${total.toFixed(0)}`;
+            paymentAmountDisplay.textContent = `KES ${total.toFixed(0)}`;
         } else {
-            totalAmountSpan.textContent = 'Free';
+            totalTourCost.textContent = 'Free';
+            paymentAmountDisplay.textContent = 'Free';
         }
     }
     
-    participantsSelect.addEventListener('change', updateTotalAmount);
-    updateTotalAmount(); // Initial calculation
+    participantsInput.addEventListener('input', updateDisplay);
+    updateDisplay(); // Initial calculation
 });
+
+function decreaseParticipants() {
+    const input = document.getElementById('participants');
+    const currentValue = parseInt(input.value);
+    if (currentValue > 1) {
+        input.value = currentValue - 1;
+        input.dispatchEvent(new Event('input'));
+    }
+}
+
+function increaseParticipants() {
+    const input = document.getElementById('participants');
+    const currentValue = parseInt(input.value);
+    if (currentValue < 10) {
+        input.value = currentValue + 1;
+        input.dispatchEvent(new Event('input'));
+    }
+}
 </script>
 {% endblock %} 
