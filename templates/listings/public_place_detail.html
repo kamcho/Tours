@@ -15,7 +15,11 @@
 
 <!-- Hero Section -->
 <div class="relative bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-900 py-20">
-    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20" style="background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+    {% if place.profile_picture %}
+        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20" style="background-image: url('{{ place.profile_picture.url }}');"></div>
+    {% else %}
+        <div class="absolute inset-0 bg-gradient-to-br from-emerald-800 via-teal-700 to-cyan-800 opacity-30"></div>
+    {% endif %}
     <div class="relative z-10 max-w-7xl mx-auto px-4">
         <div class="text-center">
             <div class="flex items-center justify-center gap-4 mb-6">
@@ -79,34 +83,42 @@
 {% endif %}
 
 <!-- Place Details -->
-<div class="bg-gradient-to-br from-gray-100 via-gray-50 to-blue-50 py-16">
+<div class="bg-gradient-to-br from-gray-100 via-gray-50 to-blue-50 py-8 sm:py-12 lg:py-16">
     <div class="max-w-7xl mx-auto px-4">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-12">
             <!-- Main Content -->
             <div class="lg:col-span-2">
                 <!-- Place Image -->
-                <div class="relative h-96 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl overflow-hidden mb-8 shadow-2xl">
+                <div class="relative h-64 sm:h-80 lg:h-96 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl overflow-hidden mb-6 sm:mb-8 shadow-2xl">
                     {% if place.profile_picture %}
                         <img src="{{ place.profile_picture.url }}" alt="{{ place.name }}" class="w-full h-full object-cover">
                     {% else %}
-                        <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+                        <div class="absolute inset-0 bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
+                            <div class="text-center text-white">
+                                <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <p class="text-lg font-medium">No Image Available</p>
+                            </div>
+                        </div>
                     {% endif %}
                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                     
                     <!-- Category Badge -->
-                    <div class="absolute top-6 left-6">
-                        <span class="bg-white/90 backdrop-blur-sm text-gray-800 px-4 py-2 rounded-full text-sm font-semibold shadow-lg">{{ place.category.name }}</span>
+                    <div class="absolute top-3 sm:top-6 left-3 sm:left-6">
+                        <span class="bg-white/90 backdrop-blur-sm text-gray-800 px-2 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-semibold shadow-lg">{{ place.category.name }}</span>
                     </div>
                     
                     <!-- Status Badge -->
-                    <div class="absolute top-6 right-6">
+                    <div class="absolute top-3 sm:top-6 right-3 sm:right-6">
                         {% if place.is_active %}
-                            <span class="bg-emerald-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg flex items-center gap-2">
-                                <div class="w-2 h-2 bg-white rounded-full"></div>
+                            <span class="bg-emerald-500 text-white px-2 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-semibold shadow-lg flex items-center gap-1 sm:gap-2">
+                                <div class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full"></div>
                                 Active
                             </span>
                         {% else %}
-                            <span class="bg-gray-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">Inactive</span>
+                            <span class="bg-gray-500 text-white px-2 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-semibold shadow-lg">Inactive</span>
                         {% endif %}
                     </div>
                     
@@ -114,32 +126,32 @@
                 </div>
                 
                 <!-- About This Place with Images -->
-                <div class="bg-gradient-to-br from-white to-blue-50 rounded-2xl p-8 mb-8 shadow-xl border border-blue-100 h-96">
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center h-full">
+                <div class="bg-gradient-to-br from-white to-blue-50 rounded-2xl p-4 sm:p-6 lg:p-8 mb-8 shadow-xl border border-blue-100 min-h-[20rem] lg:min-h-[24rem]">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 items-start lg:items-center">
                         <!-- About Content -->
-                        <div class="lg:col-span-2 flex flex-col justify-center">
-                            <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-                                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="lg:col-span-2 flex flex-col justify-center order-2 lg:order-1">
+                            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6 flex items-center gap-3">
+                                <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                                    <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                     </svg>
                                 </div>
                                 About This Place
                             </h2>
-                            <p class="text-gray-600 leading-relaxed text-lg mb-6">{{ place.description }}</p>
+                            <p class="text-gray-600 leading-relaxed text-base sm:text-lg mb-4 sm:mb-6">{{ place.description }}</p>
                             
                             <!-- Quick Stats -->
-                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                <div class="bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-500 rounded-xl p-3 transition-all duration-300 flex items-center justify-center shadow-lg">
-                                    <span class="text-sm font-bold">{{ place.category.name }}</span>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3">
+                                <div class="bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-500 rounded-xl p-2 sm:p-3 transition-all duration-300 flex items-center justify-center shadow-lg">
+                                    <span class="text-xs sm:text-sm font-bold">{{ place.category.name }}</span>
                                 </div>
-                                <div class="bg-green-600 hover:bg-green-700 text-white border-2 border-green-500 rounded-xl p-3 transition-all duration-300 flex items-center justify-center shadow-lg">
-                                    <span class="text-sm font-bold">
+                                <div class="bg-green-600 hover:bg-green-700 text-white border-2 border-green-500 rounded-xl p-2 sm:p-3 transition-all duration-300 flex items-center justify-center shadow-lg">
+                                    <span class="text-xs sm:text-sm font-bold">
                                         {% if place.is_active %}Active{% else %}Inactive{% endif %}
                                     </span>
                                 </div>
-                                <div class="bg-purple-600 hover:bg-purple-700 text-white border-2 border-purple-500 rounded-xl p-3 transition-all duration-300 flex items-center justify-center shadow-lg">
-                                    <span class="text-sm font-bold">
+                                <div class="bg-purple-600 hover:bg-purple-700 text-white border-2 border-purple-500 rounded-xl p-2 sm:p-3 transition-all duration-300 flex items-center justify-center shadow-lg">
+                                    <span class="text-xs sm:text-sm font-bold">
                                         {% if place.verified %}Verified{% else %}Pending{% endif %}
                                     </span>
                                 </div>
@@ -147,43 +159,56 @@
                         </div>
                         
                         <!-- Image Gallery -->
-                        <div class="lg:col-span-1 flex flex-col justify-center">
-                            <div class="grid grid-cols-2 gap-3">
+                        <div class="lg:col-span-1 flex flex-col justify-center order-1 lg:order-2 mb-6 lg:mb-0">
+                            <div class="grid grid-cols-2 gap-2 sm:gap-3">
                                 <!-- Main Image -->
-                                <div class="col-span-2 h-48 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-xl overflow-hidden shadow-lg">
+                                <div class="col-span-2 h-32 sm:h-40 lg:h-48 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-xl overflow-hidden shadow-lg">
                                     {% if place.profile_picture %}
                                         <img src="{{ place.profile_picture.url }}" alt="{{ place.name }}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
                                     {% else %}
-                                        <div class="w-full h-full bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+                                        <div class="w-full h-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center">
+                                            <div class="text-center text-white">
+                                                <svg class="w-8 h-8 mx-auto opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                </svg>
+                                            </div>
+                                        </div>
                                     {% endif %}
                                 </div>
                                 
                                 <!-- Secondary Images -->
-                                {% if place.gallery_images.all %}
-                                    {% for image in place.gallery_images.all|slice:":2" %}
-                                    <div class="h-24 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg overflow-hidden shadow-md">
+                                {% if place.place_gallery_images.exists %}
+                                    {% for image in place.place_gallery_images.all|slice:":2" %}
+                                    <div class="h-16 sm:h-20 lg:h-24 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg overflow-hidden shadow-md">
                                         <img src="{{ image.image.url }}" alt="{{ image.caption|default:place.name }}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
                                     </div>
                                     {% endfor %}
                                 {% else %}
                                     <!-- Placeholder images if no gallery -->
-                                    <div class="h-24 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg overflow-hidden shadow-md">
-                                        <div class="w-full h-full bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+                                    <div class="h-16 sm:h-20 lg:h-24 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg overflow-hidden shadow-md flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
                                     </div>
-                                    <div class="h-24 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg overflow-hidden shadow-md">
-                                        <div class="w-full h-full bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+                                    <div class="h-16 sm:h-20 lg:h-24 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg overflow-hidden shadow-md flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
                                     </div>
                                 {% endif %}
                             </div>
                             
                             <!-- View More Images Button -->
-                            {% if place.gallery_images.all %}
-                            <div class="mt-4 text-center">
-                                <a href="#gallery" class="inline-flex items-center bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-300 shadow-md hover:shadow-lg">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            {% if place.place_gallery_images.exists %}
+                            <div class="mt-3 sm:mt-4 text-center">
+                                <a href="#gallery" class="inline-flex items-center bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition duration-300 shadow-md hover:shadow-lg">
+                                    <svg class="w-3 h-3 sm:w-4 sm:w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                     </svg>
-                                    View More
+                                    View More ({{ place.place_gallery_images.count }})
                                 </a>
                             </div>
                             {% endif %}
@@ -193,27 +218,7 @@
                 
 
                 
-                <!-- Gallery -->
-                {% if place.gallery_images.all %}
-                <div id="gallery" class="bg-white rounded-2xl p-8 shadow-lg">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-                        <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            </svg>
-                        </div>
-                        Photo Gallery
-                    </h2>
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {% for image in place.gallery_images.all %}
-                        <div class="relative h-32 bg-gray-200 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
-                            <img src="{{ image.image.url }}" alt="{{ image.caption|default:place.name }}" class="w-full h-full object-cover">
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
+
             </div>
             
             <!-- Sidebar -->
@@ -429,7 +434,11 @@
                                     </div>
                                     <div class="ml-3">
                                         <span class="bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 text-sm font-bold px-3 py-1 rounded-full">
-                                            {{ item.display_price }}
+                                            {% if item.price %}
+                                                Ksh {{ item.price }}
+                                            {% else %}
+                                                Price on request
+                                            {% endif %}
                                         </span>
                                     </div>
                                 </div>
@@ -553,7 +562,13 @@
                 {% if feature.price %}
                 <div class="text-center mb-4">
                     <div class="inline-block p-2 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-lg shadow-lg">
-                        <span class="text-lg font-bold text-gray-900">{{ feature.display_price }}</span>
+                        <span class="text-lg font-bold text-gray-900">
+                            {% if feature.price %}
+                                Ksh {{ feature.price }}
+                            {% else %}
+                                Price on request
+                            {% endif %}
+                        </span>
                     </div>
                 </div>
                 {% endif %}
@@ -584,26 +599,26 @@
 {% endif %}
 
 <!-- Gallery Section -->
-<div class="bg-gradient-to-br from-gray-50 to-blue-50 rounded-3xl p-8 border border-gray-100">
+<div class="bg-gradient-to-br from-gray-50 to-blue-50 rounded-3xl p-4 sm:p-6 lg:p-8 border border-gray-100">
     <div class="max-w-7xl mx-auto">
-        <div class="text-center mb-8">
-            <h2 class="text-3xl font-bold text-gray-800 mb-4">Photo Gallery</h2>
-            <p class="text-lg text-gray-600">Explore {{ place.name }} through beautiful imagery</p>
+        <div class="text-center mb-6 sm:mb-8">
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-3 sm:mb-4">Photo Gallery</h2>
+            <p class="text-base sm:text-lg text-gray-600">Explore {{ place.name }} through beautiful imagery</p>
         </div>
         
         <!-- Gallery Grid -->
         {% if place.place_gallery_images.exists %}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {% for image in place.place_gallery_images.all %}
-            <div class="group relative h-64 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
+            <div class="group relative h-48 sm:h-56 lg:h-64 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
                 <div class="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700" style="background-image: url('{{ image.image.url }}');"></div>
                 <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                <div class="absolute bottom-4 left-4 right-4">
-                    <h3 class="text-white font-semibold text-lg">{{ image.caption|default:"Gallery Image" }}</h3>
-                    <p class="text-gray-200 text-sm">{{ image.alt_text|default:"Beautiful imagery" }}</p>
+                <div class="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4">
+                    <h3 class="text-white font-semibold text-base sm:text-lg">{{ image.caption|default:"Gallery Image" }}</h3>
+                    <p class="text-gray-200 text-xs sm:text-sm">{{ image.alt_text|default:"Beautiful imagery" }}</p>
                 </div>
                 {% if image.is_featured %}
-                <div class="absolute top-3 right-3">
+                <div class="absolute top-2 sm:top-3 right-2 sm:right-3">
                     <div class="bg-amber-500 text-white text-xs px-2 py-1 rounded-full font-medium">
                         Featured
                     </div>
@@ -613,71 +628,29 @@
             {% endfor %}
         </div>
         {% else %}
-        <!-- Default Gallery Items when no images uploaded -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Gallery Item 1 -->
-            <div class="group relative h-64 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                <div class="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700" style="background-image: url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                <div class="absolute bottom-4 left-4 right-4">
-                    <h3 class="text-white font-semibold text-lg">Beautiful Scenery</h3>
-                    <p class="text-gray-200 text-sm">Breathtaking landscapes</p>
+        <!-- No Gallery Images -->
+        <div class="text-center py-12">
+            <div class="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
                 </div>
-            </div>
-            
-            <!-- Gallery Item 2 -->
-            <div class="group relative h-64 bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                <div class="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700" style="background-image: url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                <div class="absolute bottom-4 left-4 right-4">
-                    <h3 class="text-white font-semibold text-lg">Local Culture</h3>
-                    <p class="text-gray-200 text-sm">Rich heritage experiences</p>
-                </div>
-            </div>
-            
-            <!-- Gallery Item 3 -->
-            <div class="group relative h-64 bg-gradient-to-br from-purple-400 to-pink-500 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                <div class="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700" style="background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                <div class="absolute bottom-4 left-4 right-4">
-                    <h3 class="text-white font-semibold text-lg">Adventure</h3>
-                    <p class="text-gray-200 text-sm">Unforgettable moments</p>
-                </div>
-            </div>
-            
-            <!-- Gallery Item 4 -->
-            <div class="group relative h-64 bg-gradient-to-br from-orange-400 to-red-500 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                <div class="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700" style="background-image: url('https://images.unsplash.com/photo-1469474968028-56623f02e42e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                <div class="absolute bottom-4 left-4 right-4">
-                    <h3 class="text-white font-semibold text-lg">Nature</h3>
-                    <p class="text-gray-200 text-sm">Breathtaking landscapes</p>
-                </div>
-            </div>
-            
-            <!-- Gallery Item 5 -->
-            <div class="group relative h-64 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                <div class="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700" style="background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                <div class="absolute bottom-4 left-4 right-4">
-                    <h3 class="text-white font-semibold text-lg">Local Life</h3>
-                    <p class="text-gray-200 text-sm">Authentic experiences</p>
-                </div>
-            </div>
-            
-            <!-- Gallery Item 6 -->
-            <div class="group relative h-64 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105">
-                <div class="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700" style="background-image: url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                <div class="absolute bottom-4 left-4 right-4">
-                    <h3 class="text-white font-semibold text-lg">Memories</h3>
-                    <p class="text-gray-500 text-sm">Unforgettable moments</p>
-                </div>
-            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-3">No Gallery Images Yet</h3>
+            <p class="text-gray-600 mb-6">This place doesn't have any gallery images uploaded yet.</p>
+            {% if user.is_authenticated and place.created_by == user %}
+            <a href="{% url 'user_place_detail' place.pk %}" class="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-6 py-3 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl shadow-lg inline-flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Upload Images
+            </a>
+            {% endif %}
         </div>
         {% endif %}
         
         <!-- Gallery Actions -->
+        {% if place.place_gallery_images.exists %}
         <div class="text-center mt-8">
             {% if user.is_authenticated and place.created_by == user %}
             <a href="{% url 'user_place_detail' place.pk %}" class="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-8 py-3 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl shadow-lg inline-flex items-center gap-2">
@@ -692,6 +665,7 @@
             </button>
             {% endif %}
         </div>
+        {% endif %}
     </div>
 </div>
 
@@ -955,7 +929,6 @@
                                 type="button" 
                                 id="send-button"
                                 class="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                onclick="sendChatMessage()"
                             >
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
@@ -1013,9 +986,11 @@
 {% block extra_js %}
 <script>
   const toggle = document.getElementById('theme-toggle');
+  if (toggle) {
   toggle.addEventListener('click', () => {
     document.documentElement.classList.toggle('dark');
   });
+  }
   
   // Rating functionality
   function markHelpful(ratingType, ratingId) {
@@ -1067,11 +1042,20 @@
 
   function askQuestion(question) {
       document.getElementById('chat-input').value = question;
-      document.getElementById('chat-form').dispatchEvent(new Event('submit'));
+      // Trigger the send button click to send the message
+      const sendButton = document.getElementById('send-button');
+      if (sendButton) {
+          sendButton.click();
+      }
   }
 
   function addMessage(content, isUser = false, isLoading = false) {
       const chatMessages = document.getElementById('chat-messages');
+      if (!chatMessages) {
+          console.error('Chat messages container not found');
+          return;
+      }
+      
       const messageDiv = document.createElement('div');
       messageDiv.className = 'flex items-start gap-3';
       
@@ -1108,6 +1092,11 @@
 
   function updateChatStatus(message, type = 'info') {
       const statusDiv = document.getElementById('chat-status');
+      if (!statusDiv) {
+          console.error('Chat status container not found');
+          return;
+      }
+      
       const colors = {
           info: 'text-gray-500',
           success: 'text-emerald-600',
@@ -1119,34 +1108,45 @@
 
   // Chat form submission
   document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM Content Loaded - Setting up chat functionality');
+      
       const chatForm = document.getElementById('chat-form');
       const chatInput = document.getElementById('chat-input');
       const sendButton = document.getElementById('send-button');
       
-      // Handle Enter key press
-      chatInput.addEventListener('keypress', function(e) {
-          if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              sendChatMessage();
-          }
+      // Debug logging
+      console.log('Chat elements found:', {
+          chatForm: !!chatForm,
+          chatInput: !!chatInput,
+          sendButton: !!sendButton
       });
       
-      // Auto-resize input
-      chatInput.addEventListener('input', function() {
-          this.style.height = 'auto';
-          this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-      });
-  });
+      if (!chatForm || !chatInput || !sendButton) {
+          console.error('Some chat elements not found!');
+          return;
+      }
 
   // Function to send chat message
   async function sendChatMessage() {
-      if (isProcessing) return;
-      
-      const chatInput = document.getElementById('chat-input');
-      const sendButton = document.getElementById('send-button');
+          console.log('sendChatMessage called');
+          if (isProcessing) {
+              console.log('Already processing, returning');
+              return;
+          }
+          
       const question = chatInput.value.trim();
-      
-      if (!question) return;
+          console.log('Question:', question);
+          
+          if (!question) {
+              console.log('No question, returning');
+              return;
+          }
+          
+          // Validate elements still exist
+          if (!chatInput || !sendButton) {
+              console.error('Chat elements no longer exist');
+              return;
+          }
       
       // Add user message
       addMessage(question, true);
@@ -1164,28 +1164,39 @@
       updateChatStatus('🤖 AI is thinking...', 'info');
       
       try {
+              console.log('Sending request to backend...');
+              
+              // Get CSRF token
+              const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+              if (!csrfToken) {
+                  throw new Error('CSRF token not found');
+              }
+              
           // Send question to backend
           const response = await fetch(`/listings/place/{{ place.pk }}/chat/`, {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json',
-                  'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                      'X-CSRFToken': csrfToken.value,
               },
               body: JSON.stringify({
                   question: question,
                   place_id: {{ place.pk }}
               })
           });
+              
+              console.log('Response received:', response);
           
           if (!response.ok) {
-              throw new Error('Network response was not ok');
+                  throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
           }
           
           const data = await response.json();
+              console.log('Response data:', data);
           
           // Remove loading message
           const loadingMessage = document.querySelector('.animate-pulse');
-          if (loadingMessage) {
+              if (loadingMessage && loadingMessage.closest('.flex')) {
               loadingMessage.closest('.flex').remove();
           }
           
@@ -1203,12 +1214,19 @@
           
           // Remove loading message
           const loadingMessage = document.querySelector('.animate-pulse');
-          if (loadingMessage) {
+              if (loadingMessage && loadingMessage.closest('.flex')) {
               loadingMessage.closest('.flex').remove();
           }
           
           // Add error message
-          addMessage('Sorry, I\'m having trouble connecting right now. Please try again later.', false);
+              let errorMessage = 'Sorry, I\'m having trouble connecting right now. Please try again later.';
+              if (error.message.includes('CSRF token not found')) {
+                  errorMessage = 'Security token not found. Please refresh the page and try again.';
+              } else if (error.message.includes('Network response was not ok')) {
+                  errorMessage = 'Server error occurred. Please try again later.';
+              }
+              
+              addMessage(errorMessage, false);
           updateChatStatus('❌ Connection error. Please try again.', 'error');
       } finally {
           // Re-enable form
@@ -1218,5 +1236,31 @@
           chatInput.focus();
       }
   }
+      
+      // Handle Enter key press
+      chatInput.addEventListener('keypress', function(e) {
+          console.log('Key pressed:', e.key);
+          if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              console.log('Enter pressed, calling sendChatMessage');
+              sendChatMessage();
+          }
+      });
+      
+      // Handle send button click
+      sendButton.addEventListener('click', function(e) {
+          console.log('Send button clicked');
+          e.preventDefault();
+          sendChatMessage();
+      });
+      
+      // Auto-resize input
+      chatInput.addEventListener('input', function() {
+          this.style.height = 'auto';
+          this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+      });
+      
+      console.log('Chat functionality setup complete');
+  });
 </script>
 {% endblock %} 

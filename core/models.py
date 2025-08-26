@@ -1149,3 +1149,122 @@ class DateBuilderSuggestion(models.Model):
         
         return total_cost
 
+
+# Chat Models for Analytics
+
+class ChatQuestion(models.Model):
+    """Model to store user questions in place/agency chats"""
+    CHAT_TYPE_CHOICES = [
+        ('place', 'Place Chat'),
+        ('agency', 'Agency Chat'),
+    ]
+    
+    # Chat identification
+    chat_type = models.CharField(max_length=10, choices=CHAT_TYPE_CHOICES)
+    place = models.ForeignKey('listings.Place', on_delete=models.CASCADE, null=True, blank=True, related_name='chat_questions')
+    agency = models.ForeignKey('listings.Agency', on_delete=models.CASCADE, null=True, blank=True, related_name='chat_questions')
+    
+    # User information (can be anonymous)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='chat_questions')
+    session_id = models.CharField(max_length=100, blank=True, help_text="Session ID for anonymous users")
+    ip_address = models.GenericIPAddressField(blank=True, null=True, help_text="IP address for analytics")
+    user_agent = models.TextField(blank=True, help_text="User agent string for analytics")
+    
+    # Question content
+    question = models.TextField()
+    question_tokens = models.PositiveIntegerField(default=0, help_text="Number of tokens in the question")
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_anonymous = models.BooleanField(default=False, help_text="Whether the user was anonymous")
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['chat_type', 'created_at']),
+            models.Index(fields=['place', 'created_at']),
+            models.Index(fields=['agency', 'created_at']),
+            models.Index(fields=['user', 'created_at']),
+            models.Index(fields=['session_id', 'created_at']),
+        ]
+        verbose_name = 'Chat Question'
+        verbose_name_plural = 'Chat Questions'
+    
+    def __str__(self):
+        if self.place:
+            return f"Place Chat: {self.place.name} - {self.question[:50]}..."
+        elif self.agency:
+            return f"Agency Chat: {self.agency.name} - {self.question[:50]}..."
+        else:
+            return f"Chat: {self.question[:50]}..."
+    
+    def save(self, *args, **kwargs):
+        # Set anonymous flag if no user
+        if not self.user:
+            self.is_anonymous = True
+        super().save(*args, **kwargs)
+
+
+class ChatResponse(models.Model):
+    """Model to store AI responses to chat questions"""
+    # Link to the question
+    question = models.OneToOneField(ChatQuestion, on_delete=models.CASCADE, related_name='response')
+    
+    # Response content
+    response = models.TextField()
+    response_tokens = models.PositiveIntegerField(default=0, help_text="Number of tokens in the response")
+    
+    # AI model information
+    ai_model = models.CharField(max_length=50, default='gpt-3.5-turbo', help_text="AI model used for response")
+    model_version = models.CharField(max_length=20, blank=True, help_text="Specific model version")
+    
+    # Performance metrics
+    response_time_ms = models.PositiveIntegerField(default=0, help_text="Response time in milliseconds")
+    total_tokens = models.PositiveIntegerField(default=0, help_text="Total tokens used (question + response)")
+    
+    # Cost tracking
+    cost_usd = models.DecimalField(max_digits=10, decimal_places=6, default=0, help_text="Cost in USD for this response")
+    
+    # Quality metrics
+    confidence_score = models.DecimalField(max_digits=3, decimal_places=2, blank=True, null=True, help_text="AI confidence score (0-1)")
+    user_feedback = models.CharField(max_length=20, blank=True, choices=[
+        ('positive', 'Positive'),
+        ('negative', 'Negative'),
+        ('neutral', 'Neutral'),
+        ('not_rated', 'Not Rated'),
+    ], default='not_rated')
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['ai_model', 'created_at']),
+            models.Index(fields=['user_feedback', 'created_at']),
+            models.Index(fields=['response_time_ms', 'created_at']),
+        ]
+        verbose_name = 'Chat Response'
+        verbose_name_plural = 'Chat Responses'
+    
+    def __str__(self):
+        return f"Response to: {self.question.question[:50]}..."
+    
+    def get_total_cost_kes(self):
+        """Get cost in Kenyan Shillings (approximate conversion)"""
+        # Rough conversion rate (you can make this dynamic)
+        return self.cost_usd * 150  # 1 USD ≈ 150 KES
+    
+    def get_chat_type(self):
+        """Get the chat type from the linked question"""
+        return self.question.chat_type
+    
+    def get_place_or_agency(self):
+        """Get the place or agency from the linked question"""
+        if self.question.place:
+            return self.question.place
+        elif self.question.agency:
+            return self.question.agency
+        return None
+

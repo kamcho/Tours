@@ -2,53 +2,84 @@
 {% block content %}
 
 <!-- Hero Section -->
-<div class="relative bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 py-20">
+<div class="relative bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 py-24">
     <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20" style="background-image: url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
     <div class="relative z-10 max-w-7xl mx-auto px-4">
         <div class="text-center">
-            <div class="flex items-center justify-center gap-4 mb-6">
-                <h1 class="text-5xl lg:text-6xl font-bold text-white">{{ agency.name }}</h1>
+            <!-- Agency Type Badge -->
+            <div class="inline-flex items-center bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-full text-lg font-semibold mb-8">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                {{ agency.get_agency_type_display }}
+            </div>
+            
+            <!-- Agency Name and Verification -->
+            <div class="flex items-center justify-center gap-4 mb-8">
+                <h1 class="text-6xl lg:text-7xl font-bold text-white leading-tight">{{ agency.name }}</h1>
                 {% if agency.verified %}
-                <div class="flex items-center gap-1">
-                    <svg class="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                <div class="flex items-center gap-2 bg-blue-500/20 backdrop-blur-sm px-4 py-2 rounded-full">
+                    <svg class="w-6 h-6 text-blue-300" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745a3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745a3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745a3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                     </svg>
-                    <span class="text-lg text-blue-200 font-medium">Verified</span>
+                    <span class="text-lg text-blue-200 font-semibold">Verified</span>
                 </div>
                 {% endif %}
             </div>
-            <p class="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">{{ agency.description|truncatewords:30 }}</p>
             
-            <!-- Agency Badges -->
-            <div class="flex flex-wrap justify-center gap-4 mb-8">
-                <span class="bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-semibold">
-                    {{ agency.get_agency_type_display }}
-                </span>
-                <span class="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold">
-                    {{ agency.get_status_display }}
-                </span>
+            <!-- Agency Description -->
+            <p class="text-2xl text-gray-200 mb-12 max-w-4xl mx-auto leading-relaxed">{{ agency.description|truncatewords:40 }}</p>
+            
+            <!-- Agency Stats -->
+            <div class="flex flex-wrap justify-center gap-6 mb-12">
+                <div class="bg-white/10 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-center">
+                    <div class="text-3xl font-bold text-white mb-1">{{ agency.services.count|default:"0" }}</div>
+                    <div class="text-sm text-gray-200">Services</div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-center">
+                    <div class="text-3xl font-bold text-white mb-1">{{ agency.get_status_display }}</div>
+                    <div class="text-sm text-gray-200">Status</div>
+                </div>
                 {% if agency.year_established %}
-                <span class="bg-purple-500 text-white px-4 py-2 rounded-full text-sm font-semibold">
-                    Est. {{ agency.year_established }}
-                </span>
+                <div class="bg-white/10 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-center">
+                    <div class="text-3xl font-bold text-white mb-1">{{ agency.year_established }}</div>
+                    <div class="text-sm text-gray-200">Established</div>
+                </div>
+                {% endif %}
+                {% if agency.average_rating %}
+                <div class="bg-white/10 backdrop-blur-sm text-white px-6 py-3 rounded-2xl text-center">
+                    <div class="text-3xl font-bold text-white mb-1">{{ agency.average_rating }}/5</div>
+                    <div class="text-sm text-gray-200">Rating</div>
+                </div>
                 {% endif %}
             </div>
             
-            <!-- Primary Action Button Only -->
-            <div class="flex justify-center mb-8">
+            <!-- Location Info -->
+            <div class="bg-white/10 backdrop-blur-sm text-white px-8 py-4 rounded-2xl inline-block mb-12">
+                <div class="flex items-center gap-3">
+                    <svg class="w-6 h-6 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="text-lg font-semibold">{{ agency.city }}, {{ agency.country }}</span>
+                </div>
+            </div>
+            
+            <!-- Primary Action Button -->
+            <div class="flex justify-center">
                 {% if user.is_authenticated and user == agency.owner %}
-                    <a href="{% url 'agency_update' agency.pk %}" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-12 py-4 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
-                        <div class="flex items-center justify-center gap-3">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <a href="{% url 'agency_update' agency.pk %}" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-16 py-5 rounded-3xl font-bold text-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
+                        <div class="flex items-center justify-center gap-4">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                             </svg>
                             Manage My Agency
                         </div>
                     </a>
                 {% else %}
-                    <a href="{% url 'agency_list' %}" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-12 py-4 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
-                        <div class="flex items-center justify-center gap-3">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <a href="{% url 'agency_list' %}" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-16 py-5 rounded-3xl font-bold text-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
+                        <div class="flex items-center justify-center gap-4">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                             </svg>
                             Explore More Agencies
@@ -59,65 +90,6 @@
         </div>
     </div>
 </div>
-
-<!-- Secondary Actions Section -->
-<div class="bg-gradient-to-r from-gray-50 to-blue-50 py-12">
-    <div class="max-w-7xl mx-auto px-4">
-        <div class="flex flex-wrap justify-center gap-6">
-            <!-- Home Button -->
-            <a href="{% url 'home' %}" class="group flex items-center gap-3 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
-                <svg class="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                    </svg>
-                    Home
-                </a>
-            
-            <!-- All Agencies Button -->
-            <a href="{% url 'agency_list' %}" class="group flex items-center gap-3 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
-                <svg class="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                    </svg>
-                    All Agencies
-                </a>
-            
-            <!-- My Agencies Button - Only for authenticated users -->
-                {% if user.is_authenticated %}
-            <a href="{% url 'user_agency_list' %}" class="group flex items-center gap-3 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
-                <svg class="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                        </svg>
-                        My Agencies
-                    </a>
-            
-            <!-- Register Agency Button -->
-            <a href="{% url 'agency_create' %}" class="group flex items-center gap-3 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
-                <svg class="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                        </svg>
-                        Register Agency
-                    </a>
-            
-            <!-- Add Service Button - Only for agency owner -->
-            {% if user == agency.owner %}
-            <a href="{% url 'agency_service_create' agency.pk %}" class="group flex items-center gap-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
-                <svg class="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
-                            Add Service
-                        </a>
-                    {% endif %}
-            {% else %}
-            <!-- For non-authenticated users, show login prompt -->
-            <div class="text-center py-4">
-                <p class="text-gray-600 mb-4">Sign in to access agency features</p>
-                <a href="{% url 'login' %}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300">
-                    Sign In
-                </a>
-            </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
 
 <!-- Business Information Section - Owner Only -->
 {% if user.is_authenticated and user == agency.owner %}
@@ -1173,7 +1145,11 @@ let isProcessing = false;
 
 function askQuestion(question) {
     document.getElementById('chat-input').value = question;
-    document.getElementById('chat-form').dispatchEvent(new Event('submit'));
+    // Trigger the send button click to send the message
+    const sendButton = document.getElementById('send-button');
+    if (sendButton) {
+        sendButton.click();
+    }
 }
 
 function addMessage(content, isUser = false, isLoading = false) {
@@ -1253,6 +1229,7 @@ document.addEventListener('DOMContentLoaded', function() {
         updateChatStatus('🤖 AI is thinking...', 'info');
         
         try {
+            console.log('Sending request to backend...');
             // Send question to backend
             const response = await fetch(`/listings/agency/{{ agency.pk }}/chat/`, {
                 method: 'POST',
@@ -1271,10 +1248,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             const data = await response.json();
+            console.log('Response data:', data);
             
             // Remove loading message
             const loadingMessage = document.querySelector('.animate-pulse');
-            if (loadingMessage) {
+            if (loadingMessage && loadingMessage.closest('.flex')) {
                 loadingMessage.closest('.flex').remove();
             }
             
@@ -1292,7 +1270,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Remove loading message
             const loadingMessage = document.querySelector('.animate-pulse');
-            if (loadingMessage) {
+            if (loadingMessage && loadingMessage.closest('.flex')) {
                 loadingMessage.closest('.flex').remove();
             }
             

@@ -3,7 +3,11 @@
 
 <!-- Hero Section -->
 <div class="relative bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-900 py-20">
-    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20" style="background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+    {% if places and places.0.profile_picture %}
+        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20" style="background-image: url('{{ places.0.profile_picture.url }}');"></div>
+    {% else %}
+        <div class="absolute inset-0 bg-gradient-to-br from-emerald-800 via-teal-700 to-cyan-800 opacity-30"></div>
+    {% endif %}
     <div class="relative z-10 max-w-7xl mx-auto px-4">
         <div class="text-center">
             <h1 class="text-5xl lg:text-6xl font-bold text-white mb-6">My Places</h1>
@@ -48,7 +52,15 @@
                             {% if place.profile_picture %}
                                 <img src="{{ place.profile_picture.url }}" alt="{{ place.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                             {% else %}
-                                <div class="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-500" style="background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+                                <div class="absolute inset-0 bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                                    <div class="text-center text-white">
+                                        <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                        <p class="text-sm font-medium">No Image</p>
+                                    </div>
+                                </div>
                             {% endif %}
                             <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                             

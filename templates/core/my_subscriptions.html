@@ -4,83 +4,316 @@
 {% block title %}My Subscriptions - TravelsKe{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50 py-12">
-    <div class="container mx-auto px-4">
-        <!-- Header -->
-        <div class="text-center mb-12">
-            <h1 class="text-4xl font-bold text-gray-800 mb-4">My Subscriptions</h1>
-            <p class="text-xl text-gray-600">Manage your active subscriptions and services</p>
+<!-- Hero Section -->
+<div class="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white py-16">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+        <h1 class="text-4xl md:text-6xl font-bold mb-6">My Subscriptions</h1>
+        <p class="text-xl md:text-2xl mb-8 opacity-90">Manage your premium services and unlock exclusive features</p>
+        
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+                <div class="text-3xl font-bold mb-2">{{ subscriptions|length }}</div>
+                <div class="text-blue-100">Total Subscriptions</div>
+            </div>
+            <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+                <div class="text-3xl font-bold mb-2">{{ subscriptions|length }}</div>
+                <div class="text-blue-100">Active Services</div>
+            </div>
+            <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+                <div class="text-3xl font-bold mb-2">KES {{ total_monthly_cost|default:"0" }}</div>
+                <div class="text-blue-100">Monthly Cost</div>
+            </div>
         </div>
+    </div>
+</div>
 
-        {% if subscriptions %}
-            <!-- Active Subscriptions -->
-            <div class="max-w-6xl mx-auto">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {% for subscription in subscriptions %}
-                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-                        <!-- Subscription Header -->
-                        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h3 class="text-xl font-bold">{{ subscription.get_subscription_type_display }}</h3>
-                                    <p class="text-blue-100">Active Subscription</p>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-2xl font-bold">KES {{ subscription.amount }}</div>
-                                    <div class="text-blue-100 text-sm">Monthly</div>
-                                </div>
-                            </div>
+<!-- Main Content -->
+<div class="max-w-7xl mx-auto px-4 py-12">
+    {% if subscriptions %}
+        <!-- Subscription Management -->
+        <div class="mb-12">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Your Subscriptions</h2>
+                    <p class="text-gray-600">Manage and monitor your active premium services</p>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="flex space-x-3 mt-4 md:mt-0">
+                    <a href="{% url 'core:subscription_page' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition duration-300 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        Add Service
+                    </a>
+                    <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold transition duration-300 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        View Analytics
+                    </button>
+                </div>
+            </div>
+
+            <!-- Subscriptions Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                {% for subscription in subscriptions %}
+                <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition duration-300 overflow-hidden border border-gray-100">
+                    <!-- Subscription Header -->
+                    <div class="relative">
+                        <!-- Background with gradient based on type -->
+                        <div class="h-32 {% if subscription.subscription_type == 'verification' %}bg-gradient-to-r from-green-500 to-emerald-600
+                                      {% elif subscription.subscription_type == 'ai_chat' %}bg-gradient-to-r from-purple-500 to-pink-600
+                                      {% elif subscription.subscription_type == 'ai_insights' %}bg-gradient-to-r from-blue-500 to-cyan-600
+                                      {% elif subscription.subscription_type == 'date_builder' %}bg-gradient-to-r from-orange-500 to-red-600
+                                      {% elif subscription.subscription_type == 'whatsapp_api' %}bg-gradient-to-r from-green-600 to-teal-600
+                                      {% elif subscription.subscription_type == 'feature_ads' %}bg-gradient-to-r from-yellow-500 to-orange-600
+                                      {% elif subscription.subscription_type == 'premium' %}bg-gradient-to-r from-indigo-600 to-purple-700
+                                      {% else %}bg-gradient-to-r from-gray-600 to-gray-700{% endif %}">
                         </div>
-
-                        <!-- Subscription Details -->
-                        <div class="p-6">
-                            <div class="space-y-4 mb-6">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Status:</span>
-                                    <span class="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                        {{ subscription.get_status_display }}
-                                    </span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Start Date:</span>
-                                    <span class="font-medium">{{ subscription.start_date|date:"M d, Y" }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">End Date:</span>
-                                    <span class="font-medium">{{ subscription.end_date|date:"M d, Y" }}</span>
-                                </div>
-                            </div>
-
-                            <!-- Actions -->
-                            <div class="flex space-x-3">
-                                <a href="#" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg text-center font-medium hover:bg-blue-700 transition-colors">
-                                    Manage
-                                </a>
-                                <a href="{% url 'cancel_subscription' subscription.id %}" 
-                                   class="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg text-center font-medium hover:bg-red-700 transition-colors">
-                                    Cancel
-                                </a>
-                            </div>
+                        
+                        <!-- Status Badge -->
+                        <div class="absolute top-4 right-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold 
+                                {% if subscription.status == 'active' %}bg-green-100 text-green-800
+                                {% elif subscription.status == 'expired' %}bg-red-100 text-red-800
+                                {% elif subscription.status == 'cancelled' %}bg-gray-100 text-gray-800
+                                {% elif subscription.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ subscription.get_status_display }}
+                            </span>
+                        </div>
+                        
+                        <!-- Subscription Info Overlay -->
+                        <div class="absolute bottom-4 left-4 text-white">
+                            <h3 class="text-xl font-bold mb-1">{{ subscription.get_subscription_type_display }}</h3>
+                            <p class="text-sm opacity-90">
+                                {% if subscription.subscription_type == 'verification' %}Verified Account
+                                {% elif subscription.subscription_type == 'ai_chat' %}AI Chat Assistant
+                                {% elif subscription.subscription_type == 'ai_insights' %}AI Analytics
+                                {% elif subscription.subscription_type == 'date_builder' %}Date Planning
+                                {% elif subscription.subscription_type == 'whatsapp_api' %}WhatsApp Integration
+                                {% elif subscription.subscription_type == 'feature_ads' %}Featured Listings
+                                {% elif subscription.subscription_type == 'premium' %}Premium Package
+                                {% else %}Custom Service{% endif %}
+                            </p>
                         </div>
                     </div>
-                    {% endfor %}
+
+                    <!-- Subscription Details -->
+                    <div class="p-6">
+                        <!-- Price and Duration -->
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <div class="text-3xl font-bold text-gray-900">KES {{ subscription.amount }}</div>
+                                <div class="text-sm text-gray-500">Monthly</div>
+                            </div>
+                            <div class="text-right">
+                                {% if subscription.days_remaining > 0 %}
+                                    <div class="text-2xl font-bold text-green-600">{{ subscription.days_remaining }}</div>
+                                    <div class="text-sm text-gray-500">Days Left</div>
+                                {% else %}
+                                    <div class="text-2xl font-bold text-red-600">Expired</div>
+                                    <div class="text-sm text-gray-500">Renewal Required</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Service Features -->
+                        <div class="mb-6">
+                            <h4 class="font-semibold text-gray-900 mb-3">Included Features:</h4>
+                            <div class="space-y-2">
+                                {% if subscription.is_verified %}
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        Verified Account Badge
+                                    </div>
+                                {% endif %}
+                                {% if subscription.ai_chat_enabled %}
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        AI Chat Assistant
+                                    </div>
+                                {% endif %}
+                                {% if subscription.ai_insights_enabled %}
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        AI Insights & Analytics
+                                    </div>
+                                {% endif %}
+                                {% if subscription.date_builder_enabled %}
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        Date Builder Tool
+                                    </div>
+                                {% endif %}
+                                {% if subscription.whatsapp_api_enabled %}
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        WhatsApp API Access
+                                    </div>
+                                {% endif %}
+                                {% if subscription.feature_ads_enabled %}
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        Featured Listings
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Dates -->
+                        <div class="space-y-2 mb-6 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Started:</span>
+                                <span class="font-medium">{{ subscription.start_date|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Expires:</span>
+                                <span class="font-medium">{{ subscription.end_date|date:"M d, Y" }}</span>
+                            </div>
+                            {% if subscription.payment_method %}
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Payment:</span>
+                                <span class="font-medium">{{ subscription.payment_method|title }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex space-x-3">
+                            {% if subscription.status == 'active' %}
+                                <a href="#" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg text-center font-medium transition duration-300">
+                                    Manage
+                                </a>
+                                <a href="{% url 'core:cancel_subscription' subscription.id %}" 
+                                   class="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-lg text-center font-medium transition duration-300">
+                                    Cancel
+                                </a>
+                            {% elif subscription.status == 'expired' %}
+                                <a href="{% url 'core:subscription_page' %}" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg text-center font-medium transition duration-300">
+                                    Renew
+                                </a>
+                            {% elif subscription.status == 'cancelled' %}
+                                <a href="{% url 'core:subscription_page' %}" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg text-center font-medium transition duration-300">
+                                    Reactivate
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
+                {% endfor %}
             </div>
-        {% else %}
-            <!-- No Subscriptions -->
-            <div class="max-w-2xl mx-auto text-center">
-                <div class="bg-white rounded-2xl shadow-lg p-12">
-                    <h3 class="text-2xl font-bold text-gray-800 mb-4">No Active Subscriptions</h3>
-                    <p class="text-gray-600 mb-8">
-                        You don't have any active subscriptions yet. Explore our premium services.
-                    </p>
+        </div>
+
+        <!-- Subscription History -->
+        <div class="bg-white rounded-2xl shadow-lg p-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-6">Subscription History</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Service</th>
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Amount</th>
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Start Date</th>
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">End Date</th>
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for subscription in subscriptions %}
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="py-4 px-4">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold mr-3">
+                                        {{ subscription.subscription_type|first|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900">{{ subscription.get_subscription_type_display }}</div>
+                                        <div class="text-sm text-gray-500">{{ subscription.get_subscription_type_display }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-4 px-4">
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold 
+                                    {% if subscription.status == 'active' %}bg-green-100 text-green-800
+                                    {% elif subscription.status == 'expired' %}bg-red-100 text-red-800
+                                    {% elif subscription.status == 'cancelled' %}bg-gray-100 text-gray-800
+                                    {% elif subscription.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ subscription.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="py-4 px-4 font-medium text-gray-900">KES {{ subscription.amount }}</td>
+                            <td class="py-4 px-4 text-gray-600">{{ subscription.start_date|date:"M d, Y" }}</td>
+                            <td class="py-4 px-4 text-gray-600">{{ subscription.end_date|date:"M d, Y" }}</td>
+                            <td class="py-4 px-4">
+                                <div class="flex space-x-2">
+                                    <a href="#" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View</a>
+                                    {% if subscription.status == 'active' %}
+                                        <a href="{% url 'core:cancel_subscription' subscription.id %}" class="text-red-600 hover:text-red-800 text-sm font-medium">Cancel</a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    {% else %}
+        <!-- No Subscriptions -->
+        <div class="max-w-2xl mx-auto text-center py-16">
+            <div class="bg-white rounded-2xl shadow-lg p-12">
+                <div class="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">No Active Subscriptions</h3>
+                <p class="text-gray-600 mb-8">
+                    You don't have any active subscriptions yet. Explore our premium services to unlock exclusive features and enhance your experience.
+                </p>
+                <div class="space-y-4">
                     <a href="{% url 'core:subscription_page' %}" 
-                       class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-300">
-                        View Subscription Plans
+                       class="block w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl">
+                        Explore Subscription Plans
                     </a>
+                    <p class="text-sm text-gray-500">Unlock AI features, verification badges, and premium services</p>
                 </div>
             </div>
-        {% endif %}
+        </div>
+    {% endif %}
+
+    <!-- Help Section -->
+    <div class="mt-16 bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl p-8">
+        <div class="text-center">
+            <h3 class="text-2xl font-bold text-gray-900 mb-4">Need Help with Subscriptions?</h3>
+            <p class="text-gray-600 mb-6">Our support team is here to help you get the most out of your premium services</p>
+            <div class="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4">
+                <a href="#" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition duration-300">
+                    Contact Support
+                </a>
+                <a href="#" class="bg-white hover:bg-gray-50 text-blue-600 px-6 py-3 rounded-lg font-semibold transition duration-300 border-2 border-blue-600">
+                    View FAQ
+                </a>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %} 

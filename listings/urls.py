@@ -66,6 +66,8 @@ urlpatterns = [
     path('event/<int:pk>/public/', views.PublicEventDetailView.as_view(), name='public_event_detail'),
     path('event/<int:pk>/book-payment/', views.EventBookingWithPaymentView.as_view(), name='event_booking_payment'),
     path('event/<int:pk>/book-simple/', views.SimpleEventBookingView.as_view(), name='simple_event_booking'),
+    path('event/receipt/<str:transaction_id>/', views.EventReceiptView.as_view(), name='event_receipt'),
+    path('event/payment-status/<str:transaction_id>/', views.EventPaymentStatusView.as_view(), name='event_payment_status'),
     
     # Feature URLs
     path('place/<int:place_id>/feature/create/', views.FeatureCreateView.as_view(), name='feature_create'),
@@ -174,6 +176,7 @@ urlpatterns = [
     # Order Management URLs
     path('place/<int:place_id>/orders/', views.place_orders_dashboard, name='place_orders_dashboard'),
     path('place/<int:place_id>/orders/create/', views.create_place_order, name='create_place_order'),
-    path('place/orders/<int:order_id>/edit/', views.edit_place_order, name='edit_place_order'),
-    path('place/orders/<int:order_id>/delete/', views.delete_place_order, name='delete_place_order'),
+    path('place/<int:place_id>/order/<int:order_id>/edit/', views.edit_place_order, name='edit_place_order'),
+    path('place/<int:place_id>/order/<int:order_id>/delete/', views.delete_place_order, name='delete_place_order'),
+    path('place/<int:place_id>/order/<int:order_id>/add-items/', views.add_items_to_order, name='add_items_to_order'),
 ] 

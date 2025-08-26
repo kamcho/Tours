@@ -166,7 +166,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
                         </svg>
                     </div>
-                    <span class="text-2xl font-bold text-green-600">${{ event.price_per_person }}</span>
+                    <span class="text-2xl font-bold text-green-600">Ksh {{ event.price_per_person }}</span>
                 </div>
                 <h3 class="text-lg font-semibold text-gray-800 mb-2">Price per Person</h3>
                 <p class="text-gray-600 text-sm">Base pricing for this event</p>
@@ -344,7 +344,7 @@
                 {% if event.price_per_person %}
                 <div class="absolute top-6 right-6">
                     <span class="bg-white/95 backdrop-blur-sm text-gray-800 px-6 py-3 rounded-full text-sm font-bold shadow-lg">
-                        ${{ event.price_per_person }}
+                        Ksh {{ event.price_per_person }}
                     </span>
                 </div>
                 {% endif %}
@@ -386,7 +386,7 @@
                     
                     {% if event.price_per_person %}
                     <div class="text-center p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl border border-yellow-100">
-                        <div class="text-2xl font-bold text-yellow-600 mb-1">${{ event.price_per_person }}</div>
+                        <div class="text-2xl font-bold text-yellow-600 mb-1">Ksh {{ event.price_per_person }}</div>
                         <div class="text-sm text-gray-600 font-medium">Price per Person</div>
                     </div>
                     {% endif %}

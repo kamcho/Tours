@@ -571,6 +571,29 @@ class GroupTours(models.Model):
     @property
     def is_full(self):
         return self.current_participants >= self.max_participants
+    
+    @property
+    def duration_days(self):
+        """Calculate actual duration in days between start and end dates"""
+        if self.start_date and self.end_date:
+            return (self.end_date - self.start_date).days + 1
+        return 0
+    
+    @property
+    def actual_current_participants(self):
+        """Calculate current participants from confirmed bookings"""
+        confirmed_bookings = self.bookings.filter(status='confirmed')
+        return sum(booking.participants for booking in confirmed_bookings)
+    
+    @property
+    def actual_available_spots(self):
+        """Calculate available spots based on actual confirmed bookings"""
+        return self.max_participants - self.actual_current_participants
+    
+    @property
+    def is_actually_full(self):
+        """Check if tour is actually full based on confirmed bookings"""
+        return self.actual_current_participants >= self.max_participants
 
     # Add new fields for enhanced functionality
     likes = models.ManyToManyField(MyUser, related_name='liked_tours', blank=True)

@@ -94,7 +94,7 @@
                                 <p class="text-gray-600 text-sm mb-2">{{ tour.description|truncatewords:20 }}</p>
                                 <div class="flex items-center justify-between text-sm text-gray-500 mb-3">
                                     <span>{{ tour.start_date|date:"M d" }} - {{ tour.end_date|date:"M d, Y" }}</span>
-                                    <span class="text-teal-600 font-semibold">${{ tour.price_per_person }}</span>
+                                    <span class="text-teal-600 font-semibold">Ksh {{ tour.price_per_person }}</span>
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center">
@@ -184,7 +184,7 @@
                                 <p class="text-gray-600 text-sm mb-2">{{ event.description|truncatewords:20 }}</p>
                                 <div class="flex items-center justify-between text-sm text-gray-500 mb-3">
                                     <span>{{ event.start_date|date:"M d" }} - {{ event.end_date|date:"M d, Y" }}</span>
-                                    <span class="text-teal-600 font-semibold">${{ event.price_per_person }}</span>
+                                    <span class="text-teal-600 font-semibold">Ksh {{ event.price_per_person }}</span>
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center">

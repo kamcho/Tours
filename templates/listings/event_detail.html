@@ -16,7 +16,7 @@
                     {{ event.get_event_type_display }}
                 </span>
                 <span class="bg-emerald-500 text-white px-4 py-2 rounded-full text-sm font-semibold">
-                    ${{ event.price_per_person }} per person
+                    Ksh {{ event.price_per_person }} per person
                 </span>
                 <span class="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-semibold">
                     {{ event.current_participants }}/{{ event.max_participants }} participants
@@ -78,7 +78,7 @@
                     <!-- Price Badge -->
                     <div class="absolute top-6 right-6">
                         <span class="bg-emerald-600 text-white px-4 py-2 rounded-full text-lg font-bold">
-                            ${{ event.price_per_person }}
+                            Ksh {{ event.price_per_person }}
                         </span>
                     </div>
                     
@@ -180,7 +180,7 @@
                             </div>
                             <div>
                                 <p class="text-sm text-gray-500">Price per Person</p>
-                                <p class="font-semibold text-gray-900 text-2xl text-emerald-600">${{ event.price_per_person }}</p>
+                                <p class="font-semibold text-gray-900 text-2xl text-emerald-600">Ksh {{ event.price_per_person }}</p>
                             </div>
                         </div>
                         

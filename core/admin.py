@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Contact, PaymentMethod, PaymentTransaction, CardPayment, MPesaPayment, PaymentWebhook, Refund, PaymentSettings, Subscription, SubscriptionPlan, VerificationRequest, Payment, AIChatInteraction, AIInsightsReport, DateBuilderPreference, DateBuilderSuggestion
 from django.utils import timezone
+from .models import ChatQuestion, ChatResponse
 
 # Register your models here.
 
@@ -503,3 +504,94 @@ class DateBuilderSuggestionAdmin(admin.ModelAdmin):
         )
         self.message_user(request, f'{updated} suggestion(s) were marked as completed.')
     mark_completed.short_description = "Mark selected suggestions as completed"
+
+
+# Chat Models Admin
+
+@admin.register(ChatQuestion)
+class ChatQuestionAdmin(admin.ModelAdmin):
+    list_display = ['chat_type', 'get_place_or_agency', 'get_user_info', 'question_preview', 'is_anonymous', 'created_at']
+    list_filter = ['chat_type', 'is_anonymous', 'created_at']
+    search_fields = ['question', 'user__email', 'user__username', 'session_id']
+    readonly_fields = ['created_at', 'is_anonymous']
+    list_per_page = 50
+    
+    fieldsets = (
+        ('Chat Information', {
+            'fields': ('chat_type', 'place', 'agency')
+        }),
+        ('User Information', {
+            'fields': ('user', 'session_id', 'ip_address', 'user_agent', 'is_anonymous')
+        }),
+        ('Question Content', {
+            'fields': ('question', 'question_tokens')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def get_place_or_agency(self, obj):
+        if obj.place:
+            return f"Place: {obj.place.name}"
+        elif obj.agency:
+            return f"Agency: {obj.agency.name}"
+        return "Unknown"
+    get_place_or_agency.short_description = "Place/Agency"
+    
+    def get_user_info(self, obj):
+        if obj.user:
+            return f"{obj.user.username} ({obj.user.email})"
+        else:
+            return f"Anonymous ({obj.session_id[:20]}...)"
+    get_user_info.short_description = "User"
+    
+    def question_preview(self, obj):
+        return obj.question[:100] + "..." if len(obj.question) > 100 else obj.question
+    question_preview.short_description = "Question"
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user', 'place', 'agency')
+
+
+@admin.register(ChatResponse)
+class ChatResponseAdmin(admin.ModelAdmin):
+    list_display = ['get_question_preview', 'get_chat_type', 'ai_model', 'response_tokens', 'response_time_ms', 'cost_usd', 'user_feedback', 'created_at']
+    list_filter = ['ai_model', 'user_feedback', 'created_at']
+    search_fields = ['response', 'question__question', 'question__user__email']
+    readonly_fields = ['created_at', 'updated_at', 'total_tokens']
+    list_per_page = 50
+    
+    fieldsets = (
+        ('Question Link', {
+            'fields': ('question',)
+        }),
+        ('Response Content', {
+            'fields': ('response', 'response_tokens')
+        }),
+        ('AI Model Information', {
+            'fields': ('ai_model', 'model_version', 'confidence_score')
+        }),
+        ('Performance Metrics', {
+            'fields': ('response_time_ms', 'total_tokens', 'cost_usd')
+        }),
+        ('User Feedback', {
+            'fields': ('user_feedback',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def get_question_preview(self, obj):
+        return obj.question.question[:80] + "..." if len(obj.question.question) > 80 else obj.question.question
+    get_question_preview.short_description = "Question"
+    
+    def get_chat_type(self, obj):
+        return obj.question.chat_type
+    get_chat_type.short_description = "Chat Type"
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('question__user', 'question__place', 'question__agency')

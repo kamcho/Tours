@@ -22,7 +22,7 @@ from .models import (
     Agency, AgencyService, TourComment, TourBookingPayment, Event, EventComment, 
     MenuCategory, MenuItem, Features, PlaceRating, AgencyRating, RatingHelpful,
     PlaceGallery, AgencyGallery, DatePlan, DateActivity, DatePlanPreference, DatePlanSuggestion,
-    PlaceStaff, PlaceOrder
+    PlaceStaff, PlaceOrder, PlaceOrderItem
 )
 from .forms import (
     MenuCategoryForm, MenuItemForm, TourCommentForm, EventCommentForm, 
@@ -43,13 +43,10 @@ import requests
 from requests.auth import HTTPBasicAuth
 from datetime import datetime, timedelta, date
 from decimal import Decimal
+import uuid
 
-# AI imports (optional)
-try:
-    import openai
-    OPENAI_AVAILABLE = True
-except ImportError:
-    OPENAI_AVAILABLE = False
+# AI imports (optional) - will be imported lazily when needed
+OPENAI_AVAILABLE = False
 
 # Step 1: Basic Information
 class PlaceBasicForm(forms.Form):
@@ -340,6 +337,9 @@ class PublicPlaceDetailView(DetailView):
     model = Place
     template_name = 'listings/public_place_detail.html'
     context_object_name = 'place'
+
+    def get_queryset(self):
+        return Place.objects.prefetch_related('place_gallery_images').select_related('category', 'created_by')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -2638,7 +2638,7 @@ class EventBookingWithPaymentView(LoginRequiredMixin, View):
                 booking.save()
                 
                 messages.success(request, f'✅ Event booking created! M-Pesa STK push sent to {phone_number}. Please complete the payment on your phone.')
-                return redirect('payment_status', transaction_id=booking.payment_reference)
+                return redirect('event_receipt', transaction_id=booking.payment_reference)
             else:
                 messages.warning(request, f'Event booking created but payment failed. Please contact support.')
                 return redirect('event_booking_payment', pk=event.pk)
@@ -2665,18 +2665,15 @@ class MPesaWebhookView(View):
             callback_data = json.loads(request.body)
             print(f"📋 DEBUG: Parsed callback data: {callback_data}")
             
-            # Initialize M-Pesa service
-            mpesa_service = MPesaService()
+            # Check if this is an event booking or tour booking
+            account_reference = callback_data.get('AccountReference', '')
             
-            # Process the callback
-            success = mpesa_service.process_callback(callback_data)
-            
-            if success:
-                print("✅ DEBUG: M-Pesa callback processed successfully")
-                return JsonResponse({'status': 'success'}, status=200)
+            if account_reference.startswith('Event_'):
+                # Handle event booking
+                return self._handle_event_booking(callback_data)
             else:
-                print("❌ DEBUG: M-Pesa callback processing failed")
-                return JsonResponse({'status': 'failed'}, status=400)
+                # Handle tour booking (existing logic)
+                return self._handle_tour_booking(callback_data)
                 
         except json.JSONDecodeError as e:
             print(f"❌ DEBUG: Invalid JSON in webhook: {e}")
@@ -2685,9 +2682,193 @@ class MPesaWebhookView(View):
             print(f"❌ DEBUG: Error processing webhook: {e}")
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
     
+    def _handle_event_booking(self, callback_data):
+        """Handle M-Pesa callback for event bookings"""
+        try:
+            print(f"🎯 DEBUG: Processing event booking webhook")
+            
+            # Extract event booking ID from account reference
+            account_ref = callback_data.get('AccountReference', '')
+            event_booking_id = account_ref.replace('Event_', '')
+            
+            # Get the event booking
+            from .models import EventBooking
+            try:
+                booking = EventBooking.objects.get(id=event_booking_id)
+                print(f"✅ DEBUG: Found event booking {booking.id} for event {booking.event.name}")
+            except EventBooking.DoesNotExist:
+                print(f"❌ DEBUG: Event booking {event_booking_id} not found")
+                return JsonResponse({'status': 'error', 'message': 'Event booking not found'}, status=404)
+            
+            # Check payment result
+            result_code = callback_data.get('ResultCode', '')
+            result_desc = callback_data.get('ResultDesc', '')
+            
+            print(f"💰 DEBUG: Event payment result - Code: {result_code}, Description: {result_desc}")
+            
+            if result_code == '0':
+                # Payment successful
+                booking.payment_status = 'completed'
+                booking.status = 'confirmed'
+                booking.payment_date = datetime.now()
+                
+                # Safely update metadata
+                current_metadata = booking.metadata or {}
+                current_metadata.update({
+                    'webhook_data': callback_data,
+                    'payment_completed_at': datetime.now().isoformat(),
+                    'mpesa_transaction_id': callback_data.get('TransactionID', ''),
+                })
+                booking.metadata = current_metadata
+                booking.save()
+                
+                # Create payment transaction record
+                self._create_payment_transaction(booking, callback_data)
+                
+                print(f"✅ DEBUG: Event booking {booking.id} payment completed successfully")
+                
+                # Send email notification
+                self._send_event_booking_email(booking)
+                
+                return JsonResponse({'status': 'success', 'message': 'Event payment processed'}, status=200)
+            else:
+                # Payment failed
+                booking.payment_status = 'failed'
+                booking.status = 'cancelled'
+                
+                # Safely update metadata
+                current_metadata = booking.metadata or {}
+                current_metadata.update({
+                    'webhook_data': callback_data,
+                    'payment_failed_at': datetime.now().isoformat(),
+                    'failure_reason': result_desc,
+                })
+                booking.metadata = current_metadata
+                booking.save()
+                
+                print(f"❌ DEBUG: Event booking {booking.id} payment failed: {result_desc}")
+                return JsonResponse({'status': 'failed', 'message': 'Event payment failed'}, status=200)
+                
+        except Exception as e:
+            print(f"❌ DEBUG: Error handling event booking webhook: {str(e)}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
+    def _handle_tour_booking(self, callback_data):
+        """Handle M-Pesa callback for tour bookings (existing logic)"""
+        try:
+            # Initialize M-Pesa service
+            mpesa_service = MPesaService()
+            
+            # Process the callback
+            success = mpesa_service.process_callback(callback_data)
+            
+            if success:
+                print("✅ DEBUG: Tour booking M-Pesa callback processed successfully")
+                return JsonResponse({'status': 'success'}, status=200)
+            else:
+                print("❌ DEBUG: Tour booking M-Pesa callback processing failed")
+                return JsonResponse({'status': 'failed'}, status=400)
+                
+        except Exception as e:
+            print(f"❌ DEBUG: Error processing tour booking webhook: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
     def get(self, request):
         """Handle GET requests (for testing)"""
         return JsonResponse({'status': 'webhook_endpoint_active'}, status=200)
+    
+    def _send_event_booking_email(self, booking):
+        """Send confirmation email for successful event booking"""
+        try:
+            from django.core.mail import send_mail
+            from django.conf import settings
+            
+            subject = f"✅ Event Booking Confirmed: {booking.event.name}"
+            
+            message = f"""
+Dear {booking.user.get_full_name() or booking.user.username},
+
+Your event booking has been confirmed! 🎉
+
+Event Details:
+- Event: {booking.event.name}
+- Date: {booking.event.date}
+- Time: {booking.event.time}
+- Location: {booking.event.place.name}
+- Participants: {booking.participants}
+- Total Amount: KES {booking.total_amount}
+
+Payment Status: ✅ Confirmed
+Booking ID: {booking.id}
+
+We look forward to seeing you at the event!
+
+Best regards,
+TravelsKe Team
+            """.strip()
+            
+            # Send email
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[booking.user.email],
+                fail_silently=True,  # Don't fail if email sending fails
+            )
+            
+            print(f"📧 DEBUG: Event booking confirmation email sent to {booking.user.email}")
+            
+        except Exception as e:
+            print(f"❌ DEBUG: Failed to send event booking email: {str(e)}")
+            # Don't fail the webhook if email fails
+    
+    def _create_payment_transaction(self, booking, callback_data):
+        """Create payment transaction record for event booking"""
+        try:
+            from core.models import PaymentTransaction, PaymentMethod
+            from decimal import Decimal
+            
+            # Get or create M-Pesa payment method
+            payment_method, created = PaymentMethod.objects.get_or_create(
+                name='mpesa',
+                defaults={
+                    'display_name': 'M-Pesa',
+                    'description': 'Mobile money payment via M-Pesa',
+                    'is_active': True,
+                    'icon': 'mobile',
+                    'sort_order': 1
+                }
+            )
+            
+            # Create payment transaction
+            transaction = PaymentTransaction.objects.create(
+                user=booking.user,
+                amount=booking.total_amount,
+                currency='KES',
+                processing_fee=Decimal('0.00'),
+                total_amount=booking.total_amount,
+                payment_method=payment_method,
+                status='completed',
+                transaction_type='payment',
+                content_type='event_booking',
+                object_id=booking.id,
+                description=f"Payment for {booking.event.name} event - {booking.participants} participant(s)",
+                metadata={
+                    'event_id': booking.event.id,
+                    'event_name': booking.event.name,
+                    'participants': booking.participants,
+                    'mpesa_transaction_id': callback_data.get('TransactionID', ''),
+                    'mpesa_request_id': callback_data.get('MerchantRequestID', ''),
+                    'mpesa_checkout_request_id': callback_data.get('CheckoutRequestID', ''),
+                    'webhook_data': callback_data,
+                }
+            )
+            
+            print(f"💳 DEBUG: Payment transaction {transaction.transaction_id} created for event booking {booking.id}")
+            
+        except Exception as e:
+            print(f"❌ DEBUG: Failed to create payment transaction: {str(e)}")
+            # Don't fail the webhook if transaction creation fails
 
 def generate_access_token():
     """Generate M-Pesa access token"""
@@ -3019,16 +3200,104 @@ class SimpleEventBookingView(View):
                 booking.save()
                 
                 messages.success(request, f'✅ Booking created! M-Pesa STK push sent to {phone}. Please check your phone and enter M-Pesa PIN to complete payment.')
-                return redirect('public_event_detail', pk=booking.event.pk)
+                return redirect('event_receipt', transaction_id=booking.payment_reference)
             else:
                 print(f"❌ DEBUG: STK push failed with status {response.status_code}")
                 messages.warning(request, f'⚠️ Booking created but M-Pesa STK push failed. Please try again or contact support.')
-                return redirect('public_event_detail', pk=booking.event.pk)
+                return redirect('event_receipt', transaction_id=booking.payment_reference)
                 
         except Exception as e:
             print(f"❌ DEBUG: Error in M-Pesa payment: {str(e)}")
             messages.error(request, f'❌ Error processing M-Pesa payment: {str(e)}')
-            return redirect('public_event_detail', pk=booking.event.pk)
+            return redirect('event_receipt', transaction_id=booking.payment_reference)
+
+
+class EventReceiptView(LoginRequiredMixin, View):
+    """View to display event payment receipt and check payment status"""
+    template_name = 'listings/event_receipt.html'
+    
+    def get(self, request, transaction_id):
+        try:
+            # Try to find the event booking by transaction ID
+            from .models import EventBooking
+            booking = EventBooking.objects.filter(
+                payment_reference__icontains=transaction_id
+            ).first()
+            
+            if not booking:
+                # If no booking found, try to find by other means
+                messages.error(request, 'Event booking not found.')
+                return redirect('event_list')
+            
+            # Get the event
+            event = booking.event
+            
+            # Calculate total amount
+            total_amount = event.price_per_person * booking.participants if event.price_per_person else 0
+            
+            context = {
+                'event': event,
+                'booking': booking,
+                'transaction_id': transaction_id,
+                'total_amount': total_amount,
+            }
+            
+            return render(request, self.template_name, context)
+            
+        except Exception as e:
+            print(f"❌ DEBUG: Error in EventReceiptView.get: {str(e)}")
+            messages.error(request, 'An error occurred while loading the receipt.')
+            return redirect('event_list')
+
+
+class EventPaymentStatusView(View):
+    """API view to check event payment status"""
+    
+    def get(self, request, transaction_id):
+        try:
+            from .models import EventBooking
+            
+            # Try to find the event booking by transaction ID
+            booking = EventBooking.objects.filter(
+                payment_reference__icontains=transaction_id
+            ).first()
+            
+            if not booking:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Event booking not found'
+                })
+            
+            # Get payment status from the booking
+            payment_status = booking.payment_status or 'pending'
+            
+            # Map status to user-friendly values
+            status_mapping = {
+                'pending': 'processing',
+                'processing': 'processing',
+                'completed': 'completed',
+                'successful': 'completed',
+                'failed': 'failed',
+                'cancelled': 'cancelled',
+            }
+            
+            mapped_status = status_mapping.get(payment_status, payment_status)
+            
+            return JsonResponse({
+                'success': True,
+                'payment_status': mapped_status,
+                'booking_id': booking.id,
+                'event_name': booking.event.name,
+                'amount': float(booking.total_amount) if booking.total_amount else 0,
+                'participants': booking.participants,
+            })
+            
+        except Exception as e:
+            print(f"❌ DEBUG: Error in EventPaymentStatusView.get: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
 
 
 class AdditionalPaymentView(LoginRequiredMixin, View):
@@ -3302,125 +3571,386 @@ class PaymentStatusView(LoginRequiredMixin, View):
 @csrf_exempt
 @require_http_methods(["POST"])
 def agency_chat(request, agency_id):
-    """
-    AI Chat endpoint for agencies
-    """
+    """AI chat endpoint for agencies with comprehensive context"""
+    start_time = timezone.now()
+    
     try:
+        # Debug logging
+        print(f"Agency chat called for agency_id: {agency_id}")
+        
         # Parse JSON data
         data = json.loads(request.body)
         question = data.get('question', '').strip()
+        print(f"Question received: {question}")
         
         if not question:
-            return JsonResponse({
-                'success': False,
-                'error': 'Question is required'
-            }, status=400)
+            return JsonResponse({'success': False, 'error': 'Question is required'}, status=400)
         
         # Get agency information
         try:
             agency = Agency.objects.get(pk=agency_id)
+            print(f"Agency found: {agency.name}")
         except Agency.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Agency not found'}, status=404)
+        
+        # Get user information and session data
+        user = request.user if request.user.is_authenticated else None
+        session_id = request.session.session_key or f"anon_{uuid.uuid4().hex[:16]}"
+        ip_address = request.META.get('REMOTE_ADDR')
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        
+        # Create ChatQuestion record
+        try:
+            from core.models import ChatQuestion, ChatResponse
+            
+            chat_question = ChatQuestion.objects.create(
+                chat_type='agency',
+                agency=agency,
+                user=user,
+                session_id=session_id,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                question=question,
+                question_tokens=len(question.split())  # Rough token estimation
+            )
+            print(f"Chat question saved with ID: {chat_question.id}")
+        except Exception as e:
+            print(f"Error saving chat question: {e}")
+            # Continue without saving if there's an error
+        
+        # Import openai when needed
+        try:
+            import openai
+            print("OpenAI imported successfully!")
+        except Exception as e:
+            print(f"OpenAI import failed: {e}")
+            fallback_response = f"I'm sorry, but I'm currently offline. However, I can tell you about {agency.name} based on the information I have: {agency.description[:200]}..."
+            
+            # Save fallback response if question was saved
+            if 'chat_question' in locals():
+                try:
+                    ChatResponse.objects.create(
+                        question=chat_question,
+                        response=fallback_response,
+                        response_tokens=len(fallback_response.split()),
+                        ai_model='fallback',
+                        response_time_ms=0,
+                        total_tokens=chat_question.question_tokens,
+                        cost_usd=0
+                    )
+                except Exception as save_error:
+                    print(f"Error saving fallback response: {save_error}")
+            
+            return JsonResponse({
+                'success': True, 
+                'response': fallback_response
+            })
+        
+        print("OpenAI is available, proceeding with API call")
+        
+        # Gather comprehensive agency data
+        try:
+            agency_data = {
+                'basic_info': {
+                    'name': agency.name,
+                    'agency_type': agency.get_agency_type_display(),
+                    'status': agency.get_status_display(),
+                    'description': agency.description,
+                    'city': agency.city,
+                    'country': agency.country,
+                    'address': agency.address,
+                    'phone': agency.phone,
+                    'email': agency.email,
+                    'website': agency.website if agency.website else 'Not provided',
+                    'postal_code': agency.postal_code if agency.postal_code else 'Not specified',
+                    'license_number': agency.license_number if agency.license_number else 'Not specified',
+                    'registration_number': agency.registration_number if agency.registration_number else 'Not specified',
+                    'year_established': agency.year_established if agency.year_established else 'Not specified',
+                    'price_range': agency.get_price_range_display(),
+                    'verified': 'Yes' if agency.verified else 'No',
+                    'is_active': 'Yes' if agency.status == 'active' else 'No'
+                },
+                'location_details': {
+                    'latitude': str(agency.latitude) if agency.latitude else 'Not specified',
+                    'longitude': str(agency.longitude) if agency.longitude else 'Not specified'
+                },
+                'features': {
+                    'specialties': ', '.join(agency.specialties) if agency.specialties else 'None specified',
+                    'languages_spoken': ', '.join(agency.languages_spoken) if agency.languages_spoken else 'Not specified',
+                    'group_size_range': agency.group_size_range if agency.group_size_range else 'Not specified',
+                    'operating_hours': agency.operating_hours if agency.operating_hours else 'Not specified'
+                },
+                'ratings': {
+                    'average_rating': agency.average_rating,
+                    'total_ratings': agency.total_ratings,
+                    'rating_distribution': agency.rating_distribution
+                },
+                'social_media': {
+                    'facebook': agency.facebook if agency.facebook else 'Not available',
+                    'twitter': agency.twitter if agency.twitter else 'Not available',
+                    'instagram': agency.instagram if agency.instagram else 'Not available',
+                    'linkedin': agency.linkedin if agency.linkedin else 'Not available'
+                },
+                'certifications': {
+                    'certifications': ', '.join(agency.certifications) if agency.certifications else 'None specified'
+                }
+            }
+            print("Agency data gathered successfully")
+        except Exception as e:
+            print(f"Error gathering agency data: {e}")
             return JsonResponse({
                 'success': False,
-                'error': 'Agency not found'
-            }, status=404)
+                'error': f'Error processing agency data: {str(e)}'
+            }, status=500)
         
-        # Prepare context for OpenAI
-        agency_context = f"""
-        Agency Name: {agency.name}
-        Agency Type: {agency.get_agency_type_display()}
-        Status: {agency.get_status_display()}
-        Description: {agency.description}
-        Location: {agency.city}, {agency.country}
-        Address: {agency.address}
-        Phone: {agency.phone}
-        Email: {agency.email}
-        Website: {agency.website if agency.website else 'Not provided'}
-        Year Established: {agency.year_established if agency.year_established else 'Not specified'}
-        """
-        
-        # Add services information
-        if agency.services.exists():
-            services_info = "\nServices:\n"
-            for service in agency.services.all():
-                services_info += f"- {service.name}: {service.description}\n"
-                if service.base_price:
-                    services_info += f"  Price: {service.display_price}\n"
-                if service.duration:
-                    services_info += f"  Duration: {service.duration}\n"
-            agency_context += services_info
-        
-        # Prepare the prompt for OpenAI
-        system_prompt = f"""You are a helpful AI travel assistant for {agency.name}. 
-        You have access to the following information about this agency:
-        
-        {agency_context}
-        
-        Please answer questions about this agency based on the information provided above. 
-        If you don't have information about something, politely say so and suggest contacting the agency directly.
-        Keep responses helpful, friendly, and accurate. Focus on being informative about their services, location, and policies.
-        """
-        
-        # Check if OpenAI is available and configured
-        if not OPENAI_AVAILABLE:
-            # Fallback response when OpenAI is not installed
-            fallback_response = generate_fallback_response(question, agency)
-            return JsonResponse({
-                'success': True,
-                'response': fallback_response,
-                'source': 'fallback_no_openai'
-            })
-        
-        if not hasattr(settings, 'OPENAI_API_KEY') or not settings.OPENAI_API_KEY:
-            # Fallback response without OpenAI API key
-            fallback_response = generate_fallback_response(question, agency)
-            return JsonResponse({
-                'success': True,
-                'response': fallback_response,
-                'source': 'fallback_no_key'
-            })
-        
+        # Get agency services
         try:
-            # Configure OpenAI
-            openai.api_key = settings.OPENAI_API_KEY
+            services = agency.services.filter(is_active=True)
+            services_data = []
+            for service in services:
+                service_data = {
+                    'name': service.name,
+                    'service_type': service.get_service_type_display(),
+                    'description': service.description,
+                    'availability': service.get_availability_display(),
+                    'is_featured': service.is_featured,
+                    'base_price': str(service.base_price) if service.base_price else 'Price on request',
+                    'price_range_min': str(service.price_range_min) if service.price_range_min else 'Not specified',
+                    'price_range_max': str(service.price_range_max) if service.price_range_max else 'Not specified',
+                    'pricing_model': service.pricing_model if service.pricing_model else 'Not specified',
+                    'duration': service.duration if service.duration else 'Not specified',
+                    'group_size_min': service.group_size_min if service.group_size_min else 'Not specified',
+                    'group_size_max': service.group_size_max if service.group_size_max else 'Not specified',
+                    'requirements': service.requirements if service.requirements else 'None specified',
+                    'included_items': service.included_items if service.included_items else 'Not specified',
+                    'excluded_items': service.excluded_items if service.excluded_items else 'Not specified',
+                    'cancellation_policy': service.cancellation_policy if service.cancellation_policy else 'Not specified'
+                }
+                services_data.append(service_data)
+            print("Services data gathered successfully")
+        except Exception as e:
+            print(f"Error gathering services data: {e}")
+            services_data = []
+        
+        # Get gallery images
+        try:
+            gallery_images = agency.gallery_images.all()
+            gallery_data = []
+            for image in gallery_images:
+                gallery_data.append({
+                    'caption': image.caption if image.caption else 'Gallery image',
+                    'is_featured': image.is_featured
+                })
+            print("Gallery data gathered successfully")
+        except Exception as e:
+            print(f"Error gathering gallery data: {e}")
+            gallery_data = []
+        
+        # Create comprehensive context
+        try:
+            context = f"""
+            AGENCY INFORMATION:
+            ===================
+            Basic Details:
+            - Name: {agency_data['basic_info']['name']}
+            - Agency Type: {agency_data['basic_info']['agency_type']}
+            - Status: {agency_data['basic_info']['status']}
+            - Description: {agency_data['basic_info']['description']}
+            - Location: {agency_data['basic_info']['city']}, {agency_data['basic_info']['country']}
+            - Address: {agency_data['basic_info']['address']}
+            - Phone: {agency_data['basic_info']['phone']}
+            - Email: {agency_data['basic_info']['email']}
+            - Website: {agency_data['basic_info']['website']}
+            - Postal Code: {agency_data['basic_info']['postal_code']}
+            - License Number: {agency_data['basic_info']['license_number']}
+            - Registration Number: {agency_data['basic_info']['registration_number']}
+            - Year Established: {agency_data['basic_info']['year_established']}
+            - Price Range: {agency_data['basic_info']['price_range']}
+            - Verified: {agency_data['basic_info']['verified']}
+            - Active Status: {agency_data['basic_info']['is_active']}
             
-            # Make OpenAI API call
-            response = openai.ChatCompletion.create(
+            Location & Coordinates:
+            - Latitude: {agency_data['location_details']['latitude']}
+            - Longitude: {agency_data['location_details']['longitude']}
+            
+            Features & Capabilities:
+            - Specialties: {agency_data['features']['specialties']}
+            - Languages Spoken: {agency_data['features']['languages_spoken']}
+            - Group Size Range: {agency_data['features']['group_size_range']}
+            - Operating Hours: {agency_data['features']['operating_hours']}
+            
+            Ratings & Reviews:
+            - Average Rating: {agency_data['ratings']['average_rating']}/5
+            - Total Ratings: {agency_data['ratings']['total_ratings']}
+            
+            Social Media:
+            - Facebook: {agency_data['social_media']['facebook']}
+            - Twitter: {agency_data['social_media']['twitter']}
+            - Instagram: {agency_data['social_media']['instagram']}
+            - LinkedIn: {agency_data['social_media']['linkedin']}
+            
+            Certifications:
+            - Certifications: {agency_data['certifications']['certifications']}
+            
+            SERVICES OFFERED:
+            =================
+            """
+            
+            if services_data:
+                context += f"Number of Services: {len(services_data)}\n"
+                for service in services_data:
+                    context += f"\nService: {service['name']} ({service['service_type']})\n"
+                    context += f"Description: {service['description']}\n"
+                    context += f"Availability: {service['availability']}\n"
+                    context += f"Featured: {'Yes' if service['is_featured'] else 'No'}\n"
+                    context += f"Base Price: {service['base_price']}\n"
+                    if service['price_range_min'] != 'Not specified' and service['price_range_max'] != 'Not specified':
+                        context += f"Price Range: Ksh {service['price_range_min']} - {service['price_range_max']}\n"
+                    context += f"Pricing Model: {service['pricing_model']}\n"
+                    context += f"Duration: {service['duration']}\n"
+                    context += f"Group Size: {service['group_size_min']} - {service['group_size_max']}\n"
+                    context += f"Requirements: {service['requirements']}\n"
+                    context += f"Included: {service['included_items']}\n"
+                    context += f"Excluded: {service['excluded_items']}\n"
+                    context += f"Cancellation Policy: {service['cancellation_policy']}\n"
+            else:
+                context += "No services information available.\n"
+            
+            context += f"""
+            
+            GALLERY & MEDIA:
+            ================
+            Number of Gallery Images: {len(gallery_data)}
+            Featured Images: {sum(1 for img in gallery_data if img['is_featured'])}
+            
+            OWNER INFORMATION:
+            ==================
+            Owner: {agency.owner.username if agency.owner else 'Not specified'}
+            """
+            
+            print("Context created successfully")
+        except Exception as e:
+            print(f"Error creating context: {e}")
+            return JsonResponse({
+                'success': False, 
+                'error': f'Error creating context: {str(e)}'
+            }, status=500)
+        
+        # Create the enhanced prompt for OpenAI
+        prompt = f"""
+        You are a knowledgeable AI travel assistant for {agency.name}, a {agency.get_agency_type_display()} located in {agency.city}, {agency.country}.
+        
+        You have access to comprehensive information about this agency including:
+        - Basic details and description
+        - Services offered with pricing, duration, and policies
+        - Operating hours and specialties
+        - Languages spoken and group size capabilities
+        - Ratings and reviews
+        - Social media presence
+        - Certifications and verification status
+        
+        Here is the complete information:
+        {context}
+        
+        A visitor is asking: "{question}"
+        
+        Please provide a helpful, informative, and accurate response based on the information above. 
+        - If the information is available, provide detailed and helpful answers
+        - If the information is not available, politely say so and suggest they contact the agency directly
+        - For service questions, mention pricing in Kenyan Shillings (Ksh) when available
+        - For pricing questions, include both base price and price ranges if available
+        - Keep your response friendly, helpful, and under 250 words
+        - Focus on being informative about the agency's services, capabilities, policies, and contact information
+        - If asked about pricing, always mention the currency (Ksh)
+        - Highlight the agency's specialties and unique offerings
+        """
+        
+        # Configure OpenAI API key
+        print(f"Setting OpenAI API key: {settings.OPENAI_API_KEY[:20]}...")
+        openai.api_key = settings.OPENAI_API_KEY
+            
+        # Get response from OpenAI
+        try:
+            print("Making OpenAI API call...")
+            # Use the new OpenAI API (v1.0.0+)
+            client = openai.OpenAI(api_key=openai.api_key)
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": question}
+                    {"role": "system", "content": "You are a helpful AI travel assistant that provides accurate information about travel agencies and their services. You have access to comprehensive data about the agency including services, pricing, policies, and capabilities. Always be helpful, accurate, and informative."},
+                    {"role": "user", "content": prompt}
                 ],
-                max_tokens=300,
+                max_tokens=400,
                 temperature=0.7
             )
             
             ai_response = response.choices[0].message.content.strip()
+            response_time = (timezone.now() - start_time).total_seconds() * 1000  # Convert to milliseconds
+            print("OpenAI API call successful")
+            
+            # Calculate tokens and cost (rough estimates)
+            response_tokens = len(ai_response.split())
+            total_tokens = chat_question.question_tokens + response_tokens
+            cost_usd = (total_tokens / 1000) * 0.002  # Rough cost estimate for GPT-3.5-turbo
+            
+            # Save the AI response
+            try:
+                ChatResponse.objects.create(
+                    question=chat_question,
+                    response=ai_response,
+                    response_tokens=response_tokens,
+                    ai_model='gpt-3.5-turbo',
+                    model_version='3.5',
+                    response_time_ms=int(response_time),
+                    total_tokens=total_tokens,
+                    cost_usd=cost_usd
+                )
+                print(f"Chat response saved successfully")
+            except Exception as save_error:
+                print(f"Error saving chat response: {save_error}")
             
             return JsonResponse({
                 'success': True,
-                'response': ai_response,
-                'source': 'openai'
+                'response': ai_response
             })
+            
         except Exception as openai_error:
-            # Fallback response if OpenAI API call fails
-            fallback_response = generate_fallback_response(question, agency)
+            print(f"OpenAI API error: {openai_error}")
+            print(f"Error type: {type(openai_error)}")
+            print(f"Error details: {str(openai_error)}")
+            # Enhanced fallback response with available data
+            fallback_response = f"I'm sorry, I'm having trouble processing your question right now. However, I can tell you that {agency.name} is a {agency.get_agency_type_display()} located in {agency.city}, {agency.country}. "
+            
+            if services_data:
+                fallback_response += f"They offer {len(services_data)} services including various travel and tour options. "
+            
+            fallback_response += f"For specific information about '{question}', I recommend contacting them directly at {agency.phone} or {agency.email}."
+            
+            # Save fallback response if question was saved
+            if 'chat_question' in locals():
+                try:
+                    ChatResponse.objects.create(
+                        question=chat_question,
+                        response=fallback_response,
+                        response_tokens=len(fallback_response.split()),
+                        ai_model='fallback',
+                        response_time_ms=0,
+                        total_tokens=chat_question.question_tokens,
+                        cost_usd=0
+                    )
+                except Exception as save_error:
+                    print(f"Error saving fallback response: {save_error}")
+            
             return JsonResponse({
                 'success': True,
-                'response': fallback_response,
-                'source': 'fallback_api_error'
+                'response': fallback_response
             })
         
     except json.JSONDecodeError:
-        return JsonResponse({
-            'success': False,
-            'error': 'Invalid JSON data'
-        }, status=400)
+        return JsonResponse({'success': False, 'error': 'Invalid JSON data'}, status=400)
     except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
+        print(f"Agency chat error: {e}")
+        return JsonResponse({'success': False, 'error': 'Internal server error'}, status=500)
 
 def generate_fallback_response(question, agency):
     """
@@ -3761,78 +4291,363 @@ def enhanced_place_search(request):
     
     return render(request, 'listings/enhanced_place_search.html', context)
 
-@csrf_exempt
 @require_http_methods(["POST"])
 def place_chat(request, place_id):
-    """AI chat endpoint for places"""
+    """AI chat endpoint for places with comprehensive context"""
+    start_time = timezone.now()
+    
     try:
-        # Get the place
+        # Debug logging
+        print(f"Place chat called for place_id: {place_id}")
+        
+        # Get the place with all related data
         place = get_object_or_404(Place, pk=place_id)
+        print(f"Place found: {place.name}")
         
         # Parse the request data
         data = json.loads(request.body)
         question = data.get('question', '').strip()
+        print(f"Question received: {question}")
         
         if not question:
             return JsonResponse({'success': False, 'error': 'Question is required'}, status=400)
         
-        # Check if OpenAI is available
-        if not OPENAI_AVAILABLE:
+        # Get user information and session data
+        user = request.user if request.user.is_authenticated else None
+        session_id = request.session.session_key or f"anon_{uuid.uuid4().hex[:16]}"
+        ip_address = request.META.get('REMOTE_ADDR')
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        
+        # Create ChatQuestion record
+        try:
+            from core.models import ChatQuestion, ChatResponse
+            
+            chat_question = ChatQuestion.objects.create(
+                chat_type='place',
+                place=place,
+                user=user,
+                session_id=session_id,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                question=question,
+                question_tokens=len(question.split())  # Rough token estimation
+            )
+            print(f"Chat question saved with ID: {chat_question.id}")
+        except Exception as e:
+            print(f"Error saving chat question: {e}")
+            # Continue without saving if there's an error
+        
+        # Import openai when needed
+        try:
+            import openai
+            print("OpenAI imported successfully!")
+        except Exception as e:
+            print(f"OpenAI import failed: {e}")
+            fallback_response = f"I'm sorry, but I'm currently offline. However, I can tell you about {place.name} based on the information I have: {place.description[:200]}..."
+            
+            # Save fallback response if question was saved
+            if 'chat_question' in locals():
+                try:
+                    ChatResponse.objects.create(
+                        question=chat_question,
+                        response=fallback_response,
+                        response_tokens=len(fallback_response.split()),
+                        ai_model='fallback',
+                        response_time_ms=0,
+                        total_tokens=chat_question.question_tokens,
+                        cost_usd=0
+                    )
+                except Exception as save_error:
+                    print(f"Error saving fallback response: {save_error}")
+            
             return JsonResponse({
                 'success': True, 
-                'response': f"I'm sorry, but I'm currently offline. However, I can tell you about {place.name} based on the information I have: {place.description[:200]}..."
+                'response': fallback_response
             })
         
-        # Create context about the place
-        context = f"""
-        Place Information:
-        - Name: {place.name}
-        - Category: {place.category.name if place.category else 'Not specified'}
-        - Description: {place.description}
-        - Location: {place.location}
-        - Address: {place.address if place.address else 'Not specified'}
-        - Contact: {place.contact_email if place.contact_email else 'Not specified'}
-        - Website: {place.website if place.website else 'Not specified'}
-        - Price Range: {place.get_price_range_display() if place.price_range else 'Not specified'}
-        - Best Time to Visit: {place.best_time_to_visit if place.best_time_to_visit else 'Not specified'}
-        - Average Visit Duration: {place.average_visit_duration if place.average_visit_duration else 'Not specified'}
-        - Peak Season: {place.peak_season if place.peak_season else 'Not specified'}
-        - Family Friendly: {'Yes' if place.family_friendly else 'No'}
-        - Pet Friendly: {'Yes' if place.pet_friendly else 'No'}
-        - Accessibility Features: {', '.join(place.accessibility_features) if place.accessibility_features else 'Not specified'}
-        - Amenities: {', '.join(place.amenities) if place.amenities else 'Not specified'}
-        - Opening Hours: {place.opening_hours if place.opening_hours else 'Not specified'}
-        - Verified: {'Yes' if place.verified else 'No'}
-        """
+        print("OpenAI is available, proceeding with API call")
+        
+        # Gather comprehensive place data
+        try:
+            place_data = {
+                'basic_info': {
+                    'name': place.name,
+                    'category': place.category.name if place.category else 'Not specified',
+                    'description': place.description,
+                    'location': place.location,
+                    'address': place.address if place.address else 'Not specified',
+                    'contact_email': place.contact_email if place.contact_email else 'Not specified',
+                    'contact_phone': place.contact_phone if place.contact_phone else 'Not specified',
+                    'website': place.website if place.website else 'Not specified',
+                    'price_range': place.get_price_range_display() if place.price_range else 'Not specified',
+                    'best_time_to_visit': place.best_time_to_visit if place.best_time_to_visit else 'Not specified',
+                    'average_visit_duration': f"{place.average_visit_duration} hours" if place.average_visit_duration else 'Not specified',
+                    'peak_season': place.peak_season if place.peak_season else 'Not specified',
+                    'family_friendly': 'Yes' if place.family_friendly else 'No',
+                    'pet_friendly': 'Yes' if place.pet_friendly else 'No',
+                    'verified': 'Yes' if place.verified else 'No',
+                    'is_active': 'Yes' if place.is_active else 'No'
+                },
+                'location_details': {
+                    'latitude': str(place.latitude) if place.latitude else 'Not specified',
+                    'longitude': str(place.longitude) if place.longitude else 'Not specified'
+                },
+                'features': {
+                    'accessibility_features': ', '.join(place.accessibility_features) if place.accessibility_features else 'None available',
+                    'amenities': ', '.join(place.amenities) if place.amenities else 'None available',
+                    'opening_hours': place.opening_hours if place.opening_hours else 'Not specified'
+                },
+                'ratings': {
+                    'average_rating': place.average_rating,
+                    'total_ratings': place.total_ratings,
+                    'rating_distribution': place.rating_distribution
+                }
+            }
+            print("Place data gathered successfully")
+        except Exception as e:
+            print(f"Error gathering place data: {e}")
+            return JsonResponse({
+                'success': False, 
+                'error': f'Error processing place data: {str(e)}'
+            }, status=500)
+        
+        # Get menu categories and items
+        try:
+            menu_categories = place.menu_categories.filter(is_active=True).prefetch_related('menu_items')
+            menu_data = []
+            for category in menu_categories:
+                category_items = []
+                for item in category.menu_items.filter(is_active=True):
+                    item_data = {
+                        'name': item.name,
+                        'description': item.description,
+                        'price': str(item.price),
+                        'discounted_price': str(item.discounted_price) if item.discounted_price else None,
+                        'is_discounted': item.is_discounted,
+                        'ingredients': item.ingredients if item.ingredients else 'Not specified',
+                        'allergens': item.allergens if item.allergens else 'None',
+                        'spice_level': item.get_spice_level_display() if item.spice_level else 'Not specified',
+                        'preparation_time': f"{item.preparation_time} minutes" if item.preparation_time else 'Not specified',
+                        'serving_size': item.serving_size if item.serving_size else 'Not specified',
+                        'availability': item.get_availability_display(),
+                        'dietary_info': {
+                            'is_vegetarian': item.is_vegetarian,
+                            'is_vegan': item.is_vegan,
+                            'is_gluten_free': item.is_gluten_free,
+                            'is_halal': item.is_halal,
+                            'is_kosher': item.is_kosher
+                        }
+                    }
+                    category_items.append(item_data)
+                
+                menu_data.append({
+                    'category_name': category.name,
+                    'category_type': category.get_category_type_display(),
+                    'category_description': category.description if category.description else 'No description',
+                    'items': category_items
+                })
+            print("Menu data gathered successfully")
+        except Exception as e:
+            print(f"Error gathering menu data: {e}")
+            menu_data = []
+        
+        # Get features
+        try:
+            features = place.features.filter(is_active=True)
+            features_data = []
+            for feature in features:
+                feature_data = {
+                    'name': feature.name,
+                    'description': feature.description if feature.description else 'No description',
+                    'price': str(feature.price),
+                    'duration': feature.display_duration
+                }
+                features_data.append(feature_data)
+            print("Features data gathered successfully")
+        except Exception as e:
+            print(f"Error gathering features data: {e}")
+            features_data = []
+        
+        # Get gallery images
+        try:
+            gallery_images = place.place_gallery_images.all()
+            gallery_data = []
+            for image in gallery_images:
+                gallery_data.append({
+                    'caption': image.caption if image.caption else 'Gallery image',
+                    'is_featured': image.is_featured
+                })
+            print("Gallery data gathered successfully")
+        except Exception as e:
+            print(f"Error gathering gallery data: {e}")
+            gallery_data = []
+        
+        # Get staff information
+        try:
+            staff = place.staff_members.filter(is_active=True)
+            staff_data = []
+            for member in staff:
+                staff_data.append({
+                    'name': member.user.username,
+                    'role': member.role,
+                    'bio': member.notes if member.notes else 'No bio available'
+                })
+            print("Staff data gathered successfully")
+        except Exception as e:
+            print(f"Error gathering staff data: {e}")
+            staff_data = []
+        
+        # Create comprehensive context
+        try:
+            context = f"""
+            PLACE INFORMATION:
+            ==================
+            Basic Details:
+            - Name: {place_data['basic_info']['name']}
+            - Category: {place_data['basic_info']['category']}
+            - Description: {place_data['basic_info']['description']}
+            - Location: {place_data['basic_info']['location']}
+            - Address: {place_data['basic_info']['address']}
+            - Contact Email: {place_data['basic_info']['contact_email']}
+            - Contact Phone: {place_data['basic_info']['contact_phone']}
+            - Website: {place_data['basic_info']['website']}
+            - Price Range: {place_data['basic_info']['price_range']}
+            - Best Time to Visit: {place_data['basic_info']['best_time_to_visit']}
+            - Average Visit Duration: {place_data['basic_info']['average_visit_duration']}
+            - Peak Season: {place_data['basic_info']['peak_season']}
+            - Family Friendly: {place_data['basic_info']['family_friendly']}
+            - Pet Friendly: {place_data['basic_info']['pet_friendly']}
+            - Verified: {place_data['basic_info']['verified']}
+            - Status: {place_data['basic_info']['is_active']}
+            
+            Location & Coordinates:
+            - Latitude: {place_data['location_details']['latitude']}
+            - Longitude: {place_data['location_details']['longitude']}
+            
+            Features & Amenities:
+            - Accessibility Features: {place_data['features']['accessibility_features']}
+            - Amenities: {place_data['features']['amenities']}
+            - Opening Hours: {place_data['features']['opening_hours']}
+            
+            Ratings & Reviews:
+            - Average Rating: {place_data['ratings']['average_rating']}/5
+            - Total Ratings: {place_data['ratings']['total_ratings']}
+            
+            MENU INFORMATION:
+            =================
+            """
+            
+            if menu_data:
+                context += f"Number of Menu Categories: {len(menu_data)}\n"
+                for category in menu_data:
+                    context += f"\nCategory: {category['category_name']} ({category['category_type']})\n"
+                    context += f"Description: {category['category_description']}\n"
+                    context += f"Number of Items: {len(category['items'])}\n"
+                    
+                    for item in category['items']:
+                        context += f"  - {item['name']}: Ksh {item['price']}"
+                        if item['is_discounted'] and item['discounted_price']:
+                            context += f" (Discounted: Ksh {item['discounted_price']})"
+                        context += f"\n    Description: {item['description']}\n"
+                        context += f"    Preparation Time: {item['preparation_time']}\n"
+                        context += f"    Serving Size: {item['serving_size']}\n"
+                        context += f"    Availability: {item['availability']}\n"
+                        context += f"    Dietary: Vegetarian: {item['dietary_info']['is_vegetarian']}, Vegan: {item['dietary_info']['is_vegan']}, Gluten-Free: {item['dietary_info']['is_gluten_free']}\n"
+            else:
+                context += "No menu information available.\n"
+            
+            context += f"""
+            
+            FEATURES & SERVICES:
+            ====================
+            """
+            
+            if features_data:
+                context += f"Number of Features: {len(features_data)}\n"
+                for feature in features_data:
+                    context += f"- {feature['name']}: Ksh {feature['price']} ({feature['duration']})\n"
+                    context += f"  Description: {feature['description']}\n"
+            else:
+                context += "No additional features available.\n"
+            
+            context += f"""
+            
+            GALLERY & MEDIA:
+            ================
+            Number of Gallery Images: {len(gallery_data)}
+            Featured Images: {sum(1 for img in gallery_data if img['is_featured'])}
+            
+            STAFF INFORMATION:
+            ==================
+            """
+            
+            if staff_data:
+                context += f"Number of Staff Members: {len(staff_data)}\n"
+                for member in staff_data:
+                    context += f"- {member['name']} ({member['role']}): {member['bio']}\n"
+            else:
+                context += "No staff information available.\n"
+            
+            print("Context created successfully")
+        except Exception as e:
+            print(f"Error creating context: {e}")
+            return JsonResponse({
+                'success': False, 
+                'error': f'Error creating context: {str(e)}'
+            }, status=500)
         
         # Create the prompt for OpenAI
         prompt = f"""
-        You are a helpful AI travel assistant for {place.name}. 
-        
-        Here is the information about this place:
         {context}
         
-        A visitor is asking: "{question}"
+        USER QUESTION: {question}
         
-        Please provide a helpful, informative response based on the information above. 
-        If the information is not available, politely say so and suggest they contact the place directly.
-        Keep your response friendly, helpful, and under 200 words.
-        Focus on being informative about the place's attractions, activities, policies, and visitor information.
+        Please provide a helpful, informative response about {place.name} based on the information above. 
+        Focus on answering the specific question asked and provide relevant details from the available data.
+        If the question is about pricing, always mention prices in Kenyan Shillings (Ksh).
+        Be conversational but professional, and encourage the user to visit or contact {place.name}.
         """
         
         # Get response from OpenAI
         try:
-            response = openai.ChatCompletion.create(
+            print("Making OpenAI API call...")
+            # Set OpenAI API key
+            openai.api_key = settings.OPENAI_API_KEY
+            # Use the new OpenAI API (v1.0.0+)
+            client = openai.OpenAI(api_key=openai.api_key)
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "You are a helpful AI travel assistant that provides accurate information about travel destinations and places."},
+                    {"role": "system", "content": "You are a helpful AI travel assistant that provides accurate information about travel destinations and places. You have access to comprehensive data about the place including menu items, features, pricing, and policies. Always be helpful, accurate, and informative."},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=300,
+                max_tokens=400,
                 temperature=0.7
             )
             
             ai_response = response.choices[0].message.content.strip()
+            response_time = (timezone.now() - start_time).total_seconds() * 1000  # Convert to milliseconds
+            
+            # Calculate tokens and cost (rough estimates)
+            response_tokens = len(ai_response.split())
+            total_tokens = chat_question.question_tokens + response_tokens
+            cost_usd = (total_tokens / 1000) * 0.002  # Rough cost estimate for GPT-3.5-turbo
+            
+            # Save the AI response
+            try:
+                ChatResponse.objects.create(
+                    question=chat_question,
+                    response=ai_response,
+                    response_tokens=response_tokens,
+                    ai_model='gpt-3.5-turbo',
+                    model_version='3.5',
+                    response_time_ms=int(response_time),
+                    total_tokens=total_tokens,
+                    cost_usd=cost_usd
+                )
+                print(f"Chat response saved successfully")
+            except Exception as save_error:
+                print(f"Error saving chat response: {save_error}")
             
             return JsonResponse({
                 'success': True,
@@ -3841,8 +4656,33 @@ def place_chat(request, place_id):
             
         except Exception as openai_error:
             print(f"OpenAI API error: {openai_error}")
-            # Fallback response
-            fallback_response = f"I'm sorry, I'm having trouble processing your question right now. However, I can tell you that {place.name} is a {place.category.name if place.category else 'travel destination'} located in {place.location}. For specific information about '{question}', I recommend contacting the place directly or checking their website."
+            print(f"Error type: {type(openai_error)}")
+            print(f"Error details: {str(openai_error)}")
+            # Enhanced fallback response with available data
+            fallback_response = f"I'm sorry, I'm having trouble processing your question right now. However, I can tell you that {place.name} is a {place.category.name if place.category else 'travel destination'} located in {place.location}. "
+            
+            if menu_data:
+                fallback_response += f"They offer {len(menu_data)} menu categories with various food and beverage options. "
+            
+            if features_data:
+                fallback_response += f"They also provide {len(features_data)} additional features and services. "
+            
+            fallback_response += f"For specific information about '{question}', I recommend contacting them directly at {place.contact_phone if place.contact_phone else place.contact_email if place.contact_email else 'their website'}."
+            
+            # Save fallback response if question was saved
+            if 'chat_question' in locals():
+                try:
+                    ChatResponse.objects.create(
+                        question=chat_question,
+                        response=fallback_response,
+                        response_tokens=len(fallback_response.split()),
+                        ai_model='fallback',
+                        response_time_ms=0,
+                        total_tokens=chat_question.question_tokens,
+                        cost_usd=0
+                    )
+                except Exception as save_error:
+                    print(f"Error saving fallback response: {save_error}")
             
             return JsonResponse({
                 'success': True,
@@ -4515,56 +5355,71 @@ def create_place_order(request, place_id):
             messages.error(request, 'Please add at least one menu item to the order.')
             return redirect('create_place_order', place_id=place_id)
         
-        # Create the order
-        order = PlaceOrder.objects.create(
-            place=place,
-            customer=request.user,  # Use the staff member as customer for now
-            customer_name=customer_name,
-            customer_phone=customer_phone,
-            status='pending',
-            order_type='dine_in',  # Default to dine in
-            subtotal=0,  # Will be calculated
-            tax_amount=0,  # No tax for now
-            delivery_fee=0,  # No delivery fee for now
-            total_amount=0,  # Will be calculated
-            party_size=1  # Default party size
-        )
-        
-        # Set staff member if user is staff
-        if place.created_by != request.user:
-            try:
-                staff_member = place.staff_members.get(user=request.user)
-                order.staff_member = staff_member
-            except PlaceStaff.DoesNotExist:
-                pass
-        
-        # Create order items
-        total_amount = 0
-        for i, item_id in enumerate(menu_items):
-            try:
-                menu_item = MenuItem.objects.get(pk=item_id, place=place)
-                quantity = int(quantities[i]) if i < len(quantities) else 1
-                instruction = instructions[i] if i < len(instructions) else ""
-                
-                order_item = PlaceOrderItem.objects.create(
-                    order=order,
-                    menu_item=menu_item,
-                    quantity=quantity,
-                    special_instructions=instruction,
-                    total_price=menu_item.price * quantity
-                )
-                
-                total_amount += order_item.total_price
-            except (MenuItem.DoesNotExist, ValueError, IndexError):
-                continue
-        
-        # Update order total and subtotal
-        order.subtotal = total_amount
-        order.total_amount = total_amount
-        order.save()
-        
-        messages.success(request, f'Order #{order.id} created successfully!')
-        return redirect('staff_dashboard', place_id=place_id)
+        try:
+            # Create the order
+            order = PlaceOrder.objects.create(
+                place=place,
+                customer=request.user,  # Use the staff member as customer for now
+                customer_name=customer_name,
+                customer_phone=customer_phone,
+                status='pending',
+                order_type='dine_in',  # Default to dine in
+                subtotal=0,  # Will be calculated
+                tax_amount=0,  # No tax for now
+                delivery_fee=0,  # No delivery fee for now
+                total_amount=0,  # Will be calculated
+                party_size=1  # Default party size
+            )
+            
+            print(f"DEBUG: Order created with ID: {order.id}")
+            
+            # Set staff member if user is staff
+            if place.created_by != request.user:
+                try:
+                    staff_member = place.staff_members.get(user=request.user)
+                    order.staff_member = staff_member
+                    print(f"DEBUG: Staff member set: {staff_member}")
+                except PlaceStaff.DoesNotExist:
+                    print("DEBUG: No staff member found")
+                    pass
+            
+            # Create order items
+            total_amount = 0
+            for i, item_id in enumerate(menu_items):
+                try:
+                    menu_item = MenuItem.objects.get(pk=item_id, place=place)
+                    quantity = int(quantities[i]) if i < len(quantities) else 1
+                    instruction = instructions[i] if i < len(instructions) else ""
+                    
+                    order_item = PlaceOrderItem.objects.create(
+                        order=order,
+                        menu_item=menu_item,
+                        quantity=quantity,
+                        special_instructions=instruction,
+                        total_price=menu_item.price * quantity
+                    )
+                    
+                    print(f"DEBUG: Order item created: {order_item.menu_item.name} x {quantity}")
+                    total_amount += order_item.total_price
+                except (MenuItem.DoesNotExist, ValueError, IndexError) as e:
+                    print(f"DEBUG: Error creating order item: {e}")
+                    continue
+            
+            # Update order total and subtotal
+            order.subtotal = total_amount
+            order.total_amount = total_amount
+            order.save()
+            
+            print(f"DEBUG: Order updated with total: {total_amount}")
+            print(f"DEBUG: Final order status: {order.status}")
+            
+            messages.success(request, f'Order #{order.id} created successfully!')
+            return redirect('staff_dashboard', place_id=place_id)
+            
+        except Exception as e:
+            print(f"DEBUG: Error creating order: {e}")
+            messages.error(request, f'Error creating order: {str(e)}')
+            return redirect('create_place_order', place_id=place_id)
     
     # Get menu categories and items for the form
     from listings.models import MenuCategory
@@ -4579,10 +5434,15 @@ def create_place_order(request, place_id):
 
 
 @login_required
-def edit_place_order(request, order_id):
+def edit_place_order(request, place_id, order_id):
     """Edit an existing order"""
     order = get_object_or_404(PlaceOrder, pk=order_id)
-    place = order.place
+    place = get_object_or_404(Place, pk=place_id)
+    
+    # Verify the order belongs to the specified place
+    if order.place != place:
+        messages.error(request, 'Order does not belong to this place.')
+        return redirect('place_orders_dashboard', place_id=place_id)
     
     # Check if user is the place owner or staff member with permission
     if place.created_by != request.user:
@@ -4612,10 +5472,10 @@ def edit_place_order(request, order_id):
 
 
 @login_required
-def delete_place_order(request, order_id):
+def delete_place_order(request, place_id, order_id):
     """Delete an order"""
     order = get_object_or_404(PlaceOrder, pk=order_id)
-    place = order.place
+    place = get_object_or_404(Place, pk=place_id)
     
     # Check if user is the place owner or staff member with permission
     if place.created_by != request.user:
@@ -4625,7 +5485,7 @@ def delete_place_order(request, order_id):
                 messages.error(request, 'You do not have permission to delete orders.')
                 return redirect('place_orders_dashboard', place_id=place.pk)
         except PlaceStaff.DoesNotExist:
-            messages.error(request, 'You do not have permission to delete orders.')
+            messages.error(request, 'You do not have permission to access this dashboard.')
             return redirect('public_place_detail', pk=place.pk)
     
     if request.method == 'POST':
@@ -4638,3 +5498,85 @@ def delete_place_order(request, order_id):
         'order': order,
         'place': place
     })
+
+
+@login_required
+def add_items_to_order(request, place_id, order_id):
+    """Add more items to an existing order"""
+    order = get_object_or_404(PlaceOrder, pk=order_id)
+    place = get_object_or_404(Place, pk=place_id)
+    
+    # Verify the order belongs to the specified place
+    if order.place != place:
+        messages.error(request, 'Order does not belong to this place.')
+        return redirect('place_orders_dashboard', place_id=place_id)
+    
+    # Check if user is the place owner or staff member with permission
+    if place.created_by != request.user:
+        try:
+            staff_member = place.staff_members.get(user=request.user)
+            if not staff_member.can_edit_orders:
+                messages.error(request, 'You do not have permission to edit orders.')
+                return redirect('place_orders_dashboard', place_id=place.pk)
+        except PlaceStaff.DoesNotExist:
+            messages.error(request, 'You do not have permission to edit orders.')
+            return redirect('public_place_detail', pk=place.pk)
+    
+    if request.method == 'POST':
+        # Get form data
+        menu_items = request.POST.getlist('menu_items')
+        quantities = request.POST.getlist('quantities')
+        instructions = request.POST.getlist('instructions')
+        
+        if not menu_items:
+            messages.error(request, 'Please add at least one menu item to the order.')
+            return redirect('add_items_to_order', place_id=place_id, order_id=order_id)
+        
+        try:
+            # Add new order items
+            total_amount = 0
+            for i, item_id in enumerate(menu_items):
+                try:
+                    menu_item = MenuItem.objects.get(pk=item_id, place=place)
+                    quantity = int(quantities[i]) if i < len(quantities) else 1
+                    instruction = instructions[i] if i < len(instructions) else ""
+                    
+                    order_item = PlaceOrderItem.objects.create(
+                        order=order,
+                        menu_item=menu_item,
+                        quantity=quantity,
+                        special_instructions=instruction,
+                        total_price=menu_item.price * quantity
+                    )
+                    
+                    total_amount += order_item.total_price
+                except (MenuItem.DoesNotExist, ValueError, IndexError) as e:
+                    continue
+            
+            # Update order total and subtotal
+            order.subtotal += total_amount
+            order.total_amount += total_amount
+            order.save()
+            
+            messages.success(request, f'Added {len(menu_items)} items to Order #{order.id}')
+            return redirect('place_orders_dashboard', place_id=place.pk)
+            
+        except Exception as e:
+            messages.error(request, f'Error adding items to order: {str(e)}')
+            return redirect('add_items_to_order', place_id=place_id, order_id=order_id)
+    
+    # Get menu categories and items for the form
+    from listings.models import MenuCategory
+    menu_categories = MenuCategory.objects.filter(place=place).prefetch_related('menu_items')
+    
+    # Get existing order items to show current order
+    existing_items = order.items.all()
+    
+    context = {
+        'place': place,
+        'order': order,
+        'menu_categories': menu_categories,
+        'existing_items': existing_items,
+    }
+    
+    return render(request, 'listings/add_items_to_order.html', context)

@@ -151,8 +151,15 @@ def my_subscriptions(request):
     """User's subscription management page"""
     subscriptions = Subscription.objects.filter(user=request.user).order_by('-created_at')
     
+    # Calculate total monthly cost for active subscriptions
+    total_monthly_cost = sum(
+        subscription.amount for subscription in subscriptions 
+        if subscription.status == 'active' and subscription.is_active
+    )
+    
     context = {
         'subscriptions': subscriptions,
+        'total_monthly_cost': total_monthly_cost,
     }
     return render(request, 'core/my_subscriptions.html', context)
 

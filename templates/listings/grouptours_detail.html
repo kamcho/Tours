@@ -18,11 +18,11 @@
                 </span>
                 {% endif %}
                 <span class="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold">
-                    ${{ group_tour.price_per_person }}
+                    Ksh {{ group_tour.price_per_person }}
                 </span>
                 {% if group_tour.couple_price %}
                 <span class="bg-pink-500 text-white px-4 py-2 rounded-full text-sm font-semibold">
-                    Couple: ${{ group_tour.couple_price }}
+                    Couple: Ksh {{ group_tour.couple_price }}
                 </span>
                 {% endif %}
 
@@ -82,10 +82,10 @@
                     <!-- Price Badge -->
                     <div class="absolute top-6 right-6">
                         <div class="bg-white/90 backdrop-blur-sm text-gray-800 px-4 py-2 rounded-full text-lg font-bold">
-                            ${{ group_tour.price_per_person }}
+                            Ksh {{ group_tour.price_per_person }}
                             {% if group_tour.couple_price %}
                             <div class="text-sm text-pink-600 font-semibold">
-                                Couple: ${{ group_tour.couple_price }}
+                                Couple: Ksh {{ group_tour.couple_price }}
                             </div>
                             {% endif %}
                         </div>

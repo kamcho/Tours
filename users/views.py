@@ -58,6 +58,8 @@ def signup_view(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
+            # Clear any existing messages and show only this one
+            messages.get_messages(request)
             messages.success(request, f'Account created successfully! Let\'s complete your profile.')
             return redirect('profile_completion')  # Redirect to profile completion instead of home
         else:
@@ -118,6 +120,8 @@ def profile_completion_view(request):
             profile.date_of_birth = date_of_birth
         profile.save()
         
+        # Clear any existing messages and show only this one
+        messages.get_messages(request)
         messages.success(request, 'Profile completed successfully! Now let\'s set your preferences.')
         return redirect('preferences_setup')
     
@@ -185,6 +189,8 @@ def preferences_setup_view(request):
         
         preferences.save()
         
+        # Clear any existing messages and show only this one
+        messages.get_messages(request)
         messages.success(request, 'Welcome to TravelsKe! Your account setup is complete.')
         return redirect('home')
     

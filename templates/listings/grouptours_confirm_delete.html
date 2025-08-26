@@ -98,9 +98,9 @@
                             </div>
                             <div>
                                 <p class="text-sm text-gray-600">Price</p>
-                                <p class="font-semibold text-gray-800">${{ group_tour.price_per_person }}</p>
+                                <p class="font-semibold text-gray-800">Ksh {{ group_tour.price_per_person }}</p>
                 {% if group_tour.couple_price %}
-                <p class="text-sm text-pink-600">Couple: ${{ group_tour.couple_price }}</p>
+                                        <p class="text-sm text-pink-600">Couple: Ksh {{ group_tour.couple_price }}</p>
                 {% endif %}
                             </div>
                         </div>

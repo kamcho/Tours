@@ -1,6 +1,6 @@
 {% extends 'users/base.html' %}
 
-{% block title %}Create Order - {{ place.name }}{% endblock %}
+{% block title %}Add Items to Order - {{ place.name }}{% endblock %}
 
 {% block navbar %}
     {% include 'users/staff_navbar.html' %}
@@ -13,41 +13,65 @@
         <div class="mb-8">
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Create New Order</h1>
-                    <p class="text-lg text-gray-600">{{ place.name }} - {{ place.location }}</p>
+                    <h1 class="text-3xl font-bold text-gray-900">Add Items to Order</h1>
+                    <p class="text-lg text-gray-600">{{ place.name }} - Order #{{ order.order_number }}</p>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="{% url 'staff_dashboard' place.pk %}" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors">
-                        Back to Dashboard
+                    <a href="{% url 'place_orders_dashboard' place.pk %}" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors">
+                        Back to Orders
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- Order Form -->
+        <!-- Current Order Summary -->
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Current Order</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Customer</p>
+                    <p class="text-gray-900">{{ order.customer_name|default:"Walk-in Customer" }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Order Date</p>
+                    <p class="text-gray-900">{{ order.order_date|date:"M d, Y H:i" }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Current Total</p>
+                    <p class="text-lg font-semibold text-gray-900">KES {{ order.total_amount }}</p>
+                </div>
+            </div>
+
+            {% if existing_items %}
+            <div class="bg-gray-50 rounded-lg p-4">
+                <h3 class="font-medium text-gray-900 mb-2">Current Items</h3>
+                <div class="space-y-2">
+                    {% for item in existing_items %}
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-700">{{ item.quantity }}x {{ item.menu_item.name }}</span>
+                        <span class="text-gray-600">KES {{ item.total_price }}</span>
+                    </div>
+                    {% if item.special_instructions %}
+                        <p class="text-xs text-gray-500 ml-4">Note: {{ item.special_instructions }}</p>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-4 text-gray-500">
+                <p>No items in this order yet.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Add Items Form -->
         <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-            <form method="post" id="orderForm">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Add New Items</h2>
+            <form method="post" id="addItemsForm">
                 {% csrf_token %}
                 
-                <!-- Customer Information -->
-                <div class="mb-6">
-                    <h2 class="text-xl font-bold text-gray-900 mb-4">Customer Information</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
-                            <input type="text" name="customer_name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter customer name" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                            <input type="tel" name="customer_phone" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter phone number">
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Menu Items Selection -->
                 <div class="mb-6">
-                    <h2 class="text-xl font-bold text-gray-900 mb-4">Menu Items</h2>
-                    
                     <!-- Add Item Section -->
                     <div class="bg-gray-50 rounded-lg p-4 mb-4">
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
@@ -92,16 +116,20 @@
                 <div class="mb-6">
                     <h2 class="text-xl font-bold text-gray-900 mb-4">Order Summary</h2>
                     <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex justify-between items-center text-lg font-semibold mb-2">
+                            <span>Current Order Total:</span>
+                            <span>KES {{ order.total_amount }}</span>
+                        </div>
                         <div class="flex justify-between items-center text-lg font-semibold">
-                            <span>Total Amount:</span>
-                            <span id="totalAmount">KES 0.00</span>
+                            <span>New Items Total:</span>
+                            <span id="newItemsTotal">KES 0.00</span>
+                        </div>
+                        <hr class="my-2">
+                        <div class="flex justify-between items-center text-xl font-bold text-blue-600">
+                            <span>Final Total:</span>
+                            <span id="finalTotal">KES {{ order.total_amount }}</span>
                         </div>
                     </div>
-                </div>
-
-                <!-- Hidden form fields for selected items -->
-                <div id="hiddenFields" style="display: none;">
-                    <!-- Hidden fields will be added here -->
                 </div>
 
                 <!-- Submit Button -->
@@ -110,7 +138,7 @@
                         Cancel
                     </button>
                     <button type="submit" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium">
-                        Create Order
+                        Add Items to Order
                     </button>
                 </div>
             </form>
@@ -118,9 +146,14 @@
     </div>
 </div>
 
+<!-- Hidden form fields for selected items -->
+<div id="hiddenFields" style="display: none;">
+    <!-- Hidden fields will be added here -->
+</div>
+
 <script>
 let selectedItems = [];
-let totalAmount = 0;
+let currentOrderTotal = {{ order.total_amount }};
 
 function addMenuItem() {
     const select = document.getElementById('menuItemSelect');
@@ -141,8 +174,6 @@ function addMenuItem() {
     
     const itemTotal = itemPrice * itemQuantity;
     
-    console.log('Adding menu item:', { id: itemId, name: itemName, price: itemPrice, quantity: itemQuantity, instructions: itemInstructions, total: itemTotal });
-    
     // Add to selected items array
     selectedItems.push({
         id: itemId,
@@ -152,8 +183,6 @@ function addMenuItem() {
         instructions: itemInstructions,
         total: itemTotal
     });
-    
-    console.log('Selected items after adding:', selectedItems);
     
     // Update display
     updateSelectedItemsDisplay();
@@ -178,8 +207,6 @@ function updateSelectedItemsDisplay() {
     container.innerHTML = '';
     hiddenFields.innerHTML = '';
     
-    console.log('Updating display for items:', selectedItems);
-    
     selectedItems.forEach((item, index) => {
         // Add to visible display
         const itemDiv = document.createElement('div');
@@ -202,41 +229,30 @@ function updateSelectedItemsDisplay() {
         container.appendChild(itemDiv);
         
         // Add hidden fields for form submission
-        const hiddenFieldHtml = `
+        hiddenFields.innerHTML += `
             <input type="hidden" name="menu_items" value="${item.id}">
             <input type="hidden" name="quantities" value="${item.quantity}">
             <input type="hidden" name="instructions" value="${item.instructions}">
         `;
-        hiddenFields.innerHTML += hiddenFieldHtml;
-        console.log('Added hidden field:', hiddenFieldHtml);
     });
-    
-    console.log('Hidden fields container HTML:', hiddenFields.innerHTML);
 }
 
 function updateTotalAmount() {
-    totalAmount = selectedItems.reduce((sum, item) => sum + item.total, 0);
-    document.getElementById('totalAmount').textContent = `KES ${totalAmount.toFixed(2)}`;
+    const newItemsTotal = selectedItems.reduce((sum, item) => sum + item.total, 0);
+    const finalTotal = currentOrderTotal + newItemsTotal;
+    
+    document.getElementById('newItemsTotal').textContent = `KES ${newItemsTotal.toFixed(2)}`;
+    document.getElementById('finalTotal').textContent = `KES ${finalTotal.toFixed(2)}`;
 }
 
 // Form validation
-document.getElementById('orderForm').addEventListener('submit', function(e) {
-    console.log('Form submission - selectedItems:', selectedItems);
-    console.log('Form submission - totalAmount:', totalAmount);
-    
+document.getElementById('addItemsForm').addEventListener('submit', function(e) {
     if (selectedItems.length === 0) {
         e.preventDefault();
         alert('Please add at least one menu item to the order');
         return false;
     }
-    
-    if (totalAmount <= 0) {
-        e.preventDefault();
-        alert('Order total must be greater than zero');
-        return false;
-    }
-    
-    console.log('Form validation passed, submitting...');
 });
 </script>
 {% endblock %}
+

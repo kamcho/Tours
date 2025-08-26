@@ -14,7 +14,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-3xl font-bold text-gray-900">Staff Dashboard</h1>
-                    <p class="text-lg text-gray-600">{{ place.name }} - {{ place.city }}, {{ place.country }}</p>
+                    <p class="text-lg text-gray-600">{{ place.name }} - {{ place.location }}</p>
                 </div>
                 <div class="flex items-center space-x-4">
                     <span class="text-sm text-gray-500">Logged in as: {{ user.get_full_name|default:user.username }}</span>
@@ -144,7 +144,7 @@
                         <div class="flex-1">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <h3 class="font-semibold text-gray-900">Order #{{ order.id }}</h3>
+                                    <h3 class="font-semibold text-gray-900">Order #{{ order.order_number }}</h3>
                                     <p class="text-sm text-gray-600">{{ order.customer_name|default:"Walk-in Customer" }} • {{ order.order_date|date:"M d, H:i" }}</p>
                                 </div>
                                 <div class="text-right">
@@ -171,9 +171,12 @@
                                 </p>
                             </div>
                         </div>
-                        <div class="ml-4">
+                        <div class="ml-4 flex space-x-2">
                             <a href="{% url 'edit_place_order' place.pk order.pk %}" class="bg-blue-500 text-white px-3 py-1 rounded text-sm font-medium hover:bg-blue-600 transition-colors">
-                                Manage
+                                Edit
+                            </a>
+                            <a href="{% url 'add_items_to_order' place.pk order.pk %}" class="bg-green-500 text-white px-3 py-1 rounded text-sm font-medium hover:bg-green-600 transition-colors">
+                                Add Items
                             </a>
                         </div>
                     </div>

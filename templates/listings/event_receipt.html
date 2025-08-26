@@ -1,0 +1,308 @@
+{% extends 'users/base.html' %}
+{% load static %}
+
+{% block title %}Event Payment Receipt - TravelsKe{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header Section -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Payment Receipt</h1>
+            <p class="text-xl text-gray-600">Event: {{ event.name }}</p>
+        </div>
+
+        <!-- Receipt Card -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
+            <!-- Payment Status -->
+            <div class="text-center mb-8">
+                <div id="payment-status-icon" class="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center">
+                    <!-- Status will be updated by JavaScript -->
+                </div>
+                <h2 id="payment-status-title" class="text-2xl font-bold mb-2">Processing Payment...</h2>
+                <p id="payment-status-message" class="text-gray-600">Please wait while we confirm your payment status</p>
+            </div>
+
+            <!-- Event Details -->
+            <div class="bg-gray-50 rounded-xl p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Event Details</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-blue-100 rounded-lg">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Event Name</p>
+                            <p class="text-gray-900 font-medium">{{ event.name }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-green-100 rounded-lg">
+                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Location</p>
+                            <p class="text-gray-900 font-medium">{{ event.place.name }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-purple-100 rounded-lg">
+                            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Date & Time</p>
+                            <p class="text-gray-900 font-medium">{{ event.date|date:"M d, Y" }} at {{ event.time|time:"g:i A" }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-orange-100 rounded-lg">
+                            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Participants</p>
+                            <p class="text-gray-900 font-medium">{{ booking.participants }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Details -->
+            <div class="bg-gray-50 rounded-xl p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Payment Details</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Transaction ID:</span>
+                        <span class="font-semibold" id="transaction-id">{{ transaction_id|default:"Pending..." }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Amount:</span>
+                        <span class="font-semibold text-green-600">
+                            {% if event.price_per_person %}
+                                KES {{ total_amount|floatformat:0 }}
+                            {% else %}
+                                Free Event
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Payment Method:</span>
+                        <span class="font-semibold">M-Pesa</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Status:</span>
+                        <span id="payment-status-badge" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                            Processing...
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Date:</span>
+                        <span class="font-semibold">{{ booking.created_at|date:"M d, Y H:i" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center" id="action-buttons" style="display: none;">
+                <button id="refresh-status-btn" onclick="checkPaymentStatus()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105">
+                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    Refresh Status
+                </button>
+                
+                <a href="{% url 'user_bookings' %}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 text-center">
+                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    View My Bookings
+                </a>
+                
+                <a href="{% url 'event_list' %}" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 text-center">
+                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    Browse More Events
+                </a>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="loading-spinner" class="text-center">
+                <div class="inline-flex items-center px-4 py-2 font-semibold leading-6 text-blue-600">
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Checking payment status...
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Creator Section -->
+        <div class="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-200">
+            <div class="text-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Need Help?</h3>
+                <p class="text-gray-600">Questions about your payment or the event? Contact the event creator</p>
+            </div>
+            
+            <div class="flex flex-wrap justify-center gap-4">
+                {% if event.creator.email %}
+                <a href="mailto:{{ event.creator.email }}?subject=Question about {{ event.name }} payment" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    Email Creator
+                </a>
+                {% endif %}
+                
+                <a href="{% url 'public_event_detail' event.pk %}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    View Event Details
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let checkCount = 0;
+const maxChecks = 10; // Maximum number of status checks
+const checkInterval = 3000; // Check every 3 seconds
+
+// Function to update payment status display
+function updatePaymentStatus(status, message, iconClass, badgeClass, badgeText) {
+    const statusIcon = document.getElementById('payment-status-icon');
+    const statusTitle = document.getElementById('payment-status-title');
+    const statusMessage = document.getElementById('payment-status-message');
+    const statusBadge = document.getElementById('payment-status-badge');
+    const actionButtons = document.getElementById('action-buttons');
+    const loadingSpinner = document.getElementById('loading-spinner');
+
+    // Update status icon
+    statusIcon.className = `w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center ${iconClass}`;
+    
+    // Set appropriate icon based on status
+    if (status.includes('Successful')) {
+        statusIcon.innerHTML = `<svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>`;
+    } else if (status.includes('Failed')) {
+        statusIcon.innerHTML = `<svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>`;
+    } else if (status.includes('Processing')) {
+        statusIcon.innerHTML = `<svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>`;
+    } else {
+        statusIcon.innerHTML = `<svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>`;
+    }
+
+    // Update status text
+    statusTitle.textContent = status;
+    statusMessage.textContent = message;
+
+    // Update status badge
+    statusBadge.className = `inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${badgeClass}`;
+    statusBadge.textContent = badgeText;
+
+    // Show action buttons and hide loading spinner
+    actionButtons.style.display = 'flex';
+    loadingSpinner.style.display = 'none';
+}
+
+// Function to check payment status
+async function checkPaymentStatus() {
+    try {
+        const response = await fetch(`/listings/event/payment-status/${encodeURIComponent('{{ transaction_id }}')}/`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const status = data.payment_status;
+            
+            if (status === 'completed' || status === 'successful') {
+                updatePaymentStatus(
+                    'Payment Successful! 🎉',
+                    'Your event booking has been confirmed. You will receive a confirmation email shortly.',
+                    'bg-green-500',
+                    'bg-green-100 text-green-800',
+                    'Completed'
+                );
+                return true; // Stop checking
+            } else if (status === 'failed' || status === 'cancelled') {
+                updatePaymentStatus(
+                    'Payment Failed ❌',
+                    'Your payment was not successful. Please try again or contact support.',
+                    'bg-red-500',
+                    'bg-red-100 text-red-800',
+                    'Failed'
+                );
+                return true; // Stop checking
+            } else if (status === 'pending' || status === 'processing') {
+                updatePaymentStatus(
+                    'Payment Processing... ⏳',
+                    'Your payment is still being processed. This may take a few minutes.',
+                    'bg-yellow-500',
+                    'bg-yellow-100 text-yellow-800',
+                    'Processing'
+                );
+            }
+        }
+    } catch (error) {
+        console.error('Error checking payment status:', error);
+    }
+    
+    return false; // Continue checking
+}
+
+// Function to start periodic status checking
+async function startStatusChecking() {
+    while (checkCount < maxChecks) {
+        checkCount++;
+        
+        const isComplete = await checkPaymentStatus();
+        if (isComplete) {
+            break; // Stop if payment is complete or failed
+        }
+        
+        // Wait before next check
+        await new Promise(resolve => setTimeout(resolve, checkInterval));
+    }
+    
+    // If we've reached max checks, show a message
+    if (checkCount >= maxChecks) {
+        updatePaymentStatus(
+            'Status Unclear 🤔',
+            'We couldn\'t determine your payment status. Please contact support or check your M-Pesa statement.',
+            'bg-gray-500',
+            'bg-gray-100 text-gray-800',
+            'Unknown'
+        );
+    }
+}
+
+// Start checking payment status when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Start the status checking process
+    startStatusChecking();
+    
+    // Also check immediately
+    checkPaymentStatus();
+});
+</script>
+{% endblock %}
