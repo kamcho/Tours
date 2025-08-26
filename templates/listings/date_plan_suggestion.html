@@ -1,0 +1,244 @@
+{% extends 'users/base.html' %}
+{% load static %}
+
+{% block title %}AI Date Plan Suggestions - TravelsKe{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50">
+    <!-- Header Section -->
+    <div class="bg-gradient-to-r from-yellow-500 via-orange-500 to-red-600 text-white">
+        <div class="max-w-7xl mx-auto px-4 py-16">
+            <div class="text-center">
+                <div class="inline-flex items-center bg-white/20 rounded-full px-6 py-3 mb-6">
+                    <svg class="w-8 h-8 text-white mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                    </svg>
+                    <span class="text-xl font-semibold">AI Date Planner</span>
+                </div>
+                
+                <h1 class="text-5xl lg:text-6xl font-bold mb-6">
+                    Let AI Plan Your Perfect Date
+                </h1>
+                <p class="text-xl text-yellow-100 max-w-3xl mx-auto mb-8">
+                    Our intelligent AI system will create personalized date plans based on your preferences, 
+                    location, and interests. Get inspired with unique suggestions tailored just for you.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 py-12">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <!-- Left Column: Request Form -->
+            <div class="bg-white rounded-3xl shadow-2xl border border-orange-100 overflow-hidden">
+                <div class="bg-gradient-to-r from-orange-500 to-red-500 px-8 py-6">
+                    <h2 class="text-2xl font-bold text-white flex items-center">
+                        <svg class="w-7 h-7 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        Request AI Suggestion
+                    </h2>
+                    <p class="text-orange-100 mt-2">Tell us what you're looking for and let AI create magic</p>
+                </div>
+                
+                <div class="p-8">
+                    <form method="post" class="space-y-6">
+                        {% csrf_token %}
+                        
+                        <!-- Plan Type -->
+                        <div>
+                            <label for="{{ suggestion_form.suggestion_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                What type of experience are you looking for?
+                            </label>
+                            {{ suggestion_form.suggestion_type }}
+                            {% if suggestion_form.suggestion_type.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ suggestion_form.suggestion_type.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Date -->
+                        <div>
+                            <label for="{{ suggestion_form.date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                When do you want to go?
+                            </label>
+                            {{ suggestion_form.date }}
+                            {% if suggestion_form.date.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ suggestion_form.date.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Duration -->
+                        <div>
+                            <label for="{{ suggestion_form.duration.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                How long do you want to spend? (hours)
+                            </label>
+                            {{ suggestion_form.duration }}
+                            {% if suggestion_form.duration.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ suggestion_form.duration.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Location -->
+                        <div>
+                            <label for="{{ suggestion_form.location.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Where do you want to go?
+                            </label>
+                            {{ suggestion_form.location }}
+                            {% if suggestion_form.location.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ suggestion_form.location.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Budget -->
+                        <div>
+                            <label for="{{ suggestion_form.budget.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                What's your budget? (optional)
+                            </label>
+                            {{ suggestion_form.budget }}
+                            {% if suggestion_form.budget.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ suggestion_form.budget.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Group Size -->
+                        <div>
+                            <label for="{{ suggestion_form.group_size.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                How many people?
+                            </label>
+                            {{ suggestion_form.group_size }}
+                            {% if suggestion_form.group_size.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ suggestion_form.group_size.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Preferences -->
+                        <div>
+                            <label for="{{ suggestion_form.preferences.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Any specific preferences or interests?
+                            </label>
+                            {{ suggestion_form.preferences }}
+                            {% if suggestion_form.preferences.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ suggestion_form.preferences.errors.0 }}</p>
+                            {% endif %}
+                            <p class="text-gray-500 text-sm mt-1">Tell us about your interests, dietary preferences, accessibility needs, etc.</p>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <button type="submit" class="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-4 px-6 rounded-2xl font-semibold text-lg hover:from-orange-600 hover:to-red-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                            <svg class="w-6 h-6 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                            </svg>
+                            Generate AI Suggestion
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Column: How It Works & Tips -->
+            <div class="space-y-8">
+                <!-- How It Works -->
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                        <svg class="w-7 h-7 text-blue-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        How It Works
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="text-blue-600 font-bold text-sm">1</span>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Tell Us What You Want</h4>
+                                <p class="text-gray-600 text-sm">Fill out the form with your preferences, date, location, and interests.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="text-green-600 font-bold text-sm">2</span>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">AI Creates Your Plan</h4>
+                                <p class="text-gray-600 text-sm">Our intelligent system analyzes your preferences and creates a personalized itinerary.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="text-purple-600 font-bold text-sm">3</span>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Review & Customize</h4>
+                                <p class="text-gray-600 text-sm">Review the AI suggestion and customize it to make it perfect for you.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="text-orange-600 font-bold text-sm">4</span>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Enjoy Your Day!</h4>
+                                <p class="text-gray-600 text-sm">Follow your personalized plan and create amazing memories.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pro Tips -->
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                        <svg class="w-7 h-7 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                        Pro Tips
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <p class="text-gray-600 text-sm">Be specific about your interests and preferences for better suggestions.</p>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <p class="text-gray-600 text-sm">Include dietary restrictions and accessibility needs if applicable.</p>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <p class="text-gray-600 text-sm">Mention any special occasions or themes you want to incorporate.</p>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <p class="text-gray-600 text-sm">The more details you provide, the more personalized your plan will be.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Back to Dashboard -->
+                <div class="text-center">
+                    <a href="{% url 'date_planner_dashboard' %}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Back to Date Planner Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

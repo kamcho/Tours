@@ -1,0 +1,227 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Create Order - {{ place.name }}{% endblock %}
+
+{% block navbar %}
+    {% include 'users/staff_navbar.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Create New Order</h1>
+                    <p class="text-lg text-gray-600">{{ place.name }} - {{ place.city }}, {{ place.country }}</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'staff_dashboard' place.pk %}" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors">
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Form -->
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+            <form method="post" id="orderForm">
+                {% csrf_token %}
+                
+                <!-- Customer Information -->
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4">Customer Information</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
+                            <input type="text" name="customer_name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter customer name" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                            <input type="tel" name="customer_phone" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter phone number">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Menu Items Selection -->
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4">Menu Items</h2>
+                    
+                    <!-- Add Item Section -->
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Menu Item</label>
+                                <select id="menuItemSelect" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Select menu item</option>
+                                    {% for category in menu_categories %}
+                                        <optgroup label="{{ category.name }}">
+                                            {% for item in category.menu_items.all %}
+                                                <option value="{{ item.id }}" data-price="{{ item.price }}" data-name="{{ item.name }}">
+                                                    {{ item.name }} - KES {{ item.price }}
+                                                </option>
+                                            {% endfor %}
+                                        </optgroup>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                                <input type="number" id="itemQuantity" min="1" value="1" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Special Instructions</label>
+                                <input type="text" id="itemInstructions" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., No onions, Extra spicy">
+                            </div>
+                            <div>
+                                <button type="button" onclick="addMenuItem()" class="w-full bg-blue-500 text-white px-4 py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium">
+                                    Add Item
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Selected Items List -->
+                    <div id="selectedItems" class="space-y-3">
+                        <!-- Items will be added here dynamically -->
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4">Order Summary</h2>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex justify-between items-center text-lg font-semibold">
+                            <span>Total Amount:</span>
+                            <span id="totalAmount">KES 0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="window.history.back()" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors font-medium">
+                        Cancel
+                    </button>
+                    <button type="submit" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium">
+                        Create Order
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form fields for selected items -->
+<div id="hiddenFields" style="display: none;">
+    <!-- Hidden fields will be added here -->
+</div>
+
+<script>
+let selectedItems = [];
+let totalAmount = 0;
+
+function addMenuItem() {
+    const select = document.getElementById('menuItemSelect');
+    const quantity = document.getElementById('itemQuantity');
+    const instructions = document.getElementById('itemInstructions');
+    
+    if (!select.value) {
+        alert('Please select a menu item');
+        return;
+    }
+    
+    const selectedOption = select.options[select.selectedIndex];
+    const itemId = select.value;
+    const itemName = selectedOption.dataset.name;
+    const itemPrice = parseFloat(selectedOption.dataset.price);
+    const itemQuantity = parseInt(quantity.value);
+    const itemInstructions = instructions.value;
+    
+    const itemTotal = itemPrice * itemQuantity;
+    
+    // Add to selected items array
+    selectedItems.push({
+        id: itemId,
+        name: itemName,
+        price: itemPrice,
+        quantity: itemQuantity,
+        instructions: itemInstructions,
+        total: itemTotal
+    });
+    
+    // Update display
+    updateSelectedItemsDisplay();
+    updateTotalAmount();
+    
+    // Reset form
+    select.value = '';
+    quantity.value = 1;
+    instructions.value = '';
+}
+
+function removeMenuItem(index) {
+    selectedItems.splice(index, 1);
+    updateSelectedItemsDisplay();
+    updateTotalAmount();
+}
+
+function updateSelectedItemsDisplay() {
+    const container = document.getElementById('selectedItems');
+    const hiddenFields = document.getElementById('hiddenFields');
+    
+    container.innerHTML = '';
+    hiddenFields.innerHTML = '';
+    
+    selectedItems.forEach((item, index) => {
+        // Add to visible display
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg';
+        itemDiv.innerHTML = `
+            <div class="flex-1">
+                <h3 class="font-semibold text-gray-900">${item.name}</h3>
+                <p class="text-sm text-gray-600">KES ${item.price} × ${item.quantity}</p>
+                ${item.instructions ? `<p class="text-sm text-gray-500">${item.instructions}</p>` : ''}
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="font-semibold text-gray-900">KES ${item.total.toFixed(2)}</span>
+                <button type="button" onclick="removeMenuItem(${index})" class="text-red-500 hover:text-red-700">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+        container.appendChild(itemDiv);
+        
+        // Add hidden fields for form submission
+        hiddenFields.innerHTML += `
+            <input type="hidden" name="menu_items" value="${item.id}">
+            <input type="hidden" name="quantities" value="${item.quantity}">
+            <input type="hidden" name="instructions" value="${item.instructions}">
+        `;
+    });
+}
+
+function updateTotalAmount() {
+    totalAmount = selectedItems.reduce((sum, item) => sum + item.total, 0);
+    document.getElementById('totalAmount').textContent = `KES ${totalAmount.toFixed(2)}`;
+}
+
+// Form validation
+document.getElementById('orderForm').addEventListener('submit', function(e) {
+    if (selectedItems.length === 0) {
+        e.preventDefault();
+        alert('Please add at least one menu item to the order');
+        return false;
+    }
+    
+    if (totalAmount <= 0) {
+        e.preventDefault();
+        alert('Order total must be greater than zero');
+        return false;
+    }
+});
+</script>
+{% endblock %}

@@ -5,6 +5,7 @@ import os
 from decimal import Decimal
 from django.core.validators import MinValueValidator
 import uuid
+from datetime import datetime, date, timedelta
 
 class Agency(models.Model):
     AGENCY_TYPE_CHOICES = [
@@ -46,6 +47,68 @@ class Agency(models.Model):
     registration_number = models.CharField(max_length=100, blank=True, null=True)
     year_established = models.PositiveIntegerField(blank=True, null=True)
     legal_documents = models.FileField(upload_to='agencies/legal_documents/', blank=True, null=True)
+    
+    # Enhanced Search Fields
+    price_range = models.CharField(
+        max_length=20,
+        choices=[
+            ('budget', 'Budget'),
+            ('mid_range', 'Mid-Range'),
+            ('premium', 'Premium'),
+            ('luxury', 'Luxury'),
+        ],
+        default='mid_range',
+        help_text="Price range of services offered"
+    )
+    
+    specialties = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of specialties (e.g., ['adventure', 'cultural', 'wildlife', 'beach'])"
+    )
+    
+    languages_spoken = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Languages spoken by staff"
+    )
+    
+    group_size_range = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text="Group size range (e.g., '1-10', '10-50', '50+')"
+    )
+    
+    operating_hours = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Operating hours for each day of the week"
+    )
+    
+    # Location Details
+    latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        blank=True,
+        null=True,
+        help_text="GPS latitude coordinate"
+    )
+    
+    longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        blank=True,
+        null=True,
+        help_text="GPS longitude coordinate"
+    )
+    
+    # Certifications & Awards
+    certifications = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of certifications and awards"
+    )
     
     # Social Media
     facebook = models.URLField(blank=True, null=True)
@@ -265,6 +328,86 @@ class Place(models.Model):
     contact_phone = models.CharField(max_length=30, blank=True, null=True)
     profile_picture = models.ImageField(upload_to=place_profile_picture_path, blank=True, null=True, help_text="Main profile picture for the place")
     created_by = models.ForeignKey(MyUser, on_delete=models.SET_NULL, null=True, related_name='places_created')
+    
+    # Enhanced Search Fields
+    price_range = models.CharField(
+        max_length=20, 
+        choices=[
+            ('free', 'Free'),
+            ('low', 'Low (Under KES 500)'),
+            ('medium', 'Medium (KES 500 - 2000)'),
+            ('high', 'High (KES 2000 - 5000)'),
+            ('luxury', 'Luxury (Over KES 5000)'),
+        ],
+        default='free',
+        help_text="Price range for visiting this place"
+    )
+    
+    best_time_to_visit = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Best time of year to visit (e.g., 'June-August', 'Year-round')"
+    )
+    
+    average_visit_duration = models.PositiveIntegerField(
+        default=2,
+        help_text="Average time spent at this place (in hours)"
+    )
+    
+    peak_season = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Peak tourist season (e.g., 'December-March', 'July-September')"
+    )
+    
+    accessibility_features = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of accessibility features (e.g., ['wheelchair_accessible', 'braille_signs'])"
+    )
+    
+    family_friendly = models.BooleanField(
+        default=False,
+        help_text="Whether this place is suitable for families with children"
+    )
+    
+    pet_friendly = models.BooleanField(
+        default=False,
+        help_text="Whether pets are allowed at this place"
+    )
+    
+    # Location Details
+    latitude = models.DecimalField(
+        max_digits=9, 
+        decimal_places=6, 
+        blank=True, 
+        null=True,
+        help_text="GPS latitude coordinate"
+    )
+    
+    longitude = models.DecimalField(
+        max_digits=9, 
+        decimal_places=6, 
+        blank=True, 
+        null=True,
+        help_text="GPS longitude coordinate"
+    )
+    
+    # Operating Hours
+    opening_hours = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Operating hours for each day of the week"
+    )
+    
+    # Amenities
+    amenities = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of available amenities (e.g., ['parking', 'restrooms', 'wifi'])"
+    )
     
     # Verification
     verified = models.BooleanField(default=False, help_text="Place verification status")
@@ -981,3 +1124,509 @@ class RatingHelpful(models.Model):
             raise ValidationError("Must specify either place_rating or agency_rating")
         if self.place_rating and self.agency_rating:
             raise ValidationError("Cannot specify both place_rating and agency_rating")
+
+class PlaceGallery(models.Model):
+    """Gallery images for places"""
+    place = models.ForeignKey(Place, on_delete=models.CASCADE, related_name='place_gallery_images')
+    image = models.ImageField(upload_to='places/gallery/')
+    caption = models.CharField(max_length=200, blank=True, help_text="Optional caption for the image")
+    alt_text = models.CharField(max_length=200, blank=True, help_text="Alt text for accessibility")
+    order = models.PositiveIntegerField(default=0, help_text="Display order (lower numbers appear first)")
+    is_featured = models.BooleanField(default=False, help_text="Mark as featured image")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['order', 'created_at']
+        verbose_name = 'Place Gallery Image'
+        verbose_name_plural = 'Place Gallery Images'
+    
+    def __str__(self):
+        return f"{self.place.name} - {self.caption or 'Image'}"
+    
+    def get_image_url(self):
+        """Get the URL for the image"""
+        if self.image:
+            return self.image.url
+        return None
+    
+    def save(self, *args, **kwargs):
+        # Auto-generate alt text if not provided
+        if not self.alt_text:
+            self.alt_text = f"{self.place.name} - {self.caption or 'Gallery image'}"
+        super().save(*args, **kwargs)
+
+class AgencyGallery(models.Model):
+    """Gallery images for agencies"""
+    agency = models.ForeignKey(Agency, on_delete=models.CASCADE, related_name='gallery_images')
+    image = models.ImageField(upload_to='agencies/gallery/')
+    caption = models.CharField(max_length=200, blank=True, help_text="Optional caption for the image")
+    alt_text = models.CharField(max_length=200, blank=True, help_text="Alt text for accessibility")
+    order = models.PositiveIntegerField(default=0, help_text="Display order (lower numbers appear first)")
+    is_featured = models.BooleanField(default=False, help_text="Mark as featured image")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['order', 'created_at']
+        verbose_name = 'Agency Gallery Image'
+        verbose_name_plural = 'Agency Gallery Images'
+    
+    def __str__(self):
+        return f"{self.agency.name} - {self.caption or 'Image'}"
+    
+    def get_image_url(self):
+        """Get the URL for the image"""
+        if self.image:
+            return self.image.url
+        return None
+    
+    def save(self, *args, **kwargs):
+        # Auto-generate alt text if not provided
+        if not self.alt_text:
+            self.alt_text = f"{self.agency.name} - {self.caption or 'Gallery image'}"
+        super().save(*args, **kwargs)
+
+# Date Planner Models
+class DatePlan(models.Model):
+    """Model for storing date/activity plans created by users"""
+    
+    PLAN_STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('active', 'Active'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    ]
+    
+    PLAN_TYPE_CHOICES = [
+        ('romantic', 'Romantic Date'),
+        ('family', 'Family Day Out'),
+        ('friends', 'Friends Hangout'),
+        ('solo', 'Solo Adventure'),
+        ('business', 'Business Meeting'),
+        ('cultural', 'Cultural Experience'),
+        ('adventure', 'Adventure/Outdoor'),
+        ('relaxation', 'Relaxation/Wellness'),
+        ('food', 'Food & Dining'),
+        ('entertainment', 'Entertainment'),
+        ('shopping', 'Shopping Trip'),
+        ('other', 'Other'),
+    ]
+    
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    creator = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='date_plans')
+    plan_type = models.CharField(max_length=20, choices=PLAN_TYPE_CHOICES, default='other')
+    status = models.CharField(max_length=20, choices=PLAN_STATUS_CHOICES, default='draft')
+    
+    # Date and Time
+    planned_date = models.DateField()
+    start_time = models.TimeField(null=True, blank=True)
+    end_time = models.TimeField(null=True, blank=True)
+    
+    # Location and Budget
+    location = models.CharField(max_length=200, blank=True)
+    budget = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    budget_currency = models.CharField(max_length=3, default='KES')
+    
+    # Preferences
+    group_size = models.PositiveIntegerField(default=2)
+    is_public = models.BooleanField(default=False, help_text="Make this plan visible to others")
+    allow_suggestions = models.BooleanField(default=True, help_text="Allow AI to suggest activities")
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Date Plan'
+        verbose_name_plural = 'Date Plans'
+    
+    def __str__(self):
+        return f"{self.title} - {self.creator.email} ({self.planned_date})"
+    
+    @property
+    def total_cost(self):
+        """Calculate total cost of all activities"""
+        return sum(activity.estimated_cost or 0 for activity in self.activities.all())
+    
+    @property
+    def duration_hours(self):
+        """Calculate total duration in hours"""
+        if self.start_time and self.end_time:
+            start = datetime.combine(self.planned_date, self.start_time)
+            end = datetime.combine(self.planned_date, self.end_time)
+            if end < start:  # If end time is next day
+                end += timedelta(days=1)
+            return (end - start).total_seconds() / 3600
+        return 0
+
+
+class DateActivity(models.Model):
+    """Model for individual activities within a date plan"""
+    
+    ACTIVITY_CATEGORY_CHOICES = [
+        ('food', 'Food & Dining'),
+        ('entertainment', 'Entertainment'),
+        ('outdoor', 'Outdoor Activities'),
+        ('cultural', 'Cultural'),
+        ('shopping', 'Shopping'),
+        ('wellness', 'Wellness & Spa'),
+        ('adventure', 'Adventure'),
+        ('relaxation', 'Relaxation'),
+        ('education', 'Education & Learning'),
+        ('social', 'Social'),
+        ('other', 'Other'),
+    ]
+    
+    date_plan = models.ForeignKey(DatePlan, on_delete=models.CASCADE, related_name='activities')
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    category = models.CharField(max_length=20, choices=ACTIVITY_CATEGORY_CHOICES, default='other')
+    
+    # Timing
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    order = models.PositiveIntegerField(default=0)
+    
+    # Location and Details
+    location = models.CharField(max_length=200, blank=True)
+    address = models.TextField(blank=True)
+    estimated_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    
+    # Related Place/Agency (optional)
+    related_place = models.ForeignKey(Place, on_delete=models.SET_NULL, null=True, blank=True, related_name='date_activities')
+    related_agency = models.ForeignKey(Agency, on_delete=models.SET_NULL, null=True, blank=True, related_name='date_activities')
+    
+    # Status
+    is_completed = models.BooleanField(default=False)
+    notes = models.TextField(blank=True)
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['order', 'start_time']
+        verbose_name = 'Date Activity'
+        verbose_name_plural = 'Date Activities'
+    
+    def __str__(self):
+        return f"{self.title} - {self.date_plan.title}"
+    
+    @property
+    def duration_hours(self):
+        """Calculate activity duration in hours"""
+        start = datetime.combine(date.today(), self.start_time)
+        end = datetime.combine(date.today(), self.end_time)
+        if end < start:  # If end time is next day
+            end += timedelta(days=1)
+        return (end - start).total_seconds() / 3600
+
+
+class DatePlanPreference(models.Model):
+    """Model for storing user preferences for date planning"""
+    
+    user = models.OneToOneField(MyUser, on_delete=models.CASCADE, related_name='date_preferences')
+    
+    # General Preferences
+    preferred_plan_types = models.JSONField(default=list, blank=True)
+    preferred_activities = models.JSONField(default=list, blank=True)
+    preferred_locations = models.JSONField(default=list, blank=True)
+    
+    # Budget Preferences
+    budget_range_min = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    budget_range_max = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    budget_currency = models.CharField(max_length=3, default='KES')
+    
+    # Activity Preferences
+    preferred_duration = models.PositiveIntegerField(default=4, help_text="Preferred duration in hours")
+    group_size_preference = models.PositiveIntegerField(default=2)
+    
+    # Dietary and Accessibility
+    dietary_restrictions = models.JSONField(default=list, blank=True)
+    accessibility_needs = models.JSONField(default=list, blank=True)
+    
+    # AI Suggestions
+    allow_ai_suggestions = models.BooleanField(default=True)
+    ai_suggestion_frequency = models.CharField(max_length=20, choices=[
+        ('always', 'Always'),
+        ('sometimes', 'Sometimes'),
+        ('never', 'Never')
+    ], default='sometimes')
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Date Plan Preference'
+        verbose_name_plural = 'Date Plan Preferences'
+    
+    def __str__(self):
+        return f"Preferences for {self.user.email}"
+
+
+class DatePlanSuggestion(models.Model):
+    """Model for AI-generated date plan suggestions"""
+    
+    SUGGESTION_STATUS_CHOICES = [
+        ('pending', 'Pending Review'),
+        ('accepted', 'Accepted'),
+        ('rejected', 'Rejected'),
+        ('modified', 'Modified'),
+    ]
+    
+    user = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='date_suggestions')
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    
+    # Plan Details
+    suggested_date = models.DateField()
+    estimated_duration = models.PositiveIntegerField(help_text="Duration in hours")
+    estimated_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    
+    # Activities
+    suggested_activities = models.JSONField(default=list, help_text="List of suggested activities")
+    
+    # AI Generation
+    ai_prompt = models.TextField(help_text="Original prompt used to generate suggestion")
+    ai_model = models.CharField(max_length=50, default='gpt-3.5-turbo')
+    generation_timestamp = models.DateTimeField(auto_now_add=True)
+    
+    # User Response
+    status = models.CharField(max_length=20, choices=SUGGESTION_STATUS_CHOICES, default='pending')
+    user_feedback = models.TextField(blank=True)
+    rating = models.PositiveIntegerField(null=True, blank=True, choices=[(i, i) for i in range(1, 6)])
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Date Plan Suggestion'
+        verbose_name_plural = 'Date Plan Suggestions'
+    
+    def __str__(self):
+        return f"AI Suggestion: {self.title} for {self.user.email}"
+
+
+class DatePlanCollaboration(models.Model):
+    """Model for collaborative date planning between users"""
+    
+    COLLABORATION_ROLE_CHOICES = [
+        ('owner', 'Owner'),
+        ('editor', 'Editor'),
+        ('viewer', 'Viewer'),
+        ('contributor', 'Contributor'),
+    ]
+    
+    date_plan = models.ForeignKey(DatePlan, on_delete=models.CASCADE, related_name='collaborators')
+    user = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='date_collaborations')
+    role = models.CharField(max_length=20, choices=COLLABORATION_ROLE_CHOICES, default='viewer')
+    
+    # Permissions
+    can_edit = models.BooleanField(default=False)
+    can_add_activities = models.BooleanField(default=False)
+    can_remove_activities = models.BooleanField(default=False)
+    can_invite_others = models.BooleanField(default=False)
+    
+    # Status
+    is_active = models.BooleanField(default=True)
+    joined_at = models.DateTimeField(auto_now_add=True)
+    last_activity = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['date_plan', 'user']
+        verbose_name = 'Date Plan Collaboration'
+        verbose_name_plural = 'Date Plan Collaborations'
+    
+    def __str__(self):
+        return f"{self.user.email} - {self.role} on {self.date_plan.title}"
+
+
+
+
+class PlaceStaff(models.Model):
+    """Staff members assigned to places with specific permissions"""
+    ROLE_CHOICES = [
+        ('manager', 'Manager'),
+        ('staff', 'Staff'),
+        ('waiter', 'Waiter'),
+        ('chef', 'Chef'),
+        ('cashier', 'Cashier'),
+        ('host', 'Host'),
+        ('bartender', 'Bartender'),
+        ('kitchen_staff', 'Kitchen Staff'),
+        ('cleaning_staff', 'Cleaning Staff'),
+        ('other', 'Other'),
+    ]
+    
+    place = models.ForeignKey(Place, on_delete=models.CASCADE, related_name='staff_members')
+    user = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='place_staff_roles')
+    role = models.CharField(max_length=50, choices=ROLE_CHOICES, default='staff')
+    
+    # Permissions
+    can_view_orders = models.BooleanField(default=True)
+    can_create_orders = models.BooleanField(default=False)
+    can_edit_orders = models.BooleanField(default=False)
+    can_delete_orders = models.BooleanField(default=False)
+    can_view_customers = models.BooleanField(default=True)
+    can_edit_menu = models.BooleanField(default=False)
+    can_manage_staff = models.BooleanField(default=False)
+    can_view_analytics = models.BooleanField(default=False)
+    can_manage_settings = models.BooleanField(default=False)
+    
+    # Status
+    is_active = models.BooleanField(default=True)
+    joined_date = models.DateTimeField(auto_now_add=True)
+    last_active = models.DateTimeField(auto_now=True)
+    
+    # Additional info
+    notes = models.TextField(blank=True, null=True)
+    
+    class Meta:
+        unique_together = ['place', 'user']
+        verbose_name = 'Place Staff'
+        verbose_name_plural = 'Place Staff'
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.role} at {self.place.name}"
+    
+    def has_permission(self, permission):
+        """Check if staff member has a specific permission"""
+        return getattr(self, permission, False)
+    
+    def get_permissions_display(self):
+        """Get a list of all permissions this staff member has"""
+        permissions = []
+        if self.can_view_orders:
+            permissions.append('View Orders')
+        if self.can_create_orders:
+            permissions.append('Create Orders')
+        if self.can_edit_orders:
+            permissions.append('Edit Orders')
+        if self.can_delete_orders:
+            permissions.append('Delete Orders')
+        if self.can_view_customers:
+            permissions.append('View Customers')
+        if self.can_edit_menu:
+            permissions.append('Edit Menu')
+        if self.can_manage_staff:
+            permissions.append('Manage Staff')
+        if self.can_view_analytics:
+            permissions.append('View Analytics')
+        if self.can_manage_settings:
+            permissions.append('Manage Settings')
+        return permissions
+
+
+class PlaceOrder(models.Model):
+    """Orders for places (restaurants, etc.)"""
+    ORDER_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('confirmed', 'Confirmed'),
+        ('preparing', 'Preparing'),
+        ('ready', 'Ready for Pickup/Delivery'),
+        ('delivered', 'Delivered'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    ]
+    
+    ORDER_TYPE_CHOICES = [
+        ('dine_in', 'Dine In'),
+        ('takeaway', 'Takeaway'),
+        ('delivery', 'Delivery'),
+        ('reservation', 'Reservation'),
+    ]
+    
+    place = models.ForeignKey(Place, on_delete=models.CASCADE, related_name='orders')
+    customer = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='place_orders')
+    staff_member = models.ForeignKey(PlaceStaff, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders_handled')
+    
+    # Order details
+    order_number = models.CharField(max_length=50, unique=True)
+    order_type = models.CharField(max_length=20, choices=ORDER_TYPE_CHOICES, default='dine_in')
+    status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='pending')
+    
+    # Timing
+    order_date = models.DateTimeField(auto_now_add=True)
+    estimated_ready_time = models.DateTimeField(null=True, blank=True)
+    actual_ready_time = models.DateTimeField(null=True, blank=True)
+    completed_time = models.DateTimeField(null=True, blank=True)
+    
+    # Customer details
+    customer_name = models.CharField(max_length=100)
+    customer_phone = models.CharField(max_length=20, blank=True, null=True)
+    customer_email = models.EmailField(blank=True, null=True)
+    
+    # Delivery/Reservation details
+    delivery_address = models.TextField(blank=True, null=True)
+    delivery_instructions = models.TextField(blank=True, null=True)
+    reservation_time = models.DateTimeField(null=True, blank=True)
+    party_size = models.PositiveIntegerField(default=1)
+    
+    # Financial
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    delivery_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    
+    # Notes
+    special_instructions = models.TextField(blank=True, null=True)
+    staff_notes = models.TextField(blank=True, null=True)
+    
+    class Meta:
+        ordering = ['-order_date']
+        verbose_name = 'Place Order'
+        verbose_name_plural = 'Place Orders'
+    
+    def __str__(self):
+        return f"Order #{self.order_number} - {self.place.name}"
+    
+    def save(self, *args, **kwargs):
+        if not self.order_number:
+            # Generate order number
+            import uuid
+            self.order_number = f"ORD-{uuid.uuid4().hex[:8].upper()}"
+        super().save(*args, **kwargs)
+    
+    def get_status_color(self):
+        """Get color class for status display"""
+        status_colors = {
+            'pending': 'bg-yellow-100 text-yellow-800',
+            'confirmed': 'bg-blue-100 text-blue-800',
+            'preparing': 'bg-orange-100 text-orange-800',
+            'ready': 'bg-green-100 text-green-800',
+            'delivered': 'bg-purple-100 text-purple-800',
+            'completed': 'bg-gray-100 text-gray-800',
+            'cancelled': 'bg-red-100 text-red-800',
+        }
+        return status_colors.get(self.status, 'bg-gray-100 text-gray-800')
+
+
+class PlaceOrderItem(models.Model):
+    """Individual items in a place order"""
+    order = models.ForeignKey(PlaceOrder, on_delete=models.CASCADE, related_name='items')
+    menu_item = models.ForeignKey('MenuItem', on_delete=models.CASCADE, related_name='place_order_items')
+    
+    quantity = models.PositiveIntegerField(default=1)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    # Customizations
+    special_instructions = models.TextField(blank=True, null=True)
+    customizations = models.JSONField(default=dict, blank=True)  # For add-ons, modifications, etc.
+    
+    class Meta:
+        verbose_name = 'Order Item'
+        verbose_name_plural = 'Order Items'
+    
+    def __str__(self):
+        return f"{self.quantity}x {self.menu_item.name} - Order #{self.order.order_number}"
+    
+    def save(self, *args, **kwargs):
+        if not self.total_price:
+            self.total_price = self.quantity * self.menu_item.price
+        super().save(*args, **kwargs)

@@ -183,3 +183,49 @@ class FeaturesAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+@admin.register(PlaceGallery)
+class PlaceGalleryAdmin(admin.ModelAdmin):
+    list_display = ['place', 'caption', 'order', 'is_featured', 'created_at']
+    list_filter = ['is_featured', 'created_at', 'place']
+    search_fields = ['place__name', 'caption', 'alt_text']
+    list_editable = ['order', 'is_featured']
+    ordering = ['place', 'order', 'created_at']
+    
+    fieldsets = (
+        ('Image Information', {
+            'fields': ('place', 'image', 'caption', 'alt_text')
+        }),
+        ('Display Settings', {
+            'fields': ('order', 'is_featured')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    readonly_fields = ['created_at', 'updated_at']
+
+@admin.register(AgencyGallery)
+class AgencyGalleryAdmin(admin.ModelAdmin):
+    list_display = ['agency', 'caption', 'order', 'is_featured', 'created_at']
+    list_filter = ['is_featured', 'created_at', 'agency']
+    search_fields = ['agency__name', 'caption', 'alt_text']
+    list_editable = ['order', 'is_featured']
+    ordering = ['agency', 'order', 'created_at']
+    
+    fieldsets = (
+        ('Image Information', {
+            'fields': ('agency', 'image', 'caption', 'alt_text')
+        }),
+        ('Display Settings', {
+            'fields': ('order', 'is_featured')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    readonly_fields = ['created_at', 'updated_at']

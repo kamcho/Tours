@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Contact, PaymentMethod, PaymentTransaction, CardPayment, MPesaPayment, PaymentWebhook, Refund, PaymentSettings, Subscription, SubscriptionPlan, VerificationRequest, Payment
+from .models import Contact, PaymentMethod, PaymentTransaction, CardPayment, MPesaPayment, PaymentWebhook, Refund, PaymentSettings, Subscription, SubscriptionPlan, VerificationRequest, Payment, AIChatInteraction, AIInsightsReport, DateBuilderPreference, DateBuilderSuggestion
 from django.utils import timezone
 
 # Register your models here.
@@ -208,9 +208,11 @@ class PaymentSettingsAdmin(admin.ModelAdmin):
         ('M-Pesa Configuration', {
             'fields': (
                 'mpesa_consumer_key', 'mpesa_consumer_secret', 'mpesa_passkey', 
-                'mpesa_environment', 'mpesa_business_shortcode', 'mpesa_callback_url'
+                'mpesa_environment', 'mpesa_business_shortcode', 'mpesa_callback_url',
+                'mpesa_initiator_name', 'mpesa_security_credential'
             ),
-            'classes': ('collapse',)
+            'classes': ('collapse',),
+            'description': 'Configure M-Pesa API credentials. For account balance queries, both initiator_name and security_credential are required.'
         }),
         ('Stripe Configuration', {
             'fields': (
@@ -321,3 +323,183 @@ class VerificationRequestAdmin(admin.ModelAdmin):
         )
         self.message_user(request, f'{updated} verification request(s) were marked as under review.')
     mark_under_review.short_description = "Mark selected verification requests as under review"
+
+
+# AI Insights and Analytics Admin
+
+@admin.register(AIChatInteraction)
+class AIChatInteractionAdmin(admin.ModelAdmin):
+    list_display = ['user', 'interaction_type', 'content_type', 'content_id', 'tokens_used', 'ai_model', 'created_at']
+    list_filter = ['interaction_type', 'content_type', 'ai_model', 'created_at']
+    search_fields = ['user__email', 'user__username', 'question', 'ai_response']
+    readonly_fields = ['created_at', 'tokens_used', 'response_time_ms']
+    
+    fieldsets = (
+        ('User Information', {
+            'fields': ('user', 'subscription')
+        }),
+        ('Content Reference', {
+            'fields': ('content_type', 'content_id')
+        }),
+        ('Interaction Details', {
+            'fields': ('interaction_type', 'question', 'ai_response', 'user_feedback')
+        }),
+        ('Technical Details', {
+            'fields': ('ai_model', 'tokens_used', 'response_time_ms'),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user', 'subscription')
+
+
+@admin.register(AIInsightsReport)
+class AIInsightsReportAdmin(admin.ModelAdmin):
+    list_display = ['title', 'user', 'report_type', 'status', 'tokens_used', 'generation_started_at', 'generation_completed_at']
+    list_filter = ['report_type', 'status', 'generation_started_at']
+    search_fields = ['title', 'user__email', 'user__username', 'insights_summary']
+    readonly_fields = ['generation_started_at', 'generation_completed_at', 'tokens_used', 'created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Report Information', {
+            'fields': ('title', 'description', 'report_type', 'status')
+        }),
+        ('User and Subscription', {
+            'fields': ('user', 'subscription')
+        }),
+        ('Content Reference', {
+            'fields': ('content_type', 'content_id'),
+            'classes': ('collapse',)
+        }),
+        ('Report Content', {
+            'fields': ('insights_summary', 'detailed_analysis', 'recommendations')
+        }),
+        ('Generation Details', {
+            'fields': ('generation_started_at', 'generation_completed_at', 'tokens_used', 'ai_model'),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    actions = ['regenerate_report', 'mark_completed']
+    
+    def regenerate_report(self, request, queryset):
+        """Mark selected reports for regeneration"""
+        updated = queryset.update(
+            status='generating',
+            generation_started_at=timezone.now(),
+            generation_completed_at=None
+        )
+        self.message_user(request, f'{updated} report(s) were marked for regeneration.')
+    regenerate_report.short_description = "Regenerate selected reports"
+    
+    def mark_completed(self, request, queryset):
+        """Mark selected reports as completed"""
+        updated = queryset.update(
+            status='completed',
+            generation_completed_at=timezone.now()
+        )
+        self.message_user(request, f'{updated} report(s) were marked as completed.')
+    mark_completed.short_description = "Mark selected reports as completed"
+
+
+# Date Builder Admin
+
+@admin.register(DateBuilderPreference)
+class DateBuilderPreferenceAdmin(admin.ModelAdmin):
+    list_display = ['user', 'preferred_duration', 'group_size', 'budget_range', 'activity_intensity', 'created_at']
+    list_filter = ['preferred_duration', 'group_size', 'budget_range', 'activity_intensity', 'created_at']
+    search_fields = ['user__email', 'user__username', 'special_requirements']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('User Information', {
+            'fields': ('user',)
+        }),
+        ('Activity Preferences', {
+            'fields': ('preferred_activities', 'activity_intensity')
+        }),
+        ('Food Preferences', {
+            'fields': ('preferred_food_types', 'dietary_restrictions', 'budget_range')
+        }),
+        ('Transport Preferences', {
+            'fields': ('preferred_transport', 'max_travel_distance')
+        }),
+        ('Time and Group', {
+            'fields': ('preferred_duration', 'group_size')
+        }),
+        ('Additional Requirements', {
+            'fields': ('special_requirements',),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user')
+
+
+@admin.register(DateBuilderSuggestion)
+class DateBuilderSuggestionAdmin(admin.ModelAdmin):
+    list_display = ['title', 'user', 'status', 'estimated_cost', 'estimated_duration', 'confidence_score', 'generated_at']
+    list_filter = ['status', 'estimated_duration', 'generated_at']
+    search_fields = ['title', 'user__email', 'user__username', 'description']
+    readonly_fields = ['generated_at', 'accepted_at', 'completed_at', 'tokens_used']
+    
+    fieldsets = (
+        ('Suggestion Information', {
+            'fields': ('title', 'description', 'status')
+        }),
+        ('User and Preferences', {
+            'fields': ('user', 'preferences')
+        }),
+        ('Cost and Duration', {
+            'fields': ('estimated_cost', 'estimated_duration')
+        }),
+        ('Itinerary', {
+            'fields': ('itinerary', 'recommended_places', 'recommended_agencies')
+        }),
+        ('AI Generation', {
+            'fields': ('ai_model', 'confidence_score', 'tokens_used'),
+            'classes': ('collapse',)
+        }),
+        ('User Interaction', {
+            'fields': ('user_feedback', 'feedback_notes'),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('generated_at', 'accepted_at', 'completed_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    actions = ['mark_accepted', 'mark_completed']
+    
+    def mark_accepted(self, request, queryset):
+        """Mark selected suggestions as accepted"""
+        updated = queryset.update(
+            status='accepted',
+            accepted_at=timezone.now()
+        )
+        self.message_user(request, f'{updated} suggestion(s) were marked as accepted.')
+    mark_accepted.short_description = "Mark selected suggestions as accepted"
+    
+    def mark_completed(self, request, queryset):
+        """Mark selected suggestions as completed"""
+        updated = queryset.update(
+            status='completed',
+            completed_at=timezone.now()
+        )
+        self.message_user(request, f'{updated} suggestion(s) were marked as completed.')
+    mark_completed.short_description = "Mark selected suggestions as completed"

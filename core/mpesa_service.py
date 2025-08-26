@@ -97,6 +97,83 @@ class MPesaService:
             traceback.print_exc()
             raise
     
+    def get_account_balance(self):
+        """Query M-Pesa account balance for the business shortcode"""
+        try:
+            # Check if required fields are configured
+            if not hasattr(self.settings, 'mpesa_initiator_name') or not self.settings.mpesa_initiator_name:
+                logger.error("M-Pesa initiator name not configured")
+                return {
+                    'error': 'M-Pesa initiator name not configured',
+                    'details': 'Please configure the initiator name in Payment Settings'
+                }
+            
+            if not hasattr(self.settings, 'mpesa_security_credential') or not self.settings.mpesa_security_credential:
+                logger.error("M-Pesa security credential not configured")
+                return {
+                    'error': 'M-Pesa security credential not configured',
+                    'details': 'Please configure the security credential in Payment Settings'
+                }
+            
+            # Generate access token
+            access_token = self.generate_access_token()
+            if not access_token:
+                logger.error("Failed to generate access token for account balance query")
+                return {
+                    'error': 'Failed to generate access token',
+                    'details': 'Check your M-Pesa consumer key and secret'
+                }
+            
+            # Account balance endpoint
+            balance_url = f"{self.base_url}/mpesa/accountbalance/v1/query"
+            
+            # Prepare payload according to M-Pesa API documentation
+            payload = {
+                "CommandID": "AccountBalance",
+                "PartyA": int(self.business_shortcode),
+                "IdentifierType": "4",  # 4 for business shortcode
+                "Remarks": "Account balance query",
+                "Initiator": self.settings.mpesa_initiator_name,
+                "SecurityCredential": self.settings.mpesa_security_credential,
+                "QueueTimeOutURL": f"{self.callback_url}/timeout/",
+                "ResultURL": f"{self.callback_url}/balance/"
+            }
+            
+            headers = {
+                'Authorization': f'Bearer {access_token}',
+                'Content-Type': 'application/json'
+            }
+            
+            logger.info(f"Querying account balance for shortcode: {self.business_shortcode}")
+            logger.info(f"Payload: {payload}")
+            logger.info(f"Headers: {headers}")
+            
+            response = requests.post(balance_url, headers=headers, json=payload, timeout=30)
+            
+            logger.info(f"Response status: {response.status_code}")
+            logger.info(f"Response headers: {dict(response.headers)}")
+            logger.info(f"Response text: {response.text}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                logger.info(f"Account balance query successful: {result}")
+                return result
+            else:
+                logger.error(f"Account balance query failed: {response.status_code} - {response.text}")
+                return {
+                    'error': f'API request failed: {response.status_code}',
+                    'details': response.text
+                }
+                
+        except Exception as e:
+            logger.error(f"Error querying account balance: {str(e)}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            return {
+                'error': 'Exception occurred',
+                'details': str(e)
+            }
+    
     def initiate_stk_push(self, phone_number, amount, reference, description="Payment"):
         """
         Initiate M-Pesa STK push payment

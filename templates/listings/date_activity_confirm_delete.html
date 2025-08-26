@@ -1,0 +1,169 @@
+{% extends 'users/base.html' %}
+{% load static %}
+
+{% block title %}Delete Activity - TravelsKe{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50">
+    <!-- Header Section -->
+    <div class="bg-gradient-to-r from-red-500 via-orange-500 to-yellow-600 text-white">
+        <div class="max-w-7xl mx-auto px-4 py-16">
+            <div class="text-center">
+                <div class="inline-flex items-center bg-white/20 rounded-full px-6 py-3 mb-6">
+                    <svg class="w-8 h-8 text-white mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                    <span class="text-xl font-semibold">Delete Activity</span>
+                </div>
+
+                <h1 class="text-5xl lg:text-6xl font-bold mb-6">
+                    Delete Activity
+                </h1>
+                <p class="text-xl text-red-100 max-w-3xl mx-auto">
+                    Are you sure you want to delete this activity? This action cannot be undone.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-2xl mx-auto px-4 py-12">
+        <div class="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
+            <div class="bg-gradient-to-r from-red-500 to-orange-500 px-8 py-6">
+                <h2 class="text-2xl font-bold text-white flex items-center">
+                    <svg class="w-7 h-7 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                    Confirm Deletion
+                </h2>
+                <p class="text-red-100 mt-2">Please review the activity details before confirming</p>
+            </div>
+
+            <div class="p-8">
+                <!-- Activity Summary -->
+                <div class="bg-gray-50 rounded-xl p-6 mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Activity Summary</h3>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Title:</span>
+                            <span class="text-sm font-medium text-gray-900">{{ object.title }}</span>
+                        </div>
+                        
+                        {% if object.description %}
+                        <div class="flex items-start justify-between">
+                            <span class="text-sm text-gray-600">Description:</span>
+                            <span class="text-sm font-medium text-gray-900">{{ object.description|truncatewords:20 }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Category:</span>
+                            <span class="text-sm font-medium text-gray-900">{{ object.get_category_display }}</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Time:</span>
+                            <span class="text-sm font-medium text-gray-900">
+                                {{ object.start_time|time:"g:i A" }} - {{ object.end_time|time:"g:i A" }}
+                            </span>
+                        </div>
+                        
+                        {% if object.location %}
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Location:</span>
+                            <span class="text-sm font-medium text-gray-900">{{ object.location }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if object.cost %}
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Cost:</span>
+                            <span class="text-sm font-medium text-gray-900">{{ object.cost_currency }} {{ object.cost }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Plan Information -->
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
+                    <h4 class="text-lg font-semibold text-blue-900 mb-3">From Plan</h4>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-blue-600">Plan:</span>
+                            <span class="text-sm font-medium text-blue-900">{{ object.date_plan.title }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-blue-600">Date:</span>
+                            <span class="text-sm font-medium text-blue-900">{{ object.date_plan.planned_date|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Warning Message -->
+                <div class="bg-red-50 border border-red-200 rounded-xl p-6 mb-8">
+                    <div class="flex items-start">
+                        <svg class="w-6 h-6 text-red-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                        </svg>
+                        <div>
+                            <h4 class="text-lg font-semibold text-red-800">Warning</h4>
+                            <p class="text-red-700 text-sm mt-1">
+                                Deleting this activity will permanently remove:
+                            </p>
+                            <ul class="text-red-700 text-sm mt-2 space-y-1">
+                                <li>• All activity details and notes</li>
+                                <li>• Time scheduling information</li>
+                                <li>• Location and cost details</li>
+                                <li>• Any related place or agency links</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+                    
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button type="submit" class="flex-1 bg-gradient-to-r from-red-500 to-orange-500 text-white py-4 px-8 rounded-2xl font-semibold text-lg hover:from-red-600 hover:to-orange-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                            <svg class="w-6 h-6 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                            Yes, Delete Activity
+                        </button>
+
+                        <a href="{% url 'date_plan_detail' object.date_plan.pk %}" class="flex-1 bg-gray-100 text-gray-700 py-4 px-8 rounded-2xl font-semibold text-lg hover:bg-gray-200 transition-all duration-300 text-center">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+
+                <!-- Alternative Actions -->
+                <div class="mt-8 pt-6 border-t border-gray-200">
+                    <h4 class="text-sm font-medium text-gray-900 mb-3">Instead of deleting, consider:</h4>
+                    <div class="space-y-2">
+                        <a href="{% url 'date_activity_update' object.pk %}" class="flex items-center text-blue-600 hover:text-blue-800 text-sm transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                            Edit the activity instead
+                        </a>
+                        <a href="{% url 'date_plan_detail' object.date_plan.pk %}" class="flex items-center text-blue-600 hover:text-blue-800 text-sm transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
+                            View the full plan
+                        </a>
+                        <a href="{% url 'date_planner_dashboard' %}" class="flex items-center text-blue-600 hover:text-blue-800 text-sm transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                            </svg>
+                            Go back to dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -8,8 +8,10 @@ from datetime import timedelta
 import base64
 import requests
 from requests.auth import HTTPBasicAuth
-from .models import Subscription, SubscriptionPlan, VerificationRequest
+from .models import Subscription, SubscriptionPlan, VerificationRequest, AIChatInteraction, AIInsightsReport, DateBuilderPreference, DateBuilderSuggestion
 from listings.models import Place, Agency
+import json
+from django.db import models
 
 @login_required
 def subscription_page(request):
@@ -240,3 +242,427 @@ def process_mpesa_payment(subscription, phone_number):
     except Exception as e:
         print(f"Error processing M-Pesa payment: {str(e)}")
         return False 
+
+
+# AI Insights Views
+
+@login_required
+def ai_insights_dashboard(request):
+    """Dashboard for AI insights and analytics"""
+    # Check if user has active AI insights subscription
+    ai_insights_subscription = Subscription.objects.filter(
+        user=request.user,
+        subscription_type='ai_insights',
+        status='active'
+    ).first()
+    
+    if not ai_insights_subscription:
+        messages.warning(request, 'You need an AI Insights subscription to access this feature.')
+        return redirect('subscription_page')
+    
+    # Get user's places and agencies
+    user_places = Place.objects.filter(created_by=request.user)
+    user_agencies = Agency.objects.filter(created_by=request.user)
+    
+    # Get recent insights reports
+    recent_reports = AIInsightsReport.objects.filter(
+        user=request.user
+    ).order_by('-created_at')[:5]
+    
+    # Get chat interaction statistics
+    chat_stats = AIChatInteraction.objects.filter(
+        user=request.user
+    ).aggregate(
+        total_interactions=models.Count('id'),
+        total_tokens=models.Sum('tokens_used'),
+        avg_response_time=models.Avg('response_time_ms')
+    )
+    
+    context = {
+        'ai_insights_subscription': ai_insights_subscription,
+        'user_places': user_places,
+        'user_agencies': user_agencies,
+        'recent_reports': recent_reports,
+        'chat_stats': chat_stats,
+    }
+    
+    return render(request, 'core/ai_insights_dashboard.html', context)
+
+
+@login_required
+def generate_ai_insights(request):
+    """Generate AI insights report for a specific place/agency"""
+    if request.method == 'POST':
+        content_type = request.POST.get('content_type')
+        content_id = request.POST.get('content_id')
+        report_type = request.POST.get('report_type')
+        
+        # Check subscription
+        subscription = Subscription.objects.filter(
+            user=request.user,
+            subscription_type='ai_insights',
+            status='active'
+        ).first()
+        
+        if not subscription:
+            return JsonResponse({'success': False, 'error': 'No active AI Insights subscription'})
+        
+        # Check usage limits
+        monthly_reports = AIInsightsReport.objects.filter(
+            user=request.user,
+            created_at__month=timezone.now().month,
+            created_at__year=timezone.now().year
+        ).count()
+        
+        if monthly_reports >= subscription.subscription_plan.max_insights_reports:
+            return JsonResponse({'success': False, 'error': 'Monthly report limit reached'})
+        
+        # Create insights report
+        report = AIInsightsReport.objects.create(
+            user=request.user,
+            subscription=subscription,
+            report_type=report_type,
+            title=f"{report_type.replace('_', ' ').title()} Report",
+            content_type=content_type,
+            content_id=content_id,
+            status='generating'
+        )
+        
+        # TODO: Integrate with OpenAI API to generate actual insights
+        # For now, create a placeholder report
+        report.insights_summary = "AI insights generation is being implemented. This is a placeholder report."
+        report.detailed_analysis = {
+            'summary': 'Placeholder analysis data',
+            'metrics': {},
+            'trends': []
+        }
+        report.recommendations = [
+            'Implement AI insights generation',
+            'Connect with OpenAI API',
+            'Add more detailed analytics'
+        ]
+        report.status = 'completed'
+        report.generation_completed_at = timezone.now()
+        report.save()
+        
+        return JsonResponse({
+            'success': True,
+            'report_id': report.id,
+            'message': 'Insights report generated successfully'
+        })
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+
+# Date Builder Views
+
+@login_required
+def date_builder_dashboard(request):
+    """Dashboard for date builder functionality"""
+    # Check if user has active date builder subscription
+    date_builder_subscription = Subscription.objects.filter(
+        user=request.user,
+        subscription_type='date_builder',
+        status='active'
+    ).first()
+    
+    if not date_builder_subscription:
+        messages.warning(request, 'You need a Date Builder subscription to access this feature.')
+        return redirect('subscription_page')
+    
+    # Get user's date preferences
+    user_preferences = DateBuilderPreference.objects.filter(user=request.user).first()
+    
+    # Get recent date suggestions
+    recent_suggestions = DateBuilderSuggestion.objects.filter(
+        user=request.user
+    ).order_by('-generated_at')[:5]
+    
+    # Get available places and agencies for suggestions
+    available_places = Place.objects.filter(verified=True)
+    available_agencies = Agency.objects.filter(verified=True)
+    
+    context = {
+        'date_builder_subscription': date_builder_subscription,
+        'user_preferences': user_preferences,
+        'recent_suggestions': recent_suggestions,
+        'available_places': available_places,
+        'available_agencies': available_agencies,
+    }
+    
+    return render(request, 'core/date_builder_dashboard.html', context)
+
+
+@login_required
+def create_date_preferences(request):
+    """Create or update date builder preferences"""
+    if request.method == 'POST':
+        # Get form data
+        preferred_activities = request.POST.getlist('preferred_activities')
+        activity_intensity = request.POST.get('activity_intensity')
+        preferred_food_types = request.POST.getlist('preferred_food_types')
+        dietary_restrictions = request.POST.getlist('dietary_restrictions')
+        budget_range = request.POST.get('budget_range')
+        preferred_transport = request.POST.getlist('preferred_transport')
+        max_travel_distance = request.POST.get('max_travel_distance')
+        preferred_duration = request.POST.get('preferred_duration')
+        group_size = request.POST.get('group_size')
+        special_requirements = request.POST.get('special_requirements')
+        
+        # Create or update preferences
+        preferences, created = DateBuilderPreference.objects.get_or_create(
+            user=request.user,
+            defaults={
+                'preferred_activities': preferred_activities,
+                'activity_intensity': activity_intensity,
+                'preferred_food_types': preferred_food_types,
+                'dietary_restrictions': dietary_restrictions,
+                'budget_range': budget_range,
+                'preferred_transport': preferred_transport,
+                'max_travel_distance': max_travel_distance,
+                'preferred_duration': preferred_duration,
+                'group_size': group_size,
+                'special_requirements': special_requirements,
+            }
+        )
+        
+        if not created:
+            # Update existing preferences
+            preferences.preferred_activities = preferred_activities
+            preferences.activity_intensity = activity_intensity
+            preferences.preferred_food_types = preferred_food_types
+            preferences.dietary_restrictions = dietary_restrictions
+            preferences.budget_range = budget_range
+            preferences.preferred_transport = preferred_transport
+            preferences.max_travel_distance = max_travel_distance
+            preferences.preferred_duration = preferred_duration
+            preferences.group_size = group_size
+            preferences.special_requirements = special_requirements
+            preferences.save()
+        
+        messages.success(request, 'Date preferences saved successfully!')
+        return redirect('date_builder_dashboard')
+    
+    # Get existing preferences for form
+    user_preferences = DateBuilderPreference.objects.filter(user=request.user).first()
+    
+    context = {
+        'user_preferences': user_preferences,
+        'activity_types': DateBuilderPreference.ACTIVITY_TYPES,
+        'food_preferences': DateBuilderPreference.FOOD_PREFERENCES,
+        'transport_preferences': DateBuilderPreference.TRANSPORT_PREFERENCES,
+    }
+    
+    return render(request, 'core/create_date_preferences.html', context)
+
+
+@login_required
+def generate_date_suggestion(request):
+    """Generate AI-powered date suggestion based on user preferences"""
+    if request.method == 'POST':
+        # Check subscription
+        subscription = Subscription.objects.filter(
+            user=request.user,
+            subscription_type='date_builder',
+            status='active'
+        ).first()
+        
+        if not subscription:
+            return JsonResponse({'success': False, 'error': 'No active Date Builder subscription'})
+        
+        # Get user preferences
+        preferences = DateBuilderPreference.objects.filter(user=request.user).first()
+        if not preferences:
+            return JsonResponse({'success': False, 'error': 'Please create date preferences first'})
+        
+        # TODO: Integrate with OpenAI API to generate actual date suggestions
+        # For now, create a placeholder suggestion
+        
+        # Get some verified places and agencies for suggestions
+        suggested_places = Place.objects.filter(verified=True)[:3]
+        suggested_agencies = Agency.objects.filter(verified=True)[:2]
+        
+        suggestion = DateBuilderSuggestion.objects.create(
+            user=request.user,
+            preferences=preferences,
+            title=f"Perfect {preferences.preferred_duration.replace('_', ' ').title()} for {preferences.group_size.replace('_', ' ').title()}",
+            description=f"AI-generated suggestion based on your preferences for {preferences.activity_intensity} activities, {preferences.budget_range} budget, and {preferences.preferred_duration}.",
+            estimated_cost=1000.00,  # Placeholder cost
+            estimated_duration=preferences.preferred_duration,
+            recommended_places=[p.id for p in suggested_places],
+            recommended_agencies=[a.id for a in suggested_agencies],
+            itinerary=[
+                {
+                    'time': '09:00 AM',
+                    'activity': 'Start your adventure',
+                    'location': 'Meeting point',
+                    'description': 'Begin your perfect day'
+                },
+                {
+                    'time': '12:00 PM',
+                    'activity': 'Lunch break',
+                    'location': 'Recommended restaurant',
+                    'description': 'Enjoy local cuisine'
+                },
+                {
+                    'time': '03:00 PM',
+                    'activity': 'Afternoon activity',
+                    'location': 'Activity venue',
+                    'description': 'Continue your adventure'
+                }
+            ],
+            ai_model='placeholder',
+            confidence_score=0.85,
+            status='generated'
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'suggestion_id': suggestion.id,
+            'message': 'Date suggestion generated successfully'
+        })
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+
+@login_required
+def view_date_suggestion(request, suggestion_id):
+    """View a specific date suggestion"""
+    suggestion = get_object_or_404(DateBuilderSuggestion, id=suggestion_id, user=request.user)
+    
+    # Get recommended places and agencies
+    recommended_places = Place.objects.filter(id__in=suggestion.recommended_places)
+    recommended_agencies = Agency.objects.filter(id__in=suggestion.recommended_agencies)
+    
+    context = {
+        'suggestion': suggestion,
+        'recommended_places': recommended_places,
+        'recommended_agencies': recommended_agencies,
+    }
+    
+    return render(request, 'core/view_date_suggestion.html', context)
+
+
+@login_required
+def accept_date_suggestion(request, suggestion_id):
+    """Accept a date suggestion"""
+    suggestion = get_object_or_404(DateBuilderSuggestion, id=suggestion_id, user=request.user)
+    
+    if request.method == 'POST':
+        suggestion.accept()
+        messages.success(request, 'Date suggestion accepted! Start planning your adventure.')
+        return redirect('date_builder_dashboard')
+    
+    return redirect('view_date_suggestion', suggestion_id=suggestion.id)
+
+
+@login_required
+def complete_date_suggestion(request, suggestion_id):
+    """Mark a date suggestion as completed"""
+    suggestion = get_object_or_404(DateBuilderSuggestion, id=suggestion_id, user=request.user)
+    
+    if request.method == 'POST':
+        suggestion.complete()
+        messages.success(request, 'Date completed! How was your experience?')
+        return redirect('date_builder_dashboard')
+    
+    return redirect('view_date_suggestion', suggestion_id=suggestion.id)
+
+
+# Enhanced Subscription Management
+
+@login_required
+def subscription_analytics(request):
+    """Analytics dashboard for subscription usage"""
+    # Get all user subscriptions
+    user_subscriptions = Subscription.objects.filter(user=request.user)
+    
+    # Get usage statistics
+    ai_chat_usage = AIChatInteraction.objects.filter(
+        user=request.user,
+        created_at__month=timezone.now().month,
+        created_at__year=timezone.now().year
+    ).count()
+    
+    insights_reports = AIInsightsReport.objects.filter(
+        user=request.user,
+        created_at__month=timezone.now().month,
+        created_at__year=timezone.now().year
+    ).count()
+    
+    date_suggestions = DateBuilderSuggestion.objects.filter(
+        user=request.user,
+        created_at__month=timezone.now().month,
+        created_at__year=timezone.now().year
+    ).count()
+    
+    # Calculate subscription costs
+    total_monthly_cost = sum(sub.amount for sub in user_subscriptions if sub.is_active)
+    
+    context = {
+        'user_subscriptions': user_subscriptions,
+        'ai_chat_usage': ai_chat_usage,
+        'insights_reports': insights_reports,
+        'date_suggestions': date_suggestions,
+        'total_monthly_cost': total_monthly_cost,
+    }
+    
+    return render(request, 'core/subscription_analytics.html', context)
+
+
+@login_required
+def upgrade_subscription(request, subscription_id):
+    """Upgrade an existing subscription"""
+    current_subscription = get_object_or_404(Subscription, id=subscription_id, user=request.user)
+    
+    if request.method == 'POST':
+        new_plan_id = request.POST.get('new_plan_id')
+        new_plan = get_object_or_404(SubscriptionPlan, id=new_plan_id, is_active=True)
+        
+        # Check if upgrade is valid
+        if new_plan.plan_type != current_subscription.subscription_type:
+            messages.error(request, 'Cannot upgrade to a different subscription type.')
+            return redirect('subscription_analytics')
+        
+        # Calculate prorated amount
+        days_remaining = current_subscription.days_remaining
+        if days_remaining > 0:
+            # Calculate refund for remaining days
+            daily_rate = current_subscription.amount / current_subscription.duration_days
+            refund_amount = daily_rate * days_remaining
+            
+            # Calculate cost for new plan
+            new_daily_rate = new_plan.price / new_plan.duration_days
+            new_cost = new_daily_rate * days_remaining
+            
+            upgrade_cost = new_cost - refund_amount
+        else:
+            upgrade_cost = new_plan.price
+        
+        # Create upgrade subscription
+        upgrade_subscription = Subscription.objects.create(
+            user=request.user,
+            subscription_type=new_plan.plan_type,
+            amount=upgrade_cost,
+            end_date=timezone.now() + timedelta(days=new_plan.duration_days),
+            status='pending',
+            target_content_type=current_subscription.target_content_type,
+            target_object_id=current_subscription.target_object_id
+        )
+        
+        messages.success(request, f'Subscription upgrade created. Cost: KES {upgrade_cost:.2f}')
+        return redirect('subscription_payment', subscription_id=upgrade_subscription.id)
+    
+    # Get available upgrade plans
+    upgrade_plans = SubscriptionPlan.objects.filter(
+        plan_type=current_subscription.subscription_type,
+        target_type='user',  # Assuming user subscriptions
+        is_active=True
+    ).exclude(price__lte=current_subscription.amount)
+    
+    context = {
+        'current_subscription': current_subscription,
+        'upgrade_plans': upgrade_plans,
+    }
+    
+    return render(request, 'core/upgrade_subscription.html', context) 

@@ -32,3 +32,6 @@ cryptography==42.0.5
 
 # Development Tools (optional)
 # django-debug-toolbar==4.2.0  # Uncomment for development
+
+# AI Chat Dependencies (Optional - for enhanced AI responses)
+# openai>=1.0.0  # Uncomment if you want to use OpenAI API

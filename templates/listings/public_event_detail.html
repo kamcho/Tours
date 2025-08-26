@@ -32,7 +32,7 @@
                     {% if event.creator.is_verified %}
                     <div class="flex items-center gap-3 bg-gradient-to-r from-blue-500/30 to-indigo-500/30 backdrop-blur-sm border border-blue-400/40 px-6 py-3 rounded-full shadow-lg">
                         <svg class="w-6 h-6 text-blue-300" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745a3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745a3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745a3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745a3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745a3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                         </svg>
                         <span class="text-xl text-blue-200 font-bold">Verified Creator</span>
                     </div>
@@ -43,72 +43,197 @@
                     {{ event.description|truncatewords:60 }}
                 </p>
                 
-                <!-- Action Buttons -->
-                <div class="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+                <!-- Primary Action Button Only -->
+                <div class="flex justify-center mb-16">
                     {% if not user.is_authenticated %}
-                        <a href="{% url 'login' %}" class="group bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-gray-900 px-12 py-5 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
+                        <a href="{% url 'login' %}" class="group bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-gray-900 px-16 py-6 rounded-2xl font-bold text-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
                             <div class="flex items-center justify-center">
-                                <svg class="w-7 h-7 mr-3 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-8 h-8 mr-3 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
                                 </svg>
                                 Sign In to Book
                             </div>
                         </a>
                     {% else %}
-                        <a href="{% url 'simple_event_booking' event.pk %}" class="group bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-gray-900 px-12 py-5 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
+                        <a href="{% url 'simple_event_booking' event.pk %}" class="group bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-gray-900 px-16 py-6 rounded-2xl font-bold text-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
                             <div class="flex items-center justify-center">
-                                <svg class="w-7 h-7 mr-3 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-8 h-8 mr-3 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                                 </svg>
                                 Book This Event
                             </div>
                         </a>
                     {% endif %}
-                    
-                    <a href="{% url 'event_list' %}" class="group bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-12 py-5 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
-                        <div class="flex items-center justify-center">
-                            <svg class="w-7 h-7 mr-3 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                            </svg>
-                            Discover More Events
-                        </div>
-                    </a>
                 </div>
-                
-                <!-- Like and Bookmark Buttons -->
-                {% if user.is_authenticated %}
-                <div class="flex flex-wrap justify-center gap-6">
-                    <!-- Like Button -->
-                    <button onclick="likeEvent({{ event.id }})" id="event-like-btn-{{ event.id }}" class="group flex items-center gap-3 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 {% if user in event.likes.all %}text-red-400{% endif %}">
-                        <svg class="w-6 h-6 group-hover:scale-110 transition-transform duration-300" fill="{% if user in event.likes.all %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                        </svg>
-                        <span id="event-like-count-{{ event.id }}">{{ event.total_likes }}</span>
-                    </button>
-                    
-                    <!-- Bookmark Button -->
-                    <button onclick="bookmarkEvent({{ event.id }})" id="event-bookmark-btn-{{ event.id }}" class="group flex items-center gap-3 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 {% if user in event.bookmarks.all %}text-yellow-400{% endif %}">
-                        <svg class="w-6 h-6 group-hover:scale-110 transition-transform duration-300" fill="{% if user in event.likes.all %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v14l-7-3.5L5 18V5z"/>
-                        </svg>
-                        <span id="event-bookmark-count-{{ event.id }}">{{ event.total_bookmarks }}</span>
-                    </button>
-                    
-                    <!-- Manage Event Button - Only for event creator -->
-                    {% if event.creator == user %}
-                    <a href="{% url 'event_update' event.pk %}" class="group flex items-center gap-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
-                        <svg class="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                        </svg>
-                        Manage Event
-                    </a>
-                    {% endif %}
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+<!-- Secondary Actions Section -->
+<div class="bg-gradient-to-r from-gray-50 to-blue-50 py-12">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex flex-wrap justify-center gap-6">
+            <!-- Like Button -->
+            {% if user.is_authenticated %}
+            <button onclick="likeEvent({{ event.id }})" id="event-like-btn-{{ event.id }}" class="group flex items-center gap-3 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg {% if user in event.likes.all %}text-red-500 border-red-200 bg-red-50{% endif %}">
+                <svg class="w-6 h-6 group-hover:scale-110 transition-transform duration-300" fill="{% if user in event.likes.all %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+                <span id="event-like-count-{{ event.id }}">{{ event.total_likes }}</span>
+            </button>
+            
+            <!-- Bookmark Button -->
+            <button onclick="bookmarkEvent({{ event.id }})" id="event-bookmark-btn-{{ event.id }}" class="group flex items-center gap-3 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg {% if user in event.bookmarks.all %}text-yellow-500 border-yellow-200 bg-yellow-50{% endif %}">
+                <svg class="w-6 h-6 group-hover:scale-110 transition-transform duration-300" fill="{% if user in event.bookmarks.all %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v14l-7-3.5L5 18V5z"/>
+                </svg>
+                <span id="event-bookmark-count-{{ event.id }}">{{ event.total_bookmarks }}</span>
+            </button>
+            
+            <!-- Discover More Events -->
+            <a href="{% url 'event_list' %}" class="group flex items-center gap-3 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+                <svg class="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+                Discover More Events
+            </a>
+            
+            <!-- Manage Event Button - Only for event creator -->
+            {% if event.creator == user %}
+            <a href="{% url 'event_update' event.pk %}" class="group flex items-center gap-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
+                <svg class="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+                Manage Event
+            </a>
+            {% endif %}
+            {% else %}
+            <!-- For non-authenticated users, show login prompt -->
+            <div class="text-center py-4">
+                <p class="text-gray-600 mb-4">Sign in to like, bookmark, and manage events</p>
+                <a href="{% url 'login' %}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300">
+                    Sign In
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Business Information Section - Owner Only -->
+{% if event.creator == user %}
+<div class="bg-gradient-to-r from-amber-50 to-orange-50 py-16">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center mb-12">
+            <div class="inline-flex items-center bg-amber-100 rounded-full px-6 py-3 mb-6">
+                <svg class="w-6 h-6 text-amber-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+                <span class="text-amber-800 font-semibold">Owner Dashboard</span>
+            </div>
+            
+            <h2 class="text-4xl lg:text-5xl font-bold text-gray-800 mb-6">
+                Business <span class="text-amber-600">Insights</span>
+            </h2>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Track your event performance, manage bookings, and monitor engagement metrics.
+            </p>
+        </div>
+        
+        <!-- Business Metrics Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <!-- Total Bookings -->
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-amber-100">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                        </svg>
+                    </div>
+                    <span class="text-2xl font-bold text-blue-600">{{ event.bookings.count|default:"0" }}</span>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Total Bookings</h3>
+                <p class="text-gray-600 text-sm">Current confirmed bookings</p>
+            </div>
+            
+            <!-- Revenue -->
+            {% if event.price_per_person %}
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-amber-100">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                        </svg>
+                    </div>
+                    <span class="text-2xl font-bold text-green-600">${{ event.price_per_person }}</span>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Price per Person</h3>
+                <p class="text-gray-600 text-sm">Base pricing for this event</p>
+            </div>
+            {% endif %}
+            
+            <!-- Likes -->
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-amber-100">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                    </div>
+                    <span class="text-2xl font-bold text-red-600">{{ event.total_likes|default:"0" }}</span>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Total Likes</h3>
+                <p class="text-gray-600 text-sm">Event popularity metric</p>
+            </div>
+            
+            <!-- Capacity -->
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-amber-100">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </div>
+                    <span class="text-2xl font-bold text-purple-600">{{ event.bookings.count|default:"0" }}/{{ event.max_participants|default:"∞" }}</span>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Capacity</h3>
+                <p class="text-gray-600 text-sm">Booked vs. Available</p>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="flex flex-wrap justify-center gap-4">
+            <a href="{% url 'event_update' event.pk %}" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
+                <div class="flex items-center gap-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                    Edit Event Details
+                </div>
+            </a>
+            
+            <a href="#" class="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
+                <div class="flex items-center gap-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    View Analytics
+                </div>
+            </a>
+            
+            <a href="#" class="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
+                <div class="flex items-center gap-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                    </svg>
+                    Manage Bookings
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- Ready to Book This Event Section -->
 <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 py-8 sm:py-12">

@@ -6,10 +6,12 @@
     <title>{% block title %}TravelsKe{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    {% csrf_token %}
     {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-gray-50">
     <!-- Navigation -->
+    {% block navbar %}
     <nav class="bg-gray-900 bg-opacity-95 backdrop-blur-sm shadow-lg fixed w-full top-0 z-50" x-data="{ mobileMenuOpen: false }">
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex justify-between h-16">
@@ -58,6 +60,18 @@
                                 </svg>
                                 Places
                             </a>
+                    <a href="{% url 'enhanced_place_search' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition duration-150">
+                        <svg class="w-4 h-4 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        Advanced Search
+                    </a>
+                    <a href="{% url 'public_date_plans' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition duration-150">
+                        <svg class="w-4 h-4 mr-3 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        Date Plans
+                    </a>
                         </div>
                     </div>
                     
@@ -94,7 +108,64 @@
                     
                     <!-- Admin Dropdown (Staff Only) -->
                     {% if user.is_staff %}
-                    <div class="relative" x-data="{ adminOpen: false }">
+                    <div class="relative" x-data="{ 
+                        adminOpen: false, 
+                        balanceLoading: false, 
+                        balanceData: null, 
+                        balanceError: null,
+                        balanceDetails: null,
+                        showRawResponse: false,
+                        apiResponse: null,
+                        async refreshBalance() {
+                            this.balanceLoading = true;
+                            this.balanceError = null;
+                            this.balanceDetails = null;
+                            this.apiResponse = null; // Clear previous response
+                            try {
+                                const response = await fetch('{% url 'core:get_mpesa_balance' %}', {
+                                    method: 'GET',
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                                    }
+                                });
+                                const data = await response.json();
+                                this.apiResponse = data; // Store raw response
+                                if (data.success) {
+                                    // Check the status of the response
+                                    if (data.data && data.data.status === 'request_accepted') {
+                                        // M-Pesa accepted the request and we have simulated balance data
+                                        if (data.data.WorkingAccountBalance) {
+                                            this.balanceData = data.data.WorkingAccountBalance;
+                                            this.balanceError = null;
+                                            this.balanceDetails = data.data.note || 'Simulated balance - real data comes via callback';
+                                        } else {
+                                            this.balanceError = 'Request Accepted';
+                                            this.balanceDetails = data.data.message || 'Balance query accepted. Data will be available shortly.';
+                                            this.balanceData = null;
+                                        }
+                                    } else if (data.data && data.data.WorkingAccountBalance) {
+                                        // Success - display Working Account balance
+                                        this.balanceData = data.data.WorkingAccountBalance;
+                                        this.balanceError = null;
+                                        this.balanceDetails = null;
+                                    } else {
+                                        this.balanceError = 'Balance not available';
+                                        this.balanceDetails = data.data?.ResultDesc || 'Failed to load balance details';
+                                    }
+                                } else {
+                                    this.balanceError = data.error || 'Failed to load balance';
+                                    this.balanceDetails = data.details || null;
+                                }
+                            } catch (error) {
+                                this.balanceError = 'Network error';
+                                this.balanceDetails = null;
+                                console.error('Error fetching balance:', error);
+                            } finally {
+                                this.balanceLoading = false;
+                            }
+                        }
+                    }" x-init="refreshBalance()">
                         <button @click="adminOpen = !adminOpen" @click.away="adminOpen = false" class="flex items-center space-x-1 text-gray-300 hover:text-teal-400 font-medium transition duration-300 focus:outline-none">
                             <span>Admin</span>
                             <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': adminOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -103,6 +174,60 @@
                         </button>
                         
                         <div x-show="adminOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="transform opacity-0 scale-95" x-transition:enter-end="transform opacity-100 scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="transform opacity-100 scale-100" x-transition:leave-end="transform opacity-0 scale-95" class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
+                            <!-- M-Pesa Balance Display -->
+                            <div class="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-green-50 to-blue-50">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="text-xs font-medium text-gray-600">M-Pesa Balance</span>
+                                    <button @click="refreshBalance()" class="text-blue-500 hover:text-blue-700 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                
+                                <!-- Help Text -->
+                                <div class="text-xs text-gray-500 mb-3 bg-blue-50 p-2 rounded">
+                                    <div class="font-medium text-blue-700">How it works:</div>
+                                    <div>1. Click refresh to query balance</div>
+                                    <div>2. M-Pesa accepts the request</div>
+                                    <div>3. Balance data arrives shortly</div>
+                                    <div class="text-blue-600 mt-1">Note: Currently showing simulated balance</div>
+                                </div>
+                                
+                                <div class="mt-2">
+                                    <div x-show="balanceLoading" class="text-sm text-gray-500">
+                                        <div class="flex items-center">
+                                            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mr-2"></div>
+                                            Loading...
+                                        </div>
+                                    </div>
+                                    <div x-show="!balanceLoading && balanceData" class="text-lg font-bold text-green-600">
+                                        KES <span x-text="balanceData"></span>
+                                    </div>
+                                    <div x-show="!balanceLoading && !balanceData && balanceError === 'Request Accepted'" class="text-sm text-blue-600">
+                                        <div class="text-blue-600 font-medium" x-text="balanceError"></div>
+                                        <div class="text-xs text-blue-500 mt-1" x-text="balanceDetails"></div>
+                                    </div>
+                                    <div x-show="!balanceLoading && !balanceData && balanceError !== 'Request Accepted'" class="text-sm text-gray-500">
+                                        <div class="text-red-500 font-medium" x-text="balanceError || 'Not available'"></div>
+                                        <div x-show="balanceDetails" class="text-xs text-gray-400 mt-1" x-text="balanceDetails"></div>
+                                        <div x-show="balanceError && balanceError.includes('not configured')" class="mt-2">
+                                            <a href="/admin/core/paymentsettings/" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 underline">
+                                                Configure in Admin →
+                                            </a>
+                                        </div>
+                                        <div x-show="balanceError && balanceError.includes('Unexpected response format')" class="mt-2">
+                                            <button @click="showRawResponse = !showRawResponse" class="text-xs text-blue-500 hover:text-blue-700 underline">
+                                                Show Raw Response →
+                                            </button>
+                                            <div x-show="showRawResponse" class="mt-2 p-2 bg-gray-100 rounded text-xs">
+                                                <pre x-text="JSON.stringify(apiResponse, null, 2)" class="whitespace-pre-wrap text-gray-600"></pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <a href="{% url 'core:admin_verification_dashboard' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition duration-150">
                                 <svg class="w-4 h-4 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -148,6 +273,13 @@
                                     <p class="text-xs text-gray-500">{{ user.email }}</p>
                                 </div>
                                 
+                                <a href="{% url 'dashboard' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition duration-150">
+                                    <svg class="w-4 h-4 mr-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                    </svg>
+                                    Dashboard
+                                </a>
+                                
                                 <a href="{% url 'profile' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition duration-150">
                                     <svg class="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
@@ -168,6 +300,13 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                                     </svg>
                                     My Subscriptions
+                                </a>
+                                
+                                <a href="{% url 'date_planner_dashboard' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition duration-150">
+                                    <svg class="w-4 h-4 mr-3 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    Date Planner
                                 </a>
                                 
                                 <div class="border-t border-gray-100 my-1"></div>
@@ -227,6 +366,7 @@
                     
                     {% if user.is_authenticated %}
                         <a href="{% url 'place_create_step' step=1 %}" class="block px-3 py-2 text-gray-300 hover:text-teal-400 hover:bg-gray-700 rounded-md font-medium transition duration-300">Add Place</a>
+                        <a href="{% url 'date_planner_dashboard' %}" class="block px-3 py-2 text-gray-300 hover:text-teal-400 hover:bg-gray-700 rounded-md font-medium transition duration-300">Date Planner</a>
                     {% endif %}
                     
                     <!-- Admin Section (Staff Only) -->
@@ -276,6 +416,7 @@
             </div>
         </div>
     </nav>
+    {% endblock %}
 
     <!-- Main Content -->
     <main class="min-h-screen pt-16">

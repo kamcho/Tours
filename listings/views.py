@@ -1,35 +1,55 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django import forms
-from .models import Place, PlaceCategory, TourBooking, EventBooking, TravelGroup, GroupTours, Agency, AgencyService, TourComment, TourBookingPayment
-from users.models import MyUser
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, DetailView, UpdateView, DeleteView, TemplateView, CreateView
-from django.urls import reverse_lazy
-from .models import Event, EventComment, MenuCategory, MenuItem
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
+from django.http import JsonResponse, HttpResponse
+from django.views.decorators.http import require_POST, require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-from .forms import MenuCategoryForm, MenuItemForm, TourCommentForm, EventCommentForm, TourBookingForm, EventBookingForm, EnhancedTourBookingForm, PlaceRatingForm, AgencyRatingForm, GroupToursForm, AgencyServiceForm, AdvancedSearchForm
-from .models import Features
-from .forms import FeatureForm
 from django.contrib import messages
-from .models import PlaceRating, AgencyRating, RatingHelpful
-from django.shortcuts import get_object_or_404
-from django.db.models import Q, Avg, Count, Case, When, Value, F
-from core.models import PaymentMethod, PaymentTransaction, MPesaPayment, PaymentSettings
-from core.mpesa_service import MPesaService
+from django.db.models import Q, Avg, Count, Case, When, Value, F, IntegerField
 from django.utils import timezone
 from django.core.paginator import Paginator
+from django.conf import settings
+import logging
+
+# Local imports
+from .models import (
+    Place, PlaceCategory, TourBooking, EventBooking, TravelGroup, GroupTours, 
+    Agency, AgencyService, TourComment, TourBookingPayment, Event, EventComment, 
+    MenuCategory, MenuItem, Features, PlaceRating, AgencyRating, RatingHelpful,
+    PlaceGallery, AgencyGallery, DatePlan, DateActivity, DatePlanPreference, DatePlanSuggestion,
+    PlaceStaff, PlaceOrder
+)
+from .forms import (
+    MenuCategoryForm, MenuItemForm, TourCommentForm, EventCommentForm, 
+    TourBookingForm, EventBookingForm, EnhancedTourBookingForm, PlaceRatingForm, 
+    AgencyRatingForm, GroupToursForm, AgencyServiceForm, AdvancedSearchForm, FeatureForm,
+    PlaceGalleryForm, AgencyGalleryForm, PlaceSearchForm, AgencySearchForm,
+    DatePlanForm, DateActivityForm, DatePlanPreferenceForm, DatePlanSuggestionForm,
+    PlaceStaffForm, PlaceOrderForm
+)
+from users.models import MyUser
+from core.models import PaymentMethod, PaymentTransaction, MPesaPayment, PaymentSettings
+from core.mpesa_service import MPesaService
+
+# Third-party imports
 import json
 import base64
 import requests
 from requests.auth import HTTPBasicAuth
 from datetime import datetime, timedelta, date
 from decimal import Decimal
+
+# AI imports (optional)
+try:
+    import openai
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
 
 # Step 1: Basic Information
 class PlaceBasicForm(forms.Form):
@@ -3278,3 +3298,1343 @@ class PaymentStatusView(LoginRequiredMixin, View):
             print(f"❌ DEBUG: Error in PaymentStatusView: {str(e)}")
             messages.error(request, 'An error occurred while loading payment status.')
             return redirect('user_bookings')
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def agency_chat(request, agency_id):
+    """
+    AI Chat endpoint for agencies
+    """
+    try:
+        # Parse JSON data
+        data = json.loads(request.body)
+        question = data.get('question', '').strip()
+        
+        if not question:
+            return JsonResponse({
+                'success': False,
+                'error': 'Question is required'
+            }, status=400)
+        
+        # Get agency information
+        try:
+            agency = Agency.objects.get(pk=agency_id)
+        except Agency.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'Agency not found'
+            }, status=404)
+        
+        # Prepare context for OpenAI
+        agency_context = f"""
+        Agency Name: {agency.name}
+        Agency Type: {agency.get_agency_type_display()}
+        Status: {agency.get_status_display()}
+        Description: {agency.description}
+        Location: {agency.city}, {agency.country}
+        Address: {agency.address}
+        Phone: {agency.phone}
+        Email: {agency.email}
+        Website: {agency.website if agency.website else 'Not provided'}
+        Year Established: {agency.year_established if agency.year_established else 'Not specified'}
+        """
+        
+        # Add services information
+        if agency.services.exists():
+            services_info = "\nServices:\n"
+            for service in agency.services.all():
+                services_info += f"- {service.name}: {service.description}\n"
+                if service.base_price:
+                    services_info += f"  Price: {service.display_price}\n"
+                if service.duration:
+                    services_info += f"  Duration: {service.duration}\n"
+            agency_context += services_info
+        
+        # Prepare the prompt for OpenAI
+        system_prompt = f"""You are a helpful AI travel assistant for {agency.name}. 
+        You have access to the following information about this agency:
+        
+        {agency_context}
+        
+        Please answer questions about this agency based on the information provided above. 
+        If you don't have information about something, politely say so and suggest contacting the agency directly.
+        Keep responses helpful, friendly, and accurate. Focus on being informative about their services, location, and policies.
+        """
+        
+        # Check if OpenAI is available and configured
+        if not OPENAI_AVAILABLE:
+            # Fallback response when OpenAI is not installed
+            fallback_response = generate_fallback_response(question, agency)
+            return JsonResponse({
+                'success': True,
+                'response': fallback_response,
+                'source': 'fallback_no_openai'
+            })
+        
+        if not hasattr(settings, 'OPENAI_API_KEY') or not settings.OPENAI_API_KEY:
+            # Fallback response without OpenAI API key
+            fallback_response = generate_fallback_response(question, agency)
+            return JsonResponse({
+                'success': True,
+                'response': fallback_response,
+                'source': 'fallback_no_key'
+            })
+        
+        try:
+            # Configure OpenAI
+            openai.api_key = settings.OPENAI_API_KEY
+            
+            # Make OpenAI API call
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": question}
+                ],
+                max_tokens=300,
+                temperature=0.7
+            )
+            
+            ai_response = response.choices[0].message.content.strip()
+            
+            return JsonResponse({
+                'success': True,
+                'response': ai_response,
+                'source': 'openai'
+            })
+        except Exception as openai_error:
+            # Fallback response if OpenAI API call fails
+            fallback_response = generate_fallback_response(question, agency)
+            return JsonResponse({
+                'success': True,
+                'response': fallback_response,
+                'source': 'fallback_api_error'
+            })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid JSON data'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+def generate_fallback_response(question, agency):
+    """
+    Generate a fallback response when OpenAI is not available
+    """
+    question_lower = question.lower()
+    
+    # Basic keyword matching for common questions
+    if any(word in question_lower for word in ['service', 'offer', 'provide']):
+        if agency.services.exists():
+            services_list = ", ".join([service.name for service in agency.services.all()])
+            return f"{agency.name} offers the following services: {services_list}. For more detailed information about each service, please contact them directly."
+        else:
+            return f"{agency.name} is a travel agency, but I don't have specific information about their current services. Please contact them directly for the most up-to-date service offerings."
+    
+    elif any(word in question_lower for word in ['price', 'cost', 'fee', 'rate']):
+        return f"I don't have specific pricing information for {agency.name}'s services. Pricing can vary based on the service, season, and other factors. Please contact them directly for accurate pricing quotes."
+    
+    elif any(word in question_lower for word in ['location', 'where', 'address']):
+        return f"{agency.name} is located at {agency.address}, {agency.city}, {agency.country}. You can contact them at {agency.phone} or {agency.email} for directions or to schedule a visit."
+    
+    elif any(word in question_lower for word in ['contact', 'phone', 'email', 'reach']):
+        return f"You can contact {agency.name} at {agency.phone} or {agency.email}. They're located at {agency.address}, {agency.city}, {agency.country}."
+    
+    elif any(word in question_lower for word in ['policy', 'cancellation', 'refund']):
+        return f"I don't have specific information about {agency.name}'s policies regarding cancellations, refunds, or other terms. Please contact them directly for their current policies and terms of service."
+    
+    elif any(word in question_lower for word in ['hour', 'time', 'open', 'available']):
+        return f"I don't have specific information about {agency.name}'s business hours. Please contact them directly at {agency.phone} or {agency.email} to confirm their current operating hours."
+    
+    else:
+        return f"Thank you for your question about {agency.name}. While I don't have specific information about that, I can tell you they're a {agency.get_agency_type_display()} located in {agency.city}, {agency.country}. For detailed information, please contact them directly at {agency.phone} or {agency.email}."
+
+@login_required
+@require_POST
+def upload_place_gallery_image(request, place_id):
+    """Upload a new image to place gallery"""
+    try:
+        place = get_object_or_404(Place, pk=place_id)
+        
+        # Check if user owns the place
+        if place.created_by != request.user:
+            return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
+        
+        form = PlaceGalleryForm(request.POST, request.FILES)
+        if form.is_valid():
+            gallery_image = form.save(commit=False)
+            gallery_image.place = place
+            gallery_image.save()
+            
+            return JsonResponse({
+                'success': True,
+                'image_id': gallery_image.id,
+                'image_url': gallery_image.get_image_url(),
+                'caption': gallery_image.caption,
+                'message': 'Image uploaded successfully'
+            })
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+            
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required
+@require_POST
+def delete_place_gallery_image(request, place_id, image_id):
+    """Delete an image from place gallery"""
+    try:
+        place = get_object_or_404(Place, pk=place_id)
+        gallery_image = get_object_or_404(PlaceGallery, pk=image_id, place=place)
+        
+        # Check if user owns the place
+        if place.created_by != request.user:
+            return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
+        
+        gallery_image.delete()
+        return JsonResponse({'success': True, 'message': 'Image deleted successfully'})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required
+@require_POST
+def reorder_place_gallery(request, place_id):
+    """Reorder place gallery images"""
+    try:
+        place = get_object_or_404(Place, pk=place_id)
+        
+        # Check if user owns the place
+        if place.created_by != request.user:
+            return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
+        
+        data = json.loads(request.body)
+        image_orders = data.get('image_orders', [])
+        
+        for item in image_orders:
+            image_id = item.get('id')
+            new_order = item.get('order')
+            if image_id and new_order is not None:
+                PlaceGallery.objects.filter(id=image_id, place=place).update(order=new_order)
+        
+        return JsonResponse({'success': True, 'message': 'Gallery reordered successfully'})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required
+@require_POST
+def upload_agency_gallery_image(request, agency_id):
+    """Upload a new image to agency gallery"""
+    try:
+        agency = get_object_or_404(Agency, pk=agency_id)
+        
+        # Check if user owns the agency
+        if agency.owner != request.user:
+            return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
+        
+        form = AgencyGalleryForm(request.POST, request.FILES)
+        if form.is_valid():
+            gallery_image = form.save(commit=False)
+            gallery_image.agency = agency
+            gallery_image.save()
+            
+            return JsonResponse({
+                'success': True,
+                'image_id': gallery_image.id,
+                'image_url': gallery_image.get_image_url(),
+                'caption': gallery_image.caption,
+                'message': 'Image uploaded successfully'
+            })
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+            
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required
+@require_POST
+def delete_agency_gallery_image(request, agency_id, image_id):
+    """Delete an image from agency gallery"""
+    try:
+        agency = get_object_or_404(Agency, pk=agency_id)
+        gallery_image = get_object_or_404(AgencyGallery, pk=image_id, agency=agency)
+        
+        # Check if user owns the agency
+        if agency.owner != request.user:
+            return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
+        
+        gallery_image.delete()
+        return JsonResponse({'success': True, 'message': 'Image deleted successfully'})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required
+@require_POST
+def reorder_agency_gallery(request, agency_id):
+    """Reorder agency gallery images"""
+    try:
+        agency = get_object_or_404(Agency, pk=agency_id)
+        
+        # Check if user owns the agency
+        if agency.owner != request.user:
+            return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
+        
+        data = json.loads(request.body)
+        image_orders = data.get('image_orders', [])
+        
+        for item in image_orders:
+            image_id = item.get('id')
+            new_order = item.get('order')
+            if image_id and new_order is not None:
+                AgencyGallery.objects.filter(id=image_id, agency=agency).update(order=new_order)
+        
+        return JsonResponse({'success': True, 'message': 'Gallery reordered successfully'})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+def enhanced_place_search(request):
+    """Enhanced search view for places with multiple filters"""
+    
+    # Get search form
+    search_form = PlaceSearchForm(request.GET)
+    
+    # Start with all places
+    places = Place.objects.filter(is_active=True)
+    
+    if search_form.is_valid():
+        # Basic search query
+        search_query = search_form.cleaned_data.get('search_query')
+        if search_query:
+            places = places.filter(
+                Q(name__icontains=search_query) |
+                Q(description__icontains=search_query) |
+                Q(location__icontains=search_query) |
+                Q(address__icontains=search_query)
+            )
+        
+        # Category filter
+        category = search_form.cleaned_data.get('category')
+        if category:
+            places = places.filter(category=category)
+        
+        # Price range filter
+        price_range = search_form.cleaned_data.get('price_range')
+        if price_range:
+            places = places.filter(price_range=price_range)
+        
+        # Duration filter
+        max_duration = search_form.cleaned_data.get('max_duration')
+        if max_duration:
+            places = places.filter(average_visit_duration__lte=int(max_duration))
+        
+        # Location filter
+        location = search_form.cleaned_data.get('location')
+        if location:
+            places = places.filter(
+                Q(location__icontains=location) |
+                Q(address__icontains=location)
+            )
+        
+        # Family friendly filter
+        family_friendly = search_form.cleaned_data.get('family_friendly')
+        if family_friendly:
+            places = places.filter(family_friendly=True)
+        
+        # Pet friendly filter
+        pet_friendly = search_form.cleaned_data.get('pet_friendly')
+        if pet_friendly:
+            places = places.filter(pet_friendly=True)
+        
+        # Accessibility features filter
+        accessibility_features = search_form.cleaned_data.get('accessibility_features')
+        if accessibility_features:
+            for feature in accessibility_features:
+                places = places.filter(accessibility_features__contains=[feature])
+        
+        # Amenities filter
+        amenities = search_form.cleaned_data.get('amenities')
+        if amenities:
+            for amenity in amenities:
+                places = places.filter(amenities__contains=[amenity])
+        
+        # Rating filter
+        min_rating = search_form.cleaned_data.get('min_rating')
+        if min_rating:
+            min_rating_int = int(min_rating)
+            places = places.annotate(
+                avg_rating=Avg('ratings__rating')
+            ).filter(avg_rating__gte=min_rating_int)
+        
+        # Sort results
+        sort_by = search_form.cleaned_data.get('sort_by', '-created_at')
+        
+        # Debug logging
+        print(f"DEBUG: sort_by value: '{sort_by}' (type: {type(sort_by)})")
+        
+        # Validate sort_by is not empty and is a valid field
+        if sort_by and str(sort_by).strip():
+            sort_by = str(sort_by).strip()
+            
+            if sort_by == 'average_rating':
+                places = places.annotate(
+                    avg_rating=Avg('ratings__rating')
+                ).order_by('-avg_rating')
+            elif sort_by == '-average_rating':
+                places = places.annotate(
+                    avg_rating=Avg('ratings__rating')
+                ).order_by('avg_rating')
+            elif sort_by == 'price_range':
+                # Custom ordering for price ranges
+                places = places.annotate(
+                    price_order=Case(
+                        When(price_range='free', then=Value(1)),
+                        When(price_range='low', then=Value(2)),
+                        When(price_range='medium', then=Value(3)),
+                        When(price_range='high', then=Value(4)),
+                        When(price_range='luxury', then=Value(5)),
+                        default=Value(6),
+                        output_field=IntegerField(),
+                    )
+                ).order_by('price_order')
+            elif sort_by == '-price_range':
+                places = places.annotate(
+                    price_order=Case(
+                        When(price_range='free', then=Value(1)),
+                        When(price_range='low', then=Value(2)),
+                        When(price_range='medium', then=Value(3)),
+                        When(price_range='high', then=Value(4)),
+                        When(price_range='luxury', then=Value(5)),
+                        default=Value(6),
+                        output_field=IntegerField(),
+                    )
+                ).order_by('-price_order')
+            else:
+                # Validate that the field exists before ordering
+                try:
+                    # Check if the field exists in the model
+                    if hasattr(Place._meta, 'get_field'):
+                        field_name = sort_by.lstrip('-')  # Remove minus sign for field validation
+                        Place._meta.get_field(field_name)
+                        places = places.order_by(sort_by)
+                    else:
+                        places = places.order_by('-created_at')
+                except Exception as e:
+                    print(f"DEBUG: Error ordering by {sort_by}: {e}")
+                    # Fallback to default ordering if field doesn't exist
+                    places = places.order_by('-created_at')
+        else:
+            print(f"DEBUG: Using default ordering, sort_by was: '{sort_by}'")
+            # Default ordering if no sort specified
+            places = places.order_by('-created_at')
+    
+    # Pagination
+    paginator = Paginator(places, 12)  # Show 12 places per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Get all categories for the filter
+    categories = PlaceCategory.objects.all()
+    
+    # Get filter counts for active filters
+    active_filters = {}
+    if search_form.is_valid():
+        for field_name, value in search_form.cleaned_data.items():
+            if value and value != '' and value != []:
+                active_filters[field_name] = value
+    
+    context = {
+        'search_form': search_form,
+        'page_obj': page_obj,
+        'categories': categories,
+        'active_filters': active_filters,
+        'total_results': places.count(),
+        'search_performed': bool(request.GET),
+    }
+    
+    return render(request, 'listings/enhanced_place_search.html', context)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def place_chat(request, place_id):
+    """AI chat endpoint for places"""
+    try:
+        # Get the place
+        place = get_object_or_404(Place, pk=place_id)
+        
+        # Parse the request data
+        data = json.loads(request.body)
+        question = data.get('question', '').strip()
+        
+        if not question:
+            return JsonResponse({'success': False, 'error': 'Question is required'}, status=400)
+        
+        # Check if OpenAI is available
+        if not OPENAI_AVAILABLE:
+            return JsonResponse({
+                'success': True, 
+                'response': f"I'm sorry, but I'm currently offline. However, I can tell you about {place.name} based on the information I have: {place.description[:200]}..."
+            })
+        
+        # Create context about the place
+        context = f"""
+        Place Information:
+        - Name: {place.name}
+        - Category: {place.category.name if place.category else 'Not specified'}
+        - Description: {place.description}
+        - Location: {place.location}
+        - Address: {place.address if place.address else 'Not specified'}
+        - Contact: {place.contact_email if place.contact_email else 'Not specified'}
+        - Website: {place.website if place.website else 'Not specified'}
+        - Price Range: {place.get_price_range_display() if place.price_range else 'Not specified'}
+        - Best Time to Visit: {place.best_time_to_visit if place.best_time_to_visit else 'Not specified'}
+        - Average Visit Duration: {place.average_visit_duration if place.average_visit_duration else 'Not specified'}
+        - Peak Season: {place.peak_season if place.peak_season else 'Not specified'}
+        - Family Friendly: {'Yes' if place.family_friendly else 'No'}
+        - Pet Friendly: {'Yes' if place.pet_friendly else 'No'}
+        - Accessibility Features: {', '.join(place.accessibility_features) if place.accessibility_features else 'Not specified'}
+        - Amenities: {', '.join(place.amenities) if place.amenities else 'Not specified'}
+        - Opening Hours: {place.opening_hours if place.opening_hours else 'Not specified'}
+        - Verified: {'Yes' if place.verified else 'No'}
+        """
+        
+        # Create the prompt for OpenAI
+        prompt = f"""
+        You are a helpful AI travel assistant for {place.name}. 
+        
+        Here is the information about this place:
+        {context}
+        
+        A visitor is asking: "{question}"
+        
+        Please provide a helpful, informative response based on the information above. 
+        If the information is not available, politely say so and suggest they contact the place directly.
+        Keep your response friendly, helpful, and under 200 words.
+        Focus on being informative about the place's attractions, activities, policies, and visitor information.
+        """
+        
+        # Get response from OpenAI
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a helpful AI travel assistant that provides accurate information about travel destinations and places."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=300,
+                temperature=0.7
+            )
+            
+            ai_response = response.choices[0].message.content.strip()
+            
+            return JsonResponse({
+                'success': True,
+                'response': ai_response
+            })
+            
+        except Exception as openai_error:
+            print(f"OpenAI API error: {openai_error}")
+            # Fallback response
+            fallback_response = f"I'm sorry, I'm having trouble processing your question right now. However, I can tell you that {place.name} is a {place.category.name if place.category else 'travel destination'} located in {place.location}. For specific information about '{question}', I recommend contacting the place directly or checking their website."
+            
+            return JsonResponse({
+                'success': True,
+                'response': fallback_response
+            })
+            
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        print(f"Place chat error: {e}")
+        return JsonResponse({'success': False, 'error': 'Internal server error'}, status=500)
+
+# Date Planner Views
+class DatePlannerDashboardView(LoginRequiredMixin, TemplateView):
+    """Dashboard for date planning"""
+    template_name = 'listings/date_planner_dashboard.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        
+        # Get user's date plans
+        context['date_plans'] = DatePlan.objects.filter(creator=user).order_by('-created_at')
+        context['active_plans'] = context['date_plans'].filter(status='active')
+        context['upcoming_plans'] = context['date_plans'].filter(
+            planned_date__gte=date.today(),
+            status__in=['draft', 'active']
+        ).order_by('planned_date')
+        
+        # Get user preferences
+        context['preferences'], created = DatePlanPreference.objects.get_or_create(user=user)
+        
+        # Get AI suggestions
+        context['ai_suggestions'] = DatePlanSuggestion.objects.filter(
+            user=user, 
+            status='pending'
+        ).order_by('-created_at')[:5]
+        
+        return context
+
+
+class DatePlanCreateView(LoginRequiredMixin, CreateView):
+    """View for creating new date plans"""
+    model = DatePlan
+    form_class = DatePlanForm
+    template_name = 'listings/date_plan_form.html'
+    success_url = reverse_lazy('date_planner_dashboard')
+    
+    def form_valid(self, form):
+        form.instance.creator = self.request.user
+        messages.success(self.request, 'Date plan created successfully!')
+        return super().form_valid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Create New Date Plan'
+        context['submit_text'] = 'Create Plan'
+        return context
+
+
+class DatePlanUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """View for editing existing date plans"""
+    model = DatePlan
+    form_class = DatePlanForm
+    template_name = 'listings/date_plan_form.html'
+    
+    def test_func(self):
+        date_plan = self.get_object()
+        return date_plan.creator == self.request.user
+    
+    def get_success_url(self):
+        return reverse('date_plan_detail', kwargs={'pk': self.object.pk})
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Date plan updated successfully!')
+        return super().form_valid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Edit Date Plan'
+        context['submit_text'] = 'Update Plan'
+        return context
+
+
+class DatePlanDetailView(LoginRequiredMixin, DetailView):
+    """View for displaying date plan details"""
+    model = DatePlan
+    template_name = 'listings/date_plan_detail.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        date_plan = self.get_object()
+        
+        # Check if user can edit this plan
+        context['can_edit'] = date_plan.creator == self.request.user
+        
+        # Get activities ordered by time
+        context['activities'] = date_plan.activities.all().order_by('order', 'start_time')
+        
+        # Get collaborators
+        context['collaborators'] = date_plan.collaborators.all()
+        
+        return context
+
+
+class DatePlanDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """View for deleting date plans"""
+    model = DatePlan
+    template_name = 'listings/date_plan_confirm_delete.html'
+    success_url = reverse_lazy('date_planner_dashboard')
+    
+    def test_func(self):
+        date_plan = self.get_object()
+        return date_plan.creator == self.request.user
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Date plan deleted successfully!')
+        return super().delete(request, *args, **kwargs)
+
+
+class DateActivityCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    """View for adding activities to date plans"""
+    model = DateActivity
+    form_class = DateActivityForm
+    template_name = 'listings/date_activity_form.html'
+    
+    def test_func(self):
+        date_plan = DatePlan.objects.get(pk=self.kwargs['plan_pk'])
+        return date_plan.creator == self.request.user
+    
+    def form_valid(self, form):
+        form.instance.date_plan_id = self.kwargs['plan_pk']
+        
+        # Set order if not provided
+        if not form.instance.order:
+            last_activity = DateActivity.objects.filter(
+                date_plan_id=self.kwargs['plan_pk']
+            ).order_by('-order').first()
+            form.instance.order = (last_activity.order + 1) if last_activity else 0
+        
+        messages.success(self.request, 'Activity added successfully!')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse('date_plan_detail', kwargs={'pk': self.kwargs['plan_pk']})
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['date_plan'] = DatePlan.objects.get(pk=self.kwargs['plan_pk'])
+        context['title'] = 'Add Activity'
+        context['submit_text'] = 'Add Activity'
+        return context
+
+
+class DateActivityUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """View for editing date activities"""
+    model = DateActivity
+    form_class = DateActivityForm
+    template_name = 'listings/date_activity_form.html'
+    
+    def test_func(self):
+        activity = self.get_object()
+        return activity.date_plan.creator == self.request.user
+    
+    def get_success_url(self):
+        return reverse('date_plan_detail', kwargs={'pk': self.object.date_plan.pk})
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Activity updated successfully!')
+        return super().form_valid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['date_plan'] = self.object.date_plan
+        context['title'] = 'Edit Activity'
+        context['submit_text'] = 'Update Activity'
+        return context
+
+
+class DateActivityDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """View for deleting date activities"""
+    model = DateActivity
+    template_name = 'listings/date_activity_confirm_delete.html'
+    
+    def test_func(self):
+        activity = self.get_object()
+        return activity.date_plan.creator == self.request.user
+    
+    def get_success_url(self):
+        return reverse('date_plan_detail', kwargs={'pk': self.object.date_plan.pk})
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Activity deleted successfully!')
+        return super().delete(request, *args, **kwargs)
+
+
+class DatePlanPreferenceView(LoginRequiredMixin, UpdateView):
+    """View for managing date planning preferences"""
+    model = DatePlanPreference
+    form_class = DatePlanPreferenceForm
+    template_name = 'listings/date_plan_preferences.html'
+    success_url = reverse_lazy('date_planner_dashboard')
+    
+    def get_object(self, queryset=None):
+        obj, created = DatePlanPreference.objects.get_or_create(user=self.request.user)
+        return obj
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Preferences updated successfully!')
+        return super().form_valid(form)
+
+
+class DatePlanSuggestionView(LoginRequiredMixin, TemplateView):
+    """View for requesting AI-generated date plan suggestions"""
+    template_name = 'listings/date_plan_suggestion.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['suggestion_form'] = DatePlanSuggestionForm()
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        form = DatePlanSuggestionForm(request.POST)
+        if form.is_valid():
+            # Generate AI suggestion
+            suggestion = self.generate_ai_suggestion(form.cleaned_data, request.user)
+            if suggestion:
+                messages.success(request, 'AI suggestion generated successfully!')
+                return redirect('date_plan_suggestion_detail', pk=suggestion.pk)
+            else:
+                messages.error(request, 'Failed to generate AI suggestion. Please try again.')
+        
+        context = self.get_context_data()
+        context['suggestion_form'] = form
+        return self.render_to_response(context)
+    
+    def generate_ai_suggestion(self, data, user):
+        """Generate AI suggestion for date plan"""
+        try:
+            # Create the suggestion record
+            suggestion = DatePlanSuggestion.objects.create(
+                user=user,
+                title=f"AI Suggested {data['suggestion_type'].title()} Plan",
+                description=self.create_ai_description(data),
+                suggested_date=data['date'],
+                estimated_duration=data['duration'],
+                estimated_cost=data.get('budget'),
+                suggested_activities=self.generate_activity_suggestions(data),
+                ai_prompt=self.create_ai_prompt(data)
+            )
+            return suggestion
+        except Exception as e:
+            print(f"Error generating AI suggestion: {e}")
+            return None
+    
+    def create_ai_description(self, data):
+        """Create description for AI suggestion"""
+        return f"AI-generated {data['suggestion_type']} plan for {data['date']} in {data['location']}. " \
+               f"Duration: {data['duration']} hours, Group size: {data['group_size']} people."
+    
+    def create_ai_prompt(self, data):
+        """Create the AI prompt used for generation"""
+        return f"Create a {data['suggestion_type']} plan for {data['date']} in {data['location']}. " \
+               f"Duration: {data['duration']} hours, Group size: {data['group_size']} people. " \
+               f"Preferences: {data.get('preferences', 'None')}"
+    
+    def generate_activity_suggestions(self, data):
+        """Generate suggested activities based on plan type and preferences"""
+        # This would typically call an AI service
+        # For now, return basic suggestions
+        suggestions = []
+        
+        if data['suggestion_type'] == 'romantic':
+            suggestions = ['Romantic dinner', 'Sunset walk', 'Couple massage']
+        elif data['suggestion_type'] == 'family':
+            suggestions = ['Family lunch', 'Park visit', 'Museum tour']
+        elif data['suggestion_type'] == 'food':
+            suggestions = ['Breakfast', 'Lunch', 'Dinner', 'Dessert']
+        else:
+            suggestions = ['Morning activity', 'Afternoon activity', 'Evening activity']
+        
+        return suggestions
+
+
+class DatePlanSuggestionDetailView(LoginRequiredMixin, DetailView):
+    """View for displaying AI-generated date plan suggestions"""
+    model = DatePlanSuggestion
+    template_name = 'listings/date_plan_suggestion_detail.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        suggestion = self.get_object()
+        
+        # Check if user can edit this suggestion
+        context['can_edit'] = suggestion.user == self.request.user
+        
+        return context
+
+
+@login_required
+def accept_date_plan_suggestion(request, pk):
+    """Accept an AI-generated date plan suggestion"""
+    suggestion = get_object_or_404(DatePlanSuggestion, pk=pk, user=request.user)
+    
+    if request.method == 'POST':
+        # Create a new date plan from the suggestion
+        date_plan = DatePlan.objects.create(
+            creator=request.user,
+            title=suggestion.title,
+            description=suggestion.description,
+            planned_date=suggestion.suggested_date,
+            plan_type='other',  # Default type
+            group_size=2,  # Default group size
+            location='',  # Will be filled by user
+            budget=suggestion.estimated_cost
+        )
+        
+        # Update suggestion status
+        suggestion.status = 'accepted'
+        suggestion.save()
+        
+        messages.success(request, 'Suggestion accepted! Date plan created successfully.')
+        return redirect('date_plan_detail', pk=date_plan.pk)
+    
+    return redirect('date_plan_suggestion_detail', pk=pk)
+
+
+@login_required
+def reject_date_plan_suggestion(request, pk):
+    """Reject an AI-generated date plan suggestion"""
+    suggestion = get_object_or_404(DatePlanSuggestion, pk=pk, user=request.user)
+    
+    if request.method == 'POST':
+        feedback = request.POST.get('feedback', '')
+        suggestion.status = 'rejected'
+        suggestion.user_feedback = feedback
+        suggestion.save()
+        
+        messages.success(request, 'Suggestion rejected successfully.')
+        return redirect('date_planner_dashboard')
+    
+    return redirect('date_plan_suggestion_detail', pk=pk)
+
+
+@login_required
+def toggle_activity_completion(request, pk):
+    """Toggle completion status of a date activity"""
+    activity = get_object_or_404(DateActivity, pk=pk)
+    
+    # Check if user can modify this activity
+    if activity.date_plan.creator != request.user:
+        return JsonResponse({'success': False, 'error': 'Permission denied'})
+    
+    if request.method == 'POST':
+        activity.is_completed = not activity.is_completed
+        activity.save()
+        
+        return JsonResponse({
+            'success': True,
+            'is_completed': activity.is_completed,
+            'message': 'Activity marked as completed' if activity.is_completed else 'Activity marked as incomplete'
+        })
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+
+@login_required
+def reorder_activities(request, plan_pk):
+    """Reorder activities within a date plan"""
+    date_plan = get_object_or_404(DatePlan, pk=plan_pk, creator=request.user)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            activity_orders = data.get('activity_orders', [])
+            
+            for item in activity_orders:
+                activity_id = item.get('id')
+                new_order = item.get('order')
+                if activity_id and new_order is not None:
+                    DateActivity.objects.filter(
+                        id=activity_id, 
+                        date_plan=date_plan
+                    ).update(order=new_order)
+            
+            return JsonResponse({'success': True, 'message': 'Activities reordered successfully'})
+            
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': 'Invalid JSON data'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+
+class PublicDatePlansView(ListView):
+    """View for browsing public date plans"""
+    model = DatePlan
+    template_name = 'listings/public_date_plans.html'
+    context_object_name = 'date_plans'
+    paginate_by = 12
+    
+    def get_queryset(self):
+        queryset = DatePlan.objects.filter(
+            is_public=True,
+            status='active',
+            planned_date__gte=date.today()
+        ).select_related('creator').prefetch_related('activities')
+        
+        # Filter by plan type
+        plan_type = self.request.GET.get('plan_type')
+        if plan_type:
+            queryset = queryset.filter(plan_type=plan_type)
+        
+        # Filter by location
+        location = self.request.GET.get('location')
+        if location:
+            queryset = queryset.filter(location__icontains=location)
+        
+        # Filter by date range
+        date_from = self.request.GET.get('date_from')
+        if date_from:
+            try:
+                date_from = datetime.strptime(date_from, '%Y-%m-%d').date()
+                queryset = queryset.filter(planned_date__gte=date_from)
+            except ValueError:
+                pass
+        
+        return queryset.order_by('planned_date')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['plan_types'] = DatePlan.PLAN_TYPE_CHOICES
+        return context
+
+# Staff Management Views
+@login_required
+def add_place_staff(request, place_id):
+    """Add a new staff member to a place"""
+    place = get_object_or_404(Place, pk=place_id)
+    
+    # Check if user is the place owner
+    if place.created_by != request.user:
+        messages.error(request, 'You do not have permission to manage this place.')
+        return redirect('user_place_detail', pk=place_id)
+    
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        role = request.POST.get('role')
+        notes = request.POST.get('notes', '')
+        
+        if not email or not role:
+            messages.error(request, 'Email and role are required.')
+            return redirect('user_place_detail', pk=place_id)
+        
+        # Check if user exists
+        try:
+            user = MyUser.objects.get(email=email)
+        except MyUser.DoesNotExist:
+            messages.error(request, f'No user found with email: {email}')
+            return redirect('user_place_detail', pk=place_id)
+        
+        # Check if user is already staff at this place
+        if PlaceStaff.objects.filter(place=place, user=user).exists():
+            messages.error(request, f'{user.username} is already a staff member at this place.')
+            return redirect('user_place_detail', pk=place_id)
+        
+        # Create staff member
+        staff_member = PlaceStaff.objects.create(
+            place=place,
+            user=user,
+            role=role,
+            notes=notes,
+            # Handle checkbox fields
+            can_view_orders='can_view_orders' in request.POST,
+            can_create_orders='can_create_orders' in request.POST,
+            can_edit_orders='can_edit_orders' in request.POST,
+            can_delete_orders='can_delete_orders' in request.POST,
+            can_view_customers='can_view_customers' in request.POST,
+            can_edit_menu='can_edit_menu' in request.POST,
+            can_manage_staff='can_manage_staff' in request.POST,
+            can_view_analytics='can_view_analytics' in request.POST,
+            can_manage_settings='can_manage_settings' in request.POST
+        )
+        
+        messages.success(request, f'{user.username} has been added as staff.')
+        return redirect('user_place_detail', pk=place_id)
+    
+    return redirect('user_place_detail', pk=place_id)
+
+
+@login_required
+def edit_place_staff(request, place_id, staff_id):
+    """Edit a staff member's permissions"""
+    place = get_object_or_404(Place, pk=place_id)
+    staff_member = get_object_or_404(PlaceStaff, pk=staff_id, place=place)
+    
+    # Check if user is the place owner
+    if place.created_by != request.user:
+        messages.error(request, 'You do not have permission to manage this place.')
+        return redirect('public_place_detail', pk=place.pk)
+    
+    if request.method == 'POST':
+        form = PlaceStaffForm(request.POST, instance=staff_member, place=place)
+        if form.is_valid():
+            staff_member = form.save(commit=False)
+            
+            # Handle checkbox fields
+            staff_member.can_view_orders = 'can_view_orders' in request.POST
+            staff_member.can_create_orders = 'can_create_orders' in request.POST
+            staff_member.can_edit_orders = 'can_edit_orders' in request.POST
+            staff_member.can_delete_orders = 'can_delete_orders' in request.POST
+            staff_member.can_view_customers = 'can_view_customers' in request.POST
+            staff_member.can_edit_menu = 'can_edit_menu' in request.POST
+            staff_member.can_manage_staff = 'can_manage_staff' in request.POST
+            staff_member.can_view_analytics = 'can_view_analytics' in request.POST
+            staff_member.can_manage_settings = 'can_manage_settings' in request.POST
+            
+            staff_member.save()
+            messages.success(request, f'{staff_member.user.username}\'s permissions have been updated.')
+            return redirect('user_place_detail', pk=place.pk)
+    
+    # For now, redirect back to user place detail since we're not using a separate edit form
+    return redirect('user_place_detail', pk=place.pk)
+
+
+@login_required
+def remove_place_staff(request, place_id, staff_id):
+    """Remove a staff member from a place"""
+    place = get_object_or_404(Place, pk=place_id)
+    staff_member = get_object_or_404(PlaceStaff, pk=staff_id, place=place)
+    
+    # Check if user is the place owner
+    if place.created_by != request.user:
+        messages.error(request, 'You do not have permission to manage this place.')
+        return redirect('user_place_detail', pk=place.pk)
+    
+    if request.method == 'POST':
+        username = staff_member.user.username
+        staff_member.delete()
+        messages.success(request, f'{username} has been removed from staff.')
+        return redirect('user_place_detail', pk=place_id)
+    
+    # For now, redirect back to user place detail since we're not using a separate remove form
+    return redirect('user_place_detail', pk=place_id)
+
+
+@login_required
+def staff_dashboard(request, place_id):
+    """Staff dashboard for managing orders at a place"""
+    place = get_object_or_404(Place, pk=place_id)
+    
+    # Check if user is staff member or place owner
+    if request.user != place.created_by:
+        staff_member = PlaceStaff.objects.filter(place=place, user=request.user).first()
+        if not staff_member:
+            messages.error(request, 'You do not have access to this staff dashboard.')
+            return redirect('public_place_detail', pk=place_id)
+    
+    # Get order statistics
+    from datetime import date
+    today = date.today()
+    
+    pending_orders_count = PlaceOrder.objects.filter(place=place, status='pending').count()
+    in_progress_orders_count = PlaceOrder.objects.filter(
+        place=place, 
+        status__in=['confirmed', 'preparing']
+    ).count()
+    completed_today_count = PlaceOrder.objects.filter(
+        place=place, 
+        status__in=['completed', 'delivered'], 
+        order_date__date=today
+    ).count()
+    
+    # Calculate today's revenue
+    from django.db.models import Sum
+    today_revenue = PlaceOrder.objects.filter(
+        place=place, 
+        status__in=['completed', 'delivered'], 
+        order_date__date=today
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
+    
+    # Get recent orders
+    recent_orders = PlaceOrder.objects.filter(place=place).order_by('-order_date')[:5]
+    
+    context = {
+        'place': place,
+        'pending_orders_count': pending_orders_count,
+        'in_progress_orders_count': in_progress_orders_count,
+        'completed_today_count': completed_today_count,
+        'today_revenue': today_revenue,
+        'recent_orders': recent_orders,
+    }
+    
+    return render(request, 'listings/staff_dashboard.html', context)
+
+
+@login_required
+def place_orders_dashboard(request, place_id):
+    """Dashboard for managing place orders"""
+    place = get_object_or_404(Place, pk=place_id)
+    
+    # Check if user is the place owner or staff member
+    if place.created_by != request.user:
+        # Check if user is staff member
+        try:
+            staff_member = place.staff_members.get(user=request.user)
+            if not staff_member.can_view_orders:
+                messages.error(request, 'You do not have permission to view orders.')
+                return redirect('public_place_detail', pk=place_id)
+        except PlaceStaff.DoesNotExist:
+            messages.error(request, 'You do not have permission to access this dashboard.')
+            return redirect('public_place_detail', pk=place_id)
+    
+    # Get orders
+    orders = place.orders.all().order_by('-order_date')
+    
+    # Filter by status if provided
+    status_filter = request.GET.get('status')
+    if status_filter:
+        orders = orders.filter(status=status_filter)
+    
+    # Pagination
+    paginator = Paginator(orders, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'place': place,
+        'page_obj': page_obj,
+        'orders': orders,
+        'status_choices': PlaceOrder.ORDER_STATUS_CHOICES,
+        'status_filter': status_filter,
+    }
+    
+    return render(request, 'listings/place_orders_dashboard.html', context)
+
+
+@login_required
+def create_place_order(request, place_id):
+    """Create a new order for a place"""
+    place = get_object_or_404(Place, pk=place_id)
+    
+    # Check if user is the place owner or staff member with permission
+    if place.created_by != request.user:
+        try:
+            staff_member = place.staff_members.get(user=request.user)
+            if not staff_member.can_create_orders:
+                messages.error(request, 'You do not have permission to create orders.')
+                return redirect('staff_dashboard', place_id=place_id)
+        except PlaceStaff.DoesNotExist:
+            messages.error(request, 'You do not have permission to create orders.')
+            return redirect('public_place_detail', pk=place_id)
+    
+    if request.method == 'POST':
+        # Get form data
+        customer_name = request.POST.get('customer_name')
+        customer_phone = request.POST.get('customer_phone')
+        menu_items = request.POST.getlist('menu_items')
+        quantities = request.POST.getlist('quantities')
+        instructions = request.POST.getlist('instructions')
+        
+        print(f"DEBUG: customer_name={customer_name}")
+        print(f"DEBUG: customer_phone={customer_phone}")
+        print(f"DEBUG: menu_items={menu_items}")
+        print(f"DEBUG: quantities={quantities}")
+        print(f"DEBUG: instructions={instructions}")
+        
+        if not menu_items:
+            messages.error(request, 'Please add at least one menu item to the order.')
+            return redirect('create_place_order', place_id=place_id)
+        
+        # Create the order
+        order = PlaceOrder.objects.create(
+            place=place,
+            customer=request.user,  # Use the staff member as customer for now
+            customer_name=customer_name,
+            customer_phone=customer_phone,
+            status='pending',
+            order_type='dine_in',  # Default to dine in
+            subtotal=0,  # Will be calculated
+            tax_amount=0,  # No tax for now
+            delivery_fee=0,  # No delivery fee for now
+            total_amount=0,  # Will be calculated
+            party_size=1  # Default party size
+        )
+        
+        # Set staff member if user is staff
+        if place.created_by != request.user:
+            try:
+                staff_member = place.staff_members.get(user=request.user)
+                order.staff_member = staff_member
+            except PlaceStaff.DoesNotExist:
+                pass
+        
+        # Create order items
+        total_amount = 0
+        for i, item_id in enumerate(menu_items):
+            try:
+                menu_item = MenuItem.objects.get(pk=item_id, place=place)
+                quantity = int(quantities[i]) if i < len(quantities) else 1
+                instruction = instructions[i] if i < len(instructions) else ""
+                
+                order_item = PlaceOrderItem.objects.create(
+                    order=order,
+                    menu_item=menu_item,
+                    quantity=quantity,
+                    special_instructions=instruction,
+                    total_price=menu_item.price * quantity
+                )
+                
+                total_amount += order_item.total_price
+            except (MenuItem.DoesNotExist, ValueError, IndexError):
+                continue
+        
+        # Update order total and subtotal
+        order.subtotal = total_amount
+        order.total_amount = total_amount
+        order.save()
+        
+        messages.success(request, f'Order #{order.id} created successfully!')
+        return redirect('staff_dashboard', place_id=place_id)
+    
+    # Get menu categories and items for the form
+    from listings.models import MenuCategory
+    menu_categories = MenuCategory.objects.filter(place=place).prefetch_related('menu_items')
+    
+    context = {
+        'place': place,
+        'menu_categories': menu_categories,
+    }
+    
+    return render(request, 'listings/create_place_order.html', context)
+
+
+@login_required
+def edit_place_order(request, order_id):
+    """Edit an existing order"""
+    order = get_object_or_404(PlaceOrder, pk=order_id)
+    place = order.place
+    
+    # Check if user is the place owner or staff member with permission
+    if place.created_by != request.user:
+        try:
+            staff_member = place.staff_members.get(user=request.user)
+            if not staff_member.can_edit_orders:
+                messages.error(request, 'You do not have permission to edit orders.')
+                return redirect('place_orders_dashboard', place_id=place.pk)
+        except PlaceStaff.DoesNotExist:
+            messages.error(request, 'You do not have permission to edit orders.')
+            return redirect('public_place_detail', pk=place.pk)
+    
+    if request.method == 'POST':
+        form = PlaceOrderForm(request.POST, instance=order, place=place)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Order updated successfully!')
+            return redirect('place_orders_dashboard', place_id=place.pk)
+    else:
+        form = PlaceOrderForm(instance=order, place=place)
+    
+    return render(request, 'listings/edit_place_order.html', {
+        'form': form,
+        'order': order,
+        'place': place
+    })
+
+
+@login_required
+def delete_place_order(request, order_id):
+    """Delete an order"""
+    order = get_object_or_404(PlaceOrder, pk=order_id)
+    place = order.place
+    
+    # Check if user is the place owner or staff member with permission
+    if place.created_by != request.user:
+        try:
+            staff_member = place.staff_members.get(user=request.user)
+            if not staff_member.can_delete_orders:
+                messages.error(request, 'You do not have permission to delete orders.')
+                return redirect('place_orders_dashboard', place_id=place.pk)
+        except PlaceStaff.DoesNotExist:
+            messages.error(request, 'You do not have permission to delete orders.')
+            return redirect('public_place_detail', pk=place.pk)
+    
+    if request.method == 'POST':
+        order_number = order.order_number
+        order.delete()
+        messages.success(request, f'Order {order_number} has been deleted.')
+        return redirect('place_orders_dashboard', place_id=place.pk)
+    
+    return render(request, 'listings/delete_place_order.html', {
+        'order': order,
+        'place': place
+    })

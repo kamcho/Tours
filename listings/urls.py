@@ -2,7 +2,10 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # Place URLs
+    # Enhanced search
+    path('search/enhanced/', views.enhanced_place_search, name='enhanced_place_search'),
+    
+    # Places
     path('place/create/', views.PlaceCreateWizard.as_view(), name='place_create_step'),
     path('place/create/step/<int:step>/', views.PlaceCreateWizard.as_view(), name='place_create_step'),
     path('place/create/success/', views.place_create_success, name='place_create_success'),
@@ -118,4 +121,59 @@ urlpatterns = [
     path('search/quick/', views.QuickSearchView.as_view(), name='quick_search'),
     path('trending/', views.TrendingView.as_view(), name='trending'),
     path('recommendations/', views.RecommendationView.as_view(), name='recommendations'),
+
+    # Agency Chat
+    path('agency/<int:agency_id>/chat/', views.agency_chat, name='agency_chat'),
+    
+    # Place Chat
+    path('place/<int:place_id>/chat/', views.place_chat, name='place_chat'),
+    
+    # Gallery Operations
+    # Place Gallery
+    path('place/<int:place_id>/gallery/upload/', views.upload_place_gallery_image, name='upload_place_gallery_image'),
+    path('place/<int:place_id>/gallery/<int:image_id>/delete/', views.delete_place_gallery_image, name='delete_place_gallery_image'),
+    path('place/<int:place_id>/gallery/reorder/', views.reorder_place_gallery, name='reorder_place_gallery'),
+    
+    # Agency Gallery
+    path('agency/<int:agency_id>/gallery/upload/', views.upload_agency_gallery_image, name='upload_agency_gallery_image'),
+    path('agency/<int:agency_id>/gallery/<int:image_id>/delete/', views.delete_agency_gallery_image, name='delete_agency_gallery_image'),
+    path('agency/<int:agency_id>/gallery/reorder/', views.reorder_agency_gallery, name='reorder_agency_gallery'),
+    
+    # Date Planner URLs
+    path('date-planner/', views.DatePlannerDashboardView.as_view(), name='date_planner_dashboard'),
+    path('date-planner/create/', views.DatePlanCreateView.as_view(), name='date_plan_create'),
+    path('date-planner/<int:pk>/', views.DatePlanDetailView.as_view(), name='date_plan_detail'),
+    path('date-planner/<int:pk>/edit/', views.DatePlanUpdateView.as_view(), name='date_plan_update'),
+    path('date-planner/<int:pk>/delete/', views.DatePlanDeleteView.as_view(), name='date_plan_delete'),
+    
+    # Date Activities
+    path('date-planner/<int:plan_pk>/activity/create/', views.DateActivityCreateView.as_view(), name='date_activity_create'),
+    path('date-planner/activity/<int:pk>/edit/', views.DateActivityUpdateView.as_view(), name='date_activity_update'),
+    path('date-planner/activity/<int:pk>/delete/', views.DateActivityDeleteView.as_view(), name='date_activity_delete'),
+    
+    # Date Planner Preferences and AI
+    path('date-planner/preferences/', views.DatePlanPreferenceView.as_view(), name='date_plan_preferences'),
+    path('date-planner/ai-suggestions/', views.DatePlanSuggestionView.as_view(), name='date_plan_suggestions'),
+    path('date-planner/ai-suggestions/<int:pk>/', views.DatePlanSuggestionDetailView.as_view(), name='date_plan_suggestion_detail'),
+    path('date-planner/ai-suggestions/<int:pk>/accept/', views.accept_date_plan_suggestion, name='accept_date_plan_suggestion'),
+    path('date-planner/ai-suggestions/<int:pk>/reject/', views.reject_date_plan_suggestion, name='reject_date_plan_suggestion'),
+    
+    # Date Planner AJAX
+    path('date-planner/activity/<int:pk>/toggle-completion/', views.toggle_activity_completion, name='toggle_activity_completion'),
+    path('date-planner/<int:plan_pk>/reorder-activities/', views.reorder_activities, name='reorder_activities'),
+    
+    # Public Date Plans
+    path('date-plans/', views.PublicDatePlansView.as_view(), name='public_date_plans'),
+
+    # Staff Management URLs
+    path('place/<int:place_id>/staff/add/', views.add_place_staff, name='add_place_staff'),
+    path('place/<int:place_id>/staff/<int:staff_id>/edit/', views.edit_place_staff, name='edit_place_staff'),
+    path('place/<int:place_id>/staff/<int:staff_id>/remove/', views.remove_place_staff, name='remove_place_staff'),
+    path('place/<int:place_id>/staff/dashboard/', views.staff_dashboard, name='staff_dashboard'),
+    
+    # Order Management URLs
+    path('place/<int:place_id>/orders/', views.place_orders_dashboard, name='place_orders_dashboard'),
+    path('place/<int:place_id>/orders/create/', views.create_place_order, name='create_place_order'),
+    path('place/orders/<int:order_id>/edit/', views.edit_place_order, name='edit_place_order'),
+    path('place/orders/<int:order_id>/delete/', views.delete_place_order, name='delete_place_order'),
 ] 

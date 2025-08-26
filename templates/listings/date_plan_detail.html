@@ -1,0 +1,154 @@
+{% extends 'users/base.html' %}
+{% load static %}
+
+{% block title %}{{ object.title }} - TravelsKe{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50">
+    <!-- Header Section -->
+    <div class="bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-600 text-white">
+        <div class="max-w-7xl mx-auto px-4 py-16">
+            <div class="text-center">
+                <h1 class="text-5xl lg:text-6xl font-bold mb-6">
+                    {{ object.title }}
+                </h1>
+                <p class="text-xl text-purple-100 max-w-3xl mx-auto mb-8">
+                    {{ object.description|default:"A perfectly planned day awaits you!" }}
+                </p>
+                
+                <!-- Plan Meta Info -->
+                <div class="flex flex-wrap justify-center gap-6 text-purple-100">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        {{ object.planned_date|date:"M d, Y" }}
+                    </div>
+                    {% if object.start_time %}
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        {{ object.start_time|time:"g:i A" }}
+                    </div>
+                    {% endif %}
+                    {% if object.location %}
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        </svg>
+                        {{ object.location }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Action Buttons -->
+                {% if can_edit %}
+                <div class="flex flex-wrap justify-center gap-4 mt-8">
+                    <a href="{% url 'date_plan_update' object.pk %}" class="bg-white text-purple-600 px-6 py-3 rounded-xl font-semibold hover:bg-purple-50 transition-all duration-300 shadow-lg hover:shadow-xl">
+                        Edit Plan
+                    </a>
+                    <a href="{% url 'date_activity_create' object.pk %}" class="bg-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-pink-600 transition-all duration-300 shadow-lg hover:shadow-xl">
+                        Add Activity
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 py-12">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column: Activities Timeline -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                    <div class="bg-gradient-to-r from-pink-500 to-purple-500 px-6 py-4">
+                        <h2 class="text-xl font-bold text-white">Your Itinerary</h2>
+                    </div>
+                    
+                    <div class="p-6">
+                        {% if activities %}
+                            <div class="space-y-6">
+                                {% for activity in activities %}
+                                <div class="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ activity.title }}</h3>
+                                    {% if activity.description %}
+                                        <p class="text-gray-600 text-sm mb-3">{{ activity.description }}</p>
+                                    {% endif %}
+                                    
+                                    <div class="flex items-center gap-4 text-sm text-gray-500">
+                                        <span>{{ activity.start_time|time:"g:i A" }} - {{ activity.end_time|time:"g:i A" }}</span>
+                                        {% if activity.location %}
+                                        <span>{{ activity.location }}</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if can_edit %}
+                                    <div class="flex gap-2 mt-3">
+                                        <a href="{% url 'date_activity_update' activity.pk %}" class="bg-blue-500 text-white px-3 py-1 rounded text-xs font-medium hover:bg-blue-600 transition-colors">
+                                            Edit
+                                        </a>
+                                        <a href="{% url 'date_activity_delete' activity.pk %}" class="bg-red-500 text-white px-3 py-1 rounded text-xs font-medium hover:bg-red-600 transition-colors">
+                                            Delete
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-12">
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">No activities planned yet</h3>
+                                <p class="text-gray-500 mb-4">Start building your itinerary by adding activities.</p>
+                                {% if can_edit %}
+                                <a href="{% url 'date_activity_create' object.pk %}" class="bg-pink-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-pink-600 transition-colors">
+                                    Add Your First Activity
+                                </a>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Plan Info -->
+            <div class="space-y-6">
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Plan Information</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Status:</span>
+                            <span class="text-sm font-medium text-gray-900">{{ object.get_status_display }}</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Type:</span>
+                            <span class="text-sm font-medium text-gray-900">{{ object.get_plan_type_display }}</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Group Size:</span>
+                            <span class="text-sm font-medium text-gray-900">{{ object.group_size }} people</span>
+                        </div>
+                        
+                        {% if object.budget %}
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Budget:</span>
+                            <span class="text-sm font-medium text-gray-900">{{ object.budget_currency }} {{ object.budget }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Back to Dashboard -->
+                <div class="text-center">
+                    <a href="{% url 'date_planner_dashboard' %}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors">
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

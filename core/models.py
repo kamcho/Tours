@@ -380,6 +380,8 @@ class PaymentSettings(models.Model):
     )
     mpesa_business_shortcode = models.CharField(max_length=10, blank=True, help_text="M-Pesa business shortcode")
     mpesa_callback_url = models.URLField(blank=True, help_text="M-Pesa callback URL for webhooks")
+    mpesa_initiator_name = models.CharField(max_length=100, blank=True, help_text="M-Pesa initiator name for API calls")
+    mpesa_security_credential = models.CharField(max_length=500, blank=True, help_text="M-Pesa security credential for API calls")
     
     # Card Payment Configuration
     stripe_publishable_key = models.CharField(max_length=200, blank=True, help_text="Stripe publishable key")
@@ -433,9 +435,12 @@ class Subscription(models.Model):
     SUBSCRIPTION_TYPES = [
         ('verification', 'Verification'),
         ('ai_chat', 'AI Chat Assistant'),
+        ('ai_insights', 'AI Insights & Analytics'),
+        ('date_builder', 'Date Builder Inclusion'),
         ('whatsapp_api', 'WhatsApp API Support'),
         ('feature_ads', 'Feature Advertising'),
         ('premium', 'Premium Package'),
+        ('custom', 'Custom Package'),
     ]
     
     STATUS_CHOICES = [
@@ -443,6 +448,7 @@ class Subscription(models.Model):
         ('expired', 'Expired'),
         ('cancelled', 'Cancelled'),
         ('pending', 'Pending'),
+        ('suspended', 'Suspended'),
     ]
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions')
@@ -454,58 +460,146 @@ class Subscription(models.Model):
     payment_reference = models.CharField(max_length=100, blank=True, null=True)
     payment_method = models.CharField(max_length=50, blank=True, null=True)
     
-    # Service-specific fields
+    # Service-specific fields - using JSON for flexibility
+    service_features = models.JSONField(default=dict, help_text="Features and settings for this subscription")
+    
+    # Legacy boolean fields for backward compatibility
     is_verified = models.BooleanField(default=False)
     ai_chat_enabled = models.BooleanField(default=False)
     whatsapp_api_enabled = models.BooleanField(default=False)
     feature_ads_enabled = models.BooleanField(default=False)
+    
+    # New fields for enhanced services
+    ai_insights_enabled = models.BooleanField(default=False)
+    date_builder_enabled = models.BooleanField(default=False)
+    
+    # Target entity (for place/agency specific subscriptions)
+    target_content_type = models.CharField(max_length=100, blank=True, help_text="Type of content (place, agency, user)")
+    target_object_id = models.PositiveIntegerField(blank=True, null=True, help_text="ID of the target object")
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'status']),
+            models.Index(fields=['subscription_type', 'status']),
+            models.Index(fields=['target_content_type', 'target_object_id']),
+        ]
     
     def __str__(self):
-        return f"{self.user.username} - {self.get_subscription_type_display()}"
+        target_info = ""
+        if self.target_content_type and self.target_object_id:
+            target_info = f" for {self.target_content_type} #{self.target_object_id}"
+        return f"{self.user.username} - {self.get_subscription_type_display()}{target_info}"
     
     @property
     def is_active(self):
         return self.status == 'active' and timezone.now() < self.end_date
     
+    @property
+    def days_remaining(self):
+        """Calculate days remaining in subscription"""
+        if self.end_date:
+            remaining = self.end_date - timezone.now()
+            return max(0, remaining.days)
+        return 0
+    
     def activate_services(self):
         """Activate services based on subscription type"""
+        # Reset all services first
+        self.is_verified = False
+        self.ai_chat_enabled = False
+        self.whatsapp_api_enabled = False
+        self.feature_ads_enabled = False
+        self.ai_insights_enabled = False
+        self.date_builder_enabled = False
+        
+        # Activate based on subscription type
         if self.subscription_type == 'verification':
             self.is_verified = True
         elif self.subscription_type == 'ai_chat':
             self.ai_chat_enabled = True
+        elif self.subscription_type == 'ai_insights':
+            self.ai_insights_enabled = True
+        elif self.subscription_type == 'date_builder':
+            self.date_builder_enabled = True
         elif self.subscription_type == 'whatsapp_api':
             self.whatsapp_api_enabled = True
         elif self.subscription_type == 'feature_ads':
             self.feature_ads_enabled = True
         elif self.subscription_type == 'premium':
+            # Premium includes all services
             self.is_verified = True
             self.ai_chat_enabled = True
+            self.ai_insights_enabled = True
+            self.date_builder_enabled = True
             self.whatsapp_api_enabled = True
             self.feature_ads_enabled = True
+        elif self.subscription_type == 'custom':
+            # Custom packages use service_features JSON
+            custom_features = self.service_features.get('enabled_features', [])
+            if 'verification' in custom_features:
+                self.is_verified = True
+            if 'ai_chat' in custom_features:
+                self.ai_chat_enabled = True
+            if 'ai_insights' in custom_features:
+                self.ai_insights_enabled = True
+            if 'date_builder' in custom_features:
+                self.date_builder_enabled = True
+            if 'whatsapp_api' in custom_features:
+                self.whatsapp_api_enabled = True
+            if 'feature_ads' in custom_features:
+                self.feature_ads_enabled = True
         
         self.status = 'active'
         self.save()
+    
+    def get_service_status(self, service_name):
+        """Get status of a specific service"""
+        service_map = {
+            'verification': self.is_verified,
+            'ai_chat': self.ai_chat_enabled,
+            'ai_insights': self.ai_insights_enabled,
+            'date_builder': self.date_builder_enabled,
+            'whatsapp_api': self.whatsapp_api_enabled,
+            'feature_ads': self.feature_ads_enabled,
+        }
+        return service_map.get(service_name, False)
+    
+    def has_access_to_service(self, service_name):
+        """Check if user has access to a specific service"""
+        if not self.is_active:
+            return False
+        return self.get_service_status(service_name)
 
 class SubscriptionPlan(models.Model):
     """Subscription plans and pricing"""
     PLAN_TYPES = [
         ('verification', 'Verification'),
         ('ai_chat', 'AI Chat Assistant'),
+        ('ai_insights', 'AI Insights & Analytics'),
+        ('date_builder', 'Date Builder Inclusion'),
         ('whatsapp_api', 'WhatsApp API Support'),
         ('feature_ads', 'Feature Advertising'),
         ('premium', 'Premium Package'),
+        ('custom', 'Custom Package'),
     ]
     
     TARGET_TYPES = [
         ('user', 'User'),
         ('place', 'Place'),
         ('agency', 'Agency'),
+        ('business', 'Business Entity'),  # Generic business type
+    ]
+    
+    DURATION_CHOICES = [
+        (30, '1 Month'),
+        (90, '3 Months'),
+        (180, '6 Months'),
+        (365, '1 Year'),
+        (730, '2 Years'),
     ]
     
     name = models.CharField(max_length=100)
@@ -513,19 +607,33 @@ class SubscriptionPlan(models.Model):
     target_type = models.CharField(max_length=20, choices=TARGET_TYPES)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    duration_days = models.IntegerField(default=30)
+    duration_days = models.IntegerField(choices=DURATION_CHOICES, default=30)
     features = models.JSONField(default=list)  # List of features included
     is_active = models.BooleanField(default=True)
     is_popular = models.BooleanField(default=False)
+    is_featured = models.BooleanField(default=False)
+    
+    # Plan metadata
+    max_ai_chats_per_month = models.PositiveIntegerField(default=100, help_text="Maximum AI chat interactions per month")
+    max_insights_reports = models.PositiveIntegerField(default=10, help_text="Maximum insights reports per month")
+    date_builder_priority = models.PositiveIntegerField(default=1, help_text="Priority in date builder suggestions (1=highest)")
+    
+    # Plan limitations
+    max_places = models.PositiveIntegerField(default=1, help_text="Maximum places that can use this plan")
+    max_agencies = models.PositiveIntegerField(default=1, help_text="Maximum agencies that can use this plan")
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
         ordering = ['price']
+        indexes = [
+            models.Index(fields=['plan_type', 'target_type', 'is_active']),
+            models.Index(fields=['is_popular', 'is_active']),
+        ]
     
     def __str__(self):
-        return f"{self.name} - {self.get_target_type_display()}"
+        return f"{self.name} - {self.get_target_type_display()} ({self.get_plan_type_display()})"
     
     @property
     def monthly_price(self):
@@ -534,9 +642,66 @@ class SubscriptionPlan(models.Model):
             return self.price
         elif self.duration_days == 90:
             return self.price / 3
+        elif self.duration_days == 180:
+            return self.price / 6
         elif self.duration_days == 365:
             return self.price / 12
+        elif self.duration_days == 730:
+            return self.price / 24
         return self.price
+    
+    @property
+    def yearly_price(self):
+        """Calculate yearly equivalent price"""
+        if self.duration_days == 365:
+            return self.price
+        elif self.duration_days == 30:
+            return self.price * 12
+        elif self.duration_days == 90:
+            return self.price * 4
+        elif self.duration_days == 180:
+            return self.price * 2
+        elif self.duration_days == 730:
+            return self.price / 2
+        return self.price
+    
+    def get_feature_summary(self):
+        """Get a summary of plan features"""
+        feature_summary = []
+        
+        if 'verification' in self.features:
+            feature_summary.append('✓ Verification Badge')
+        if 'ai_chat' in self.features:
+            feature_summary.append(f'✓ AI Chat ({self.max_ai_chats_per_month}/month)')
+        if 'ai_insights' in self.features:
+            feature_summary.append(f'✓ AI Insights ({self.max_insights_reports}/month)')
+        if 'date_builder' in self.features:
+            feature_summary.append(f'✓ Date Builder (Priority: {self.date_builder_priority})')
+        if 'whatsapp_api' in self.features:
+            feature_summary.append('✓ WhatsApp API')
+        if 'feature_ads' in self.features:
+            feature_summary.append('✓ Featured Advertising')
+        
+        return feature_summary
+    
+    def is_suitable_for(self, target_type, target_object=None):
+        """Check if this plan is suitable for a specific target"""
+        if self.target_type != target_type:
+            return False
+        
+        # Check if user already has maximum allowed places/agencies
+        if target_object and hasattr(target_object, 'created_by'):
+            user = target_object.created_by
+            if self.target_type == 'place':
+                user_places = user.places.count()
+                if user_places >= self.max_places:
+                    return False
+            elif self.target_type == 'agency':
+                user_agencies = user.agencies.count()
+                if user_agencies >= self.max_agencies:
+                    return False
+        
+        return True
 
 class VerificationRequest(models.Model):
     """Verification requests for users, places, and agencies"""
@@ -691,3 +856,296 @@ class Payment(models.Model):
         self.payment_status = 'failed'
         self.mpesa_result_desc = error_message
         self.save()
+
+
+# AI Insights and Analytics Models
+
+class AIChatInteraction(models.Model):
+    """Track AI chat interactions for analytics and insights"""
+    INTERACTION_TYPE_CHOICES = [
+        ('question', 'Question Asked'),
+        ('response', 'AI Response'),
+        ('feedback', 'User Feedback'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ai_chat_interactions')
+    subscription = models.ForeignKey(Subscription, on_delete=models.CASCADE, related_name='ai_chat_interactions', null=True, blank=True)
+    
+    # Content being discussed
+    content_type = models.CharField(max_length=100, blank=True, help_text="Type of content (place, agency, user)")
+    content_id = models.PositiveIntegerField(blank=True, null=True, help_text="ID of the content object")
+    
+    # Interaction details
+    interaction_type = models.CharField(max_length=20, choices=INTERACTION_TYPE_CHOICES, default='question')
+    question = models.TextField(blank=True, help_text="User's question")
+    ai_response = models.TextField(blank=True, help_text="AI's response")
+    user_feedback = models.CharField(max_length=20, blank=True, help_text="User feedback (positive, negative, neutral)")
+    
+    # Metadata
+    tokens_used = models.PositiveIntegerField(default=0, help_text="Number of tokens used in this interaction")
+    response_time_ms = models.PositiveIntegerField(default=0, help_text="Response time in milliseconds")
+    ai_model = models.CharField(max_length=50, blank=True, help_text="AI model used for response")
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'created_at']),
+            models.Index(fields=['content_type', 'content_id']),
+            models.Index(fields=['interaction_type', 'created_at']),
+        ]
+    
+    def __str__(self):
+        return f"AI Chat: {self.user.username} - {self.get_interaction_type_display()} ({self.created_at.strftime('%Y-%m-%d %H:%M')})"
+
+
+class AIInsightsReport(models.Model):
+    """AI-generated insights reports for businesses"""
+    REPORT_TYPE_CHOICES = [
+        ('chat_analytics', 'Chat Analytics'),
+        ('customer_questions', 'Customer Questions Analysis'),
+        ('trending_topics', 'Trending Topics'),
+        ('improvement_suggestions', 'Improvement Suggestions'),
+        ('competitor_analysis', 'Competitor Analysis'),
+        ('custom', 'Custom Report'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('generating', 'Generating'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ai_insights_reports')
+    subscription = models.ForeignKey(Subscription, on_delete=models.CASCADE, related_name='ai_insights_reports')
+    
+    # Report details
+    report_type = models.CharField(max_length=30, choices=REPORT_TYPE_CHOICES)
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    
+    # Content being analyzed
+    content_type = models.CharField(max_length=100, blank=True, help_text="Type of content (place, agency, user)")
+    content_id = models.PositiveIntegerField(blank=True, null=True, help_text="ID of the content object")
+    
+    # Report content
+    insights_summary = models.TextField(blank=True, help_text="AI-generated insights summary")
+    detailed_analysis = models.JSONField(default=dict, help_text="Detailed analysis data")
+    recommendations = models.JSONField(default=list, help_text="List of recommendations")
+    
+    # Report metadata
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='generating')
+    generation_started_at = models.DateTimeField(auto_now_add=True)
+    generation_completed_at = models.DateTimeField(blank=True, null=True)
+    
+    # Usage tracking
+    tokens_used = models.PositiveIntegerField(default=0, help_text="Total tokens used for this report")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'report_type']),
+            models.Index(fields=['content_type', 'content_id']),
+            models.Index(fields=['status', 'created_at']),
+        ]
+    
+    def __str__(self):
+        return f"AI Insights: {self.title} - {self.user.username} ({self.get_report_type_display()})"
+    
+    @property
+    def generation_time(self):
+        """Calculate report generation time"""
+        if self.generation_completed_at and self.generation_started_at:
+            return self.generation_completed_at - self.generation_started_at
+        return None
+
+
+# Date Builder Models
+
+class DateBuilderPreference(models.Model):
+    """User preferences for date planning"""
+    ACTIVITY_TYPES = [
+        ('outdoor', 'Outdoor Activities'),
+        ('indoor', 'Indoor Activities'),
+        ('adventure', 'Adventure & Sports'),
+        ('cultural', 'Cultural & Arts'),
+        ('food', 'Food & Dining'),
+        ('entertainment', 'Entertainment'),
+        ('relaxation', 'Relaxation & Wellness'),
+        ('shopping', 'Shopping & Markets'),
+        ('nature', 'Nature & Wildlife'),
+        ('urban', 'Urban Exploration'),
+    ]
+    
+    FOOD_PREFERENCES = [
+        ('local', 'Local Cuisine'),
+        ('international', 'International Cuisine'),
+        ('vegetarian', 'Vegetarian'),
+        ('vegan', 'Vegan'),
+        ('seafood', 'Seafood'),
+        ('meat', 'Meat & Poultry'),
+        ('street_food', 'Street Food'),
+        ('fine_dining', 'Fine Dining'),
+        ('casual', 'Casual Dining'),
+        ('fast_food', 'Fast Food'),
+    ]
+    
+    TRANSPORT_PREFERENCES = [
+        ('walking', 'Walking'),
+        ('cycling', 'Cycling'),
+        ('public_transport', 'Public Transport'),
+        ('taxi', 'Taxi/Ride Share'),
+        ('car', 'Private Car'),
+        ('boat', 'Boat/Ferry'),
+        ('train', 'Train'),
+        ('bus', 'Bus'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='date_builder_preferences')
+    
+    # Activity preferences
+    preferred_activities = models.JSONField(default=list, help_text="List of preferred activity types")
+    activity_intensity = models.CharField(max_length=20, choices=[
+        ('low', 'Low - Relaxed'),
+        ('medium', 'Medium - Balanced'),
+        ('high', 'High - Active'),
+    ], default='medium')
+    
+    # Food preferences
+    preferred_food_types = models.JSONField(default=list, help_text="List of preferred food types")
+    dietary_restrictions = models.JSONField(default=list, help_text="List of dietary restrictions")
+    budget_range = models.CharField(max_length=20, choices=[
+        ('budget', 'Budget Friendly'),
+        ('moderate', 'Moderate'),
+        ('premium', 'Premium'),
+        ('luxury', 'Luxury'),
+    ], default='moderate')
+    
+    # Transport preferences
+    preferred_transport = models.JSONField(default=list, help_text="List of preferred transport methods")
+    max_travel_distance = models.PositiveIntegerField(default=50, help_text="Maximum travel distance in km")
+    
+    # Time preferences
+    preferred_duration = models.CharField(max_length=20, choices=[
+        ('half_day', 'Half Day (2-4 hours)'),
+        ('full_day', 'Full Day (6-8 hours)'),
+        ('weekend', 'Weekend (2-3 days)'),
+        ('week', 'Week (5-7 days)'),
+    ], default='full_day')
+    
+    # Group preferences
+    group_size = models.CharField(max_length=20, choices=[
+        ('couple', 'Couple (2 people)'),
+        ('small_group', 'Small Group (3-5 people)'),
+        ('medium_group', 'Medium Group (6-10 people)'),
+        ('large_group', 'Large Group (10+ people)'),
+    ], default='couple')
+    
+    # Additional preferences
+    special_requirements = models.TextField(blank=True, help_text="Any special requirements or preferences")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Date Builder Preference'
+        verbose_name_plural = 'Date Builder Preferences'
+    
+    def __str__(self):
+        return f"Date Preferences: {self.user.username} - {self.get_preferred_duration_display()}"
+
+
+class DateBuilderSuggestion(models.Model):
+    """AI-generated date suggestions based on user preferences"""
+    STATUS_CHOICES = [
+        ('generated', 'Generated'),
+        ('accepted', 'Accepted'),
+        ('rejected', 'Rejected'),
+        ('completed', 'Completed'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='date_builder_suggestions')
+    preferences = models.ForeignKey(DateBuilderPreference, on_delete=models.CASCADE, related_name='suggestions')
+    
+    # Suggestion details
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    estimated_cost = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    estimated_duration = models.CharField(max_length=50, blank=True)
+    
+    # Suggested itinerary
+    itinerary = models.JSONField(default=list, help_text="List of suggested activities and locations")
+    recommended_places = models.JSONField(default=list, help_text="List of recommended place IDs")
+    recommended_agencies = models.JSONField(default=list, help_text="List of recommended agency IDs")
+    
+    # AI generation details
+    ai_model = models.CharField(max_length=50, blank=True, help_text="AI model used for suggestion")
+    confidence_score = models.DecimalField(max_digits=3, decimal_places=2, blank=True, null=True, help_text="AI confidence score (0-1)")
+    tokens_used = models.PositiveIntegerField(default=0, help_text="Tokens used for this suggestion")
+    
+    # User interaction
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='generated')
+    user_feedback = models.CharField(max_length=20, blank=True, choices=[
+        ('positive', 'Positive'),
+        ('negative', 'Negative'),
+        ('neutral', 'Neutral'),
+    ])
+    feedback_notes = models.TextField(blank=True)
+    
+    # Timestamps
+    generated_at = models.DateTimeField(auto_now_add=True)
+    accepted_at = models.DateTimeField(blank=True, null=True)
+    completed_at = models.DateTimeField(blank=True, null=True)
+    
+    class Meta:
+        ordering = ['-generated_at']
+        indexes = [
+            models.Index(fields=['user', 'status']),
+            models.Index(fields=['status', 'generated_at']),
+        ]
+    
+    def __str__(self):
+        return f"Date Suggestion: {self.title} - {self.user.username} ({self.get_status_display()})"
+    
+    def accept(self):
+        """Mark suggestion as accepted"""
+        self.status = 'accepted'
+        self.accepted_at = timezone.now()
+        self.save()
+    
+    def complete(self):
+        """Mark suggestion as completed"""
+        self.status = 'completed'
+        self.completed_at = timezone.now()
+        self.save()
+    
+    def get_total_cost(self):
+        """Calculate total estimated cost including subscriptions"""
+        total_cost = self.estimated_cost or Decimal('0.00')
+        
+        # Add subscription costs for recommended places/agencies
+        for place_id in self.recommended_places:
+            try:
+                place = Place.objects.get(id=place_id)
+                if hasattr(place, 'subscription') and place.subscription:
+                    # Add a small fee for premium suggestions
+                    total_cost += Decimal('100.00')
+            except Place.DoesNotExist:
+                pass
+        
+        for agency_id in self.recommended_agencies:
+            try:
+                agency = Agency.objects.get(id=agency_id)
+                if hasattr(agency, 'subscription') and agency.subscription:
+                    # Add a small fee for premium suggestions
+                    total_cost += Decimal('150.00')
+            except Agency.DoesNotExist:
+                pass
+        
+        return total_cost
+

@@ -51,6 +51,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.StaffNavigationMiddleware',  # Custom staff navigation middleware
 ]
 
 ROOT_URLCONF = 'travelske.urls'
@@ -152,6 +153,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # EMAIL_USE_TLS = True
 # EMAIL_HOST_USER = 'your-email@gmail.com'
 # EMAIL_HOST_PASSWORD = 'your-app-password'
-
+OPENAI_API_KEY = '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'
 # Default from email for password reset
 DEFAULT_FROM_EMAIL = 'noreply@travelske.com'

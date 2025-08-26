@@ -436,6 +436,276 @@
     </div>
 </div>
 
+<!-- Staff Management Section -->
+<div class="bg-gradient-to-br from-indigo-50 to-purple-50 py-16">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-gray-800 mb-4">Staff Management</h2>
+            <p class="text-xl text-gray-600">Manage your team and assign permissions</p>
+        </div>
+        
+        <!-- Staff Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-indigo-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Staff</p>
+                        <p class="text-3xl font-bold text-indigo-600">{{ place.staff_members.count|default:0 }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-green-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Active Orders</p>
+                        <p class="text-3xl font-bold text-green-600">{{ place.orders.filter.status__in|length|default:0 }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-orange-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Today's Revenue</p>
+                        <p class="text-3xl font-bold text-orange-600">KES 0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0-2.08.402-2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599 1"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="flex flex-wrap justify-center gap-4 mb-8">
+            <button onclick="openStaffModal()" class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Add Staff Member
+            </button>
+            
+                                 <a href="{% url 'staff_dashboard' place.pk %}" class="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center gap-2">
+                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                         </svg>
+                         Staff Dashboard
+                     </a>
+                     
+                     <a href="{% url 'place_orders_dashboard' place.pk %}" class="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center gap-2">
+                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                         </svg>
+                         Manage Orders
+                     </a>
+            
+            <a href="#" class="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                View Analytics
+            </a>
+        </div>
+        
+        <!-- Staff List -->
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div class="bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-4">
+                <h3 class="text-xl font-bold text-white">Current Staff Members</h3>
+            </div>
+            
+            <div class="p-6">
+                {% if place.staff_members.exists %}
+                    <div class="space-y-4">
+                        {% for staff in place.staff_members.all %}
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">{{ staff.user.get_full_name|default:staff.user.username }}</h4>
+                                    <p class="text-sm text-gray-600">{{ staff.get_role_display }} • {{ staff.user.email }}</p>
+                                    <div class="flex flex-wrap gap-1 mt-1">
+                                        {% for permission in staff.get_permissions_display %}
+                                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">{{ permission }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                                                                 <div class="flex gap-2">
+                                         {% if user == place.created_by %}
+                                             <a href="{% url 'edit_place_staff' place.pk staff.pk %}" class="bg-blue-500 text-white px-3 py-1 rounded text-sm font-medium hover:bg-blue-600 transition-colors">
+                                                 Edit
+                                             </a>
+                                             <a href="{% url 'remove_place_staff' place.pk staff.pk %}" class="bg-red-500 text-white px-3 py-1 rounded text-sm font-medium hover:bg-red-600 transition-colors" onclick="return confirm('Are you sure you want to remove this staff member?')">
+                                                 Remove
+                                             </a>
+                                         {% else %}
+                                             <a href="{% url 'staff_dashboard' place.pk %}" class="bg-green-500 text-white px-3 py-1 rounded text-sm font-medium hover:bg-green-600 transition-colors">
+                                                 Dashboard
+                                             </a>
+                                         {% endif %}
+                                     </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-12">
+                        <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">No staff members yet</h3>
+                        <p class="text-gray-500 mb-4">Start building your team by adding staff members.</p>
+                        <button onclick="openStaffModal()" class="bg-indigo-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-indigo-600 transition-colors">
+                            Add Your First Staff Member
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Staff Management Modal -->
+<div id="staffModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-4 rounded-t-3xl">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-white" id="modalTitle">Add Staff Member</h3>
+                    <button onclick="closeStaffModal()" class="text-white hover:text-gray-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <form id="staffForm" method="post" action="{% url 'add_place_staff' place.pk %}">
+                    {% csrf_token %}
+                    <div class="space-y-6">
+                        <!-- User Email -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">User Email</label>
+                            <input type="email" name="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="Enter the user's email address" required>
+                            <p class="text-sm text-gray-500 mt-1">Enter the email of the user you want to add as staff</p>
+                        </div>
+                        
+                        <!-- Role Selection -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                            <select name="role" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" required>
+                                <option value="staff">Staff</option>
+                                <option value="waiter">Waiter</option>
+                                <option value="chef">Chef</option>
+                                <option value="cashier">Cashier</option>
+                                <option value="host">Host</option>
+                                <option value="bartender">Bartender</option>
+                                <option value="kitchen_staff">Kitchen Staff</option>
+                                <option value="cleaning_staff">Cleaning Staff</option>
+                                <option value="manager">Manager</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Permissions -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Permissions</label>
+                            <div class="grid grid-cols-2 gap-4">
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="can_view_orders" class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2" checked>
+                                    <span class="ml-2 text-sm text-gray-700">View Orders</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="can_create_orders" class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2">
+                                    <span class="ml-2 text-sm text-gray-700">Create Orders</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="can_edit_orders" class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2">
+                                    <span class="ml-2 text-sm text-gray-700">Edit Orders</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="can_delete_orders" class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2">
+                                    <span class="ml-2 text-sm text-gray-700">Delete Orders</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="can_view_customers" class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2" checked>
+                                    <span class="ml-2 text-sm text-gray-700">View Customers</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="can_edit_menu" class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2">
+                                    <span class="ml-2 text-sm text-gray-700">Edit Menu</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="can_manage_staff" class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2">
+                                    <span class="ml-2 text-sm text-gray-700">Manage Staff</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="can_view_analytics" class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2">
+                                    <span class="ml-2 text-sm text-gray-700">View Analytics</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Notes -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                            <textarea name="notes" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="Additional notes about this staff member..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-4 mt-8">
+                        <button type="submit" class="flex-1 bg-gradient-to-r from-indigo-500 to-purple-500 text-white py-3 px-6 rounded-xl font-semibold hover:from-indigo-600 hover:to-purple-600 transition-all duration-300">
+                            Add Staff Member
+                        </button>
+                        <button type="button" onclick="closeStaffModal()" class="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-300">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Staff Management JavaScript -->
+<script>
+function openStaffModal() {
+    document.getElementById('staffModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeStaffModal() {
+    document.getElementById('staffModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+// Close modal when clicking outside
+document.getElementById('staffModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeStaffModal();
+    }
+});
+</script>
+
 {% endblock %}
 {% block extra_js %}
 <script>

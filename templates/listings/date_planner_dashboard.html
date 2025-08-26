@@ -1,0 +1,290 @@
+{% extends 'users/base.html' %}
+{% load static %}
+
+{% block title %}Date Planner Dashboard - TravelsKe{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <!-- Header Section -->
+    <div class="bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 text-white">
+        <div class="max-w-7xl mx-auto px-4 py-16">
+            <div class="text-center">
+                <div class="inline-flex items-center bg-white/20 rounded-full px-6 py-3 mb-6">
+                    <svg class="w-8 h-8 text-white mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="text-xl font-semibold">Date Planner</span>
+                </div>
+                
+                <h1 class="text-5xl lg:text-6xl font-bold mb-6">
+                    Plan Your Perfect Day
+                </h1>
+                <p class="text-xl text-pink-100 max-w-3xl mx-auto mb-8">
+                    Create memorable experiences with our intelligent date planning system. 
+                    From romantic evenings to family adventures, we'll help you craft the perfect itinerary.
+                </p>
+                
+                <div class="flex flex-wrap justify-center gap-4">
+                    <a href="{% url 'date_plan_create' %}" class="bg-white text-purple-600 px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-pink-50 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                        <svg class="w-6 h-6 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        Create New Plan
+                    </a>
+                    <a href="{% url 'date_plan_suggestions' %}" class="bg-pink-500 text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-pink-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                        <svg class="w-6 h-6 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                        Get AI Suggestions
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 py-12">
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-pink-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Plans</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ date_plans.count }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-500 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-blue-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Active Plans</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ active_plans.count }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-green-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Upcoming</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ upcoming_plans.count }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-yellow-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">AI Suggestions</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ ai_suggestions.count }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column: Upcoming Plans -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                    <div class="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-4">
+                        <h2 class="text-xl font-bold text-white flex items-center">
+                            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            Upcoming Plans
+                        </h2>
+                    </div>
+                    
+                    <div class="p-6">
+                        {% if upcoming_plans %}
+                            <div class="space-y-4">
+                                {% for plan in upcoming_plans %}
+                                <div class="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-3 mb-2">
+                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium 
+                                                    {% if plan.plan_type == 'romantic' %}bg-pink-100 text-pink-800
+                                                    {% elif plan.plan_type == 'family' %}bg-blue-100 text-blue-800
+                                                    {% elif plan.plan_type == 'friends' %}bg-green-100 text-green-800
+                                                    {% elif plan.plan_type == 'solo' %}bg-purple-100 text-purple-800
+                                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                                    {{ plan.get_plan_type_display }}
+                                                </span>
+                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium 
+                                                    {% if plan.status == 'active' %}bg-green-100 text-green-800
+                                                    {% elif plan.status == 'draft' %}bg-yellow-100 text-yellow-800
+                                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                                    {{ plan.get_status_display }}
+                                                </span>
+                                            </div>
+                                            
+                                            <h3 class="text-lg font-semibold text-gray-900 mb-1">{{ plan.title }}</h3>
+                                            <p class="text-gray-600 text-sm mb-3">{{ plan.description|truncatewords:20 }}</p>
+                                            
+                                            <div class="flex items-center gap-4 text-sm text-gray-500">
+                                                <span class="flex items-center">
+                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                                    </svg>
+                                                    {{ plan.planned_date|date:"M d, Y" }}
+                                                </span>
+                                                {% if plan.start_time %}
+                                                <span class="flex items-center">
+                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                    </svg>
+                                                    {{ plan.start_time|time:"g:i A" }}
+                                                </span>
+                                                {% endif %}
+                                                {% if plan.location %}
+                                                <span class="flex items-center">
+                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                                    </svg>
+                                                    {{ plan.location }}
+                                                </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex flex-col gap-2 ml-4">
+                                            <a href="{% url 'date_plan_detail' plan.pk %}" class="bg-purple-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-600 transition-colors">
+                                                View
+                                            </a>
+                                            <a href="{% url 'date_plan_update' plan.pk %}" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
+                                                Edit
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-12">
+                                <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">No upcoming plans yet</h3>
+                                <p class="text-gray-500 mb-4">Start planning your next adventure by creating a new date plan.</p>
+                                <a href="{% url 'date_plan_create' %}" class="bg-purple-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-600 transition-colors">
+                                    Create Your First Plan
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Quick Actions & AI Suggestions -->
+            <div class="space-y-6">
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-500 to-indigo-500 px-6 py-4">
+                        <h3 class="text-lg font-bold text-white">Quick Actions</h3>
+                    </div>
+                    <div class="p-6 space-y-3">
+                        <a href="{% url 'date_plan_create' %}" class="flex items-center p-3 rounded-lg hover:bg-blue-50 transition-colors group">
+                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-blue-200 transition-colors">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-900">Create New Plan</p>
+                                <p class="text-sm text-gray-500">Start planning from scratch</p>
+                            </div>
+                        </a>
+                        
+                        <a href="{% url 'date_plan_suggestions' %}" class="flex items-center p-3 rounded-lg hover:bg-pink-50 transition-colors group">
+                            <div class="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-pink-200 transition-colors">
+                                <svg class="w-5 h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-900">Get AI Suggestions</p>
+                                <p class="text-sm text-gray-500">Let AI plan for you</p>
+                            </div>
+                        </a>
+                        
+                        <a href="{% url 'date_plan_preferences' %}" class="flex items-center p-3 rounded-lg hover:bg-green-50 transition-colors group">
+                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-green-200 transition-colors">
+                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path fill-rule="evenodd" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" clip-rule="evenodd"/>
+                                    <path fill-rule="evenodd" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-900">Preferences</p>
+                                <p class="text-sm text-gray-500">Customize your experience</p>
+                            </div>
+                        </a>
+                        
+                        <a href="{% url 'public_date_plans' %}" class="flex items-center p-3 rounded-lg hover:bg-purple-50 transition-colors group">
+                            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-purple-200 transition-colors">
+                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-900">Browse Plans</p>
+                                <p class="text-sm text-gray-500">Discover public plans</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- AI Suggestions -->
+                {% if ai_suggestions %}
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                    <div class="bg-gradient-to-r from-yellow-500 to-orange-500 px-6 py-4">
+                        <h3 class="text-lg font-bold text-white">AI Suggestions</h3>
+                    </div>
+                    <div class="p-6 space-y-3">
+                        {% for suggestion in ai_suggestions %}
+                        <div class="border border-gray-200 rounded-lg p-3">
+                            <h4 class="font-medium text-gray-900 mb-1">{{ suggestion.title }}</h4>
+                            <p class="text-sm text-gray-600 mb-2">{{ suggestion.description|truncatewords:15 }}</p>
+                            <div class="flex gap-2">
+                                <a href="{% url 'date_plan_suggestion_detail' suggestion.pk %}" class="bg-yellow-500 text-white px-3 py-1 rounded text-xs font-medium hover:bg-yellow-600 transition-colors">
+                                    View
+                                </a>
+                                <a href="{% url 'accept_date_plan_suggestion' suggestion.pk %}" class="bg-green-500 text-white px-3 py-1 rounded text-xs font-medium hover:bg-green-600 transition-colors">
+                                    Accept
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        <a href="{% url 'date_plan_suggestions' %}" class="block text-center text-sm text-blue-600 hover:text-blue-800 font-medium">
+                            View All Suggestions →
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

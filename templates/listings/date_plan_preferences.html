@@ -1,0 +1,265 @@
+{% extends 'users/base.html' %}
+{% load static %}
+
+{% block title %}Date Planning Preferences - TravelsKe{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
+    <!-- Header Section -->
+    <div class="bg-gradient-to-r from-green-500 via-blue-500 to-purple-600 text-white">
+        <div class="max-w-7xl mx-auto px-4 py-16">
+            <div class="text-center">
+                <div class="inline-flex items-center bg-white/20 rounded-full px-6 py-3 mb-6">
+                    <svg class="w-8 h-8 text-white mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="text-xl font-semibold">Preferences</span>
+                </div>
+
+                <h1 class="text-5xl lg:text-6xl font-bold mb-6">
+                    Your Date Planning Preferences
+                </h1>
+                <p class="text-xl text-green-100 max-w-3xl mx-auto">
+                    Customize your date planning experience by setting your preferences.
+                    This helps us provide better AI suggestions and recommendations.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto px-4 py-12">
+        <div class="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
+            <div class="bg-gradient-to-r from-green-500 to-blue-500 px-8 py-6">
+                <h2 class="text-2xl font-bold text-white flex items-center">
+                    <svg class="w-7 h-7 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Personalize Your Experience
+                </h2>
+                <p class="text-green-100 mt-2">Set your preferences to get better date planning suggestions</p>
+            </div>
+
+            <div class="p-8">
+                <form method="post" class="space-y-8">
+                    {% csrf_token %}
+
+                    <!-- Activity Preferences -->
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-semibold text-gray-900 border-b border-gray-200 pb-2">Activity Preferences</h3>
+
+                        <!-- Preferred Activities -->
+                        <div>
+                            <label for="{{ form.preferred_activities.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                What types of activities do you enjoy?
+                            </label>
+                            {{ form.preferred_activities }}
+                            {% if form.preferred_activities.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.preferred_activities.errors.0 }}</p>
+                            {% endif %}
+                            <p class="text-gray-500 text-sm mt-1">Select all that apply to help us suggest relevant activities</p>
+                        </div>
+
+                        <!-- Activity Intensity -->
+                        <div>
+                            <label for="{{ form.activity_intensity.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Preferred activity intensity level
+                            </label>
+                            {{ form.activity_intensity }}
+                            {% if form.activity_intensity.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.activity_intensity.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Food & Dining -->
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-semibold text-gray-900 border-b border-gray-200 pb-2">Food & Dining</h3>
+
+                        <!-- Cuisine Preferences -->
+                        <div>
+                            <label for="{{ form.cuisine_preferences.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Preferred cuisines
+                            </label>
+                            {{ form.cuisine_preferences }}
+                            {% if form.cuisine_preferences.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.cuisine_preferences.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Dietary Restrictions -->
+                        <div>
+                            <label for="{{ form.dietary_restrictions.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Dietary restrictions or preferences
+                            </label>
+                            {{ form.dietary_restrictions }}
+                            {% if form.dietary_restrictions.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.dietary_restrictions.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Transportation & Budget -->
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-semibold text-gray-900 border-b border-gray-200 pb-2">Transportation & Budget</h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Transportation Preferences -->
+                            <div>
+                                <label for="{{ form.transportation_preferences.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Transportation preferences
+                                </label>
+                                {{ form.transportation_preferences }}
+                                {% if form.transportation_preferences.errors %}
+                                    <p class="text-red-600 text-sm mt-1">{{ form.transportation_preferences.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Budget Range -->
+                            <div>
+                                <label for="{{ form.budget_range.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Typical budget range per date
+                                </label>
+                                {{ form.budget_range }}
+                                {% if form.budget_range.errors %}
+                                    <p class="text-red-600 text-sm mt-1">{{ form.budget_range.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Time & Schedule -->
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-semibold text-gray-900 border-b border-gray-200 pb-2">Time & Schedule</h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Preferred Day -->
+                            <div>
+                                <label for="{{ form.preferred_day.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Preferred day of the week
+                                </label>
+                                {{ form.preferred_day }}
+                                {% if form.preferred_day.errors %}
+                                    <p class="text-red-600 text-sm mt-1">{{ form.preferred_day.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Preferred Time -->
+                            <div>
+                                <label for="{{ form.preferred_time.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Preferred time of day
+                                </label>
+                                {{ form.preferred_time }}
+                                {% if form.preferred_time.errors %}
+                                    <p class="text-red-600 text-sm mt-1">{{ form.preferred_time.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Preferences -->
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-semibold text-gray-900 border-b border-gray-200 pb-2">Additional Preferences</h3>
+
+                        <!-- Special Occasions -->
+                        <div>
+                            <label for="{{ form.special_occasions.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Special occasions you plan for
+                            </label>
+                            {{ form.special_occasions }}
+                            {% if form.special_occasions.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.special_occasions.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Accessibility Needs -->
+                        <div>
+                            <label for="{{ form.accessibility_needs.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Accessibility needs or considerations
+                            </label>
+                            {{ form.accessibility_needs }}
+                            {% if form.accessibility_needs.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.accessibility_needs.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
+                        <button type="submit" class="flex-1 bg-gradient-to-r from-green-500 to-blue-500 text-white py-4 px-8 rounded-2xl font-semibold text-lg hover:from-green-600 hover:to-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                            <svg class="w-6 h-6 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Save Preferences
+                        </button>
+
+                        <a href="{% url 'date_planner_dashboard' %}" class="flex-1 bg-gray-100 text-gray-700 py-4 px-8 rounded-2xl font-semibold text-lg hover:bg-gray-200 transition-all duration-300 text-center">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Help Section -->
+        <div class="mt-8 bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                <svg class="w-6 h-6 text-blue-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Why Set Preferences?
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-3">
+                    <h4 class="font-semibold text-gray-900">Better AI Suggestions</h4>
+                    <ul class="text-sm text-gray-600 space-y-2">
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Get personalized activity recommendations
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Find restaurants that match your taste
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Discover places within your budget
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="space-y-3">
+                    <h4 class="font-semibold text-gray-900">Save Time</h4>
+                    <ul class="text-sm text-gray-600 space-y-2">
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            </svg>
+                            No more scrolling through irrelevant options
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            </svg>
+                            Quick access to your favorite types of places
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            </svg>
+                            Streamlined planning process
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -12,6 +12,13 @@ from .models import UserPreferences # Added import for UserPreferences
 
 def login_view(request):
     if request.user.is_authenticated:
+        # Check if user is staff and redirect accordingly
+        from listings.models import PlaceStaff
+        staff_places = PlaceStaff.objects.filter(user=request.user)
+        if staff_places.exists():
+            # Redirect to first staff dashboard
+            first_staff_place = staff_places.first().place
+            return redirect('staff_dashboard', place_id=first_staff_place.id)
         return redirect('home')
     
     if request.method == 'POST':
@@ -23,6 +30,15 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 messages.success(request, f'Welcome back, {username}!')
+                
+                # Check if user is staff and redirect accordingly
+                from listings.models import PlaceStaff
+                staff_places = PlaceStaff.objects.filter(user=user)
+                if staff_places.exists():
+                    # Redirect to first staff dashboard
+                    first_staff_place = staff_places.first().place
+                    return redirect('staff_dashboard', place_id=first_staff_place.id)
+                
                 return redirect('home')
             else:
                 messages.error(request, 'Invalid email or password.')
@@ -173,3 +189,37 @@ def preferences_setup_view(request):
         return redirect('home')
     
     return render(request, 'users/preferences_setup.html')
+
+@login_required
+def dashboard(request):
+    """User dashboard with overview of places, agencies, and activities"""
+    user = request.user
+    
+    # Get user's places and agencies
+    user_places = user.places_created.all()[:3]  # Get first 3
+    user_agencies = user.agencies_owned.all()[:3]  # Get first 3
+    
+    # Get counts
+    user_places_count = user.places_created.count()
+    user_agencies_count = user.agencies_owned.count()
+    
+    # Get date plans count (if the model exists)
+    try:
+        from listings.models import DatePlan
+        date_plans_count = DatePlan.objects.filter(creator=user).count()
+    except:
+        date_plans_count = 0
+    
+    # Get active bookings count (placeholder for now)
+    active_bookings_count = 0
+    
+    context = {
+        'user_places': user_places,
+        'user_agencies': user_agencies,
+        'user_places_count': user_places_count,
+        'user_agencies_count': user_agencies_count,
+        'date_plans_count': date_plans_count,
+        'active_bookings_count': active_bookings_count,
+    }
+    
+    return render(request, 'users/dashboard.html', context)
