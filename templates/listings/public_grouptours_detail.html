@@ -3,7 +3,7 @@
 {% block content %}
 
 <!-- Hero Section -->
-<div class="relative bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-900 py-24 overflow-hidden">
+<div class="relative bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-900 py-16 sm:py-20 md:py-24 overflow-hidden">
     <!-- Animated Background Elements -->
     <div class="absolute inset-0">
         <div class="absolute top-0 left-0 w-40 h-40 bg-emerald-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
@@ -18,9 +18,9 @@
     <div class="relative z-10 max-w-7xl mx-auto px-4">
         <div class="text-center">
             <!-- Excellence Badge -->
-            <div class="inline-flex items-center bg-white/10 backdrop-blur-sm rounded-full px-8 py-4 mb-8 border border-white/20">
-                <span class="text-3xl mr-3">🌟</span>
-                <span class="text-white font-semibold text-lg">Adventure Excellence</span>
+            <div class="inline-flex items-center bg-white/10 backdrop-blur-sm rounded-full px-4 sm:px-6 md:px-8 py-3 sm:py-4 mb-6 sm:mb-8 border border-white/20">
+                <span class="text-2xl sm:text-3xl mr-2 sm:mr-3">🌟</span>
+                <span class="text-white font-semibold text-sm sm:text-base md:text-lg">Adventure Excellence</span>
             </div>
             
             <!-- Main Content -->
@@ -47,11 +47,11 @@
          
                 
                 <!-- Action Buttons -->
-                <div class="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+                <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center mb-12 sm:mb-16 px-4">
                     {% if not user.is_authenticated %}
-                        <a href="{% url 'login' %}" class="group bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-gray-900 px-12 py-5 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
+                        <a href="{% url 'login' %}" class="group bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-gray-900 px-6 sm:px-8 md:px-12 py-3 sm:py-4 md:py-5 rounded-2xl font-bold text-base sm:text-lg md:text-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
                             <div class="flex items-center justify-center">
-                                <svg class="w-7 h-7 mr-3 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 mr-2 sm:mr-3 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
                                 </svg>
                                 Sign In to Book
@@ -59,18 +59,18 @@
                         </a>
                     {% else %}
                         {% if group_tour.is_actually_full %}
-                            <button disabled class="group bg-gray-400 text-white px-12 py-5 rounded-2xl font-bold text-xl cursor-not-allowed">
+                            <button disabled class="group bg-gray-400 text-white px-6 sm:px-8 md:px-12 py-3 sm:py-4 md:py-5 rounded-2xl font-bold text-base sm:text-lg md:text-xl cursor-not-allowed">
                                 <div class="flex items-center justify-center">
-                                    <svg class="w-7 h-7 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 mr-2 sm:mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                     </svg>
                                     Tour Full
                                 </div>
                             </button>
                         {% else %}
-                            <a href="{% url 'tour_booking_payment' group_tour.pk %}" class="group bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-gray-900 px-12 py-5 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
+                            <a href="{% url 'tour_booking_payment' group_tour.pk %}" class="group bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-gray-900 px-6 sm:px-8 md:px-12 py-3 sm:py-4 md:py-5 rounded-2xl font-bold text-base sm:text-lg md:text-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
                                 <div class="flex items-center justify-center">
-                                    <svg class="w-7 h-7 mr-3 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 mr-2 sm:mr-3 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                                     </svg>
                                     Book This Tour
@@ -79,9 +79,9 @@
                         {% endif %}
                     {% endif %}
                     
-                    <a href="{% url 'grouptours_list' %}" class="group bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-12 py-5 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+                    <a href="{% url 'grouptours_list' %}" class="group bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-6 sm:px-8 md:px-12 py-3 sm:py-4 md:py-5 rounded-2xl font-bold text-base sm:text-lg md:text-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
                         <div class="flex items-center justify-center">
-                            <svg class="w-7 h-7 mr-3 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 mr-2 sm:mr-3 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                             </svg>
                             Discover More Tours
@@ -91,18 +91,18 @@
                 
                 <!-- Like and Bookmark Buttons -->
                 {% if user.is_authenticated %}
-                <div class="flex flex-wrap justify-center gap-6">
+                <div class="flex flex-wrap justify-center gap-4 sm:gap-6 px-4">
                     <!-- Like Button -->
-                    <button onclick="likeTour({{ group_tour.id }})" id="tour-like-btn-{{ group_tour.id }}" class="group flex items-center gap-3 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 {% if user in group_tour.likes.all %}text-red-400{% endif %}">
-                        <svg class="w-6 h-6 group-hover:scale-110 transition-transform duration-300" fill="{% if user in group_tour.likes.all %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
+                    <button onclick="likeTour({{ group_tour.id }})" id="tour-like-btn-{{ group_tour.id }}" class="group flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-4 sm:px-6 md:px-8 py-3 sm:py-4 rounded-2xl font-bold text-base sm:text-lg transition-all duration-300 transform hover:scale-105 {% if user in group_tour.likes.all %}text-red-400{% endif %}">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform duration-300" fill="{% if user in group_tour.likes.all %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                         </svg>
                         <span id="tour-like-count-{{ group_tour.id }}">{{ group_tour.total_likes }}</span>
                     </button>
                     
                     <!-- Bookmark Button -->
-                    <button onclick="bookmarkTour({{ group_tour.id }})" id="tour-bookmark-btn-{{ group_tour.id }}" class="group flex items-center gap-3 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 {% if user in group_tour.bookmarks.all %}text-yellow-400{% endif %}">
-                        <svg class="w-6 h-6 group-hover:scale-110 transition-transform duration-300" fill="{% if user in group_tour.bookmarks.all %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
+                    <button onclick="bookmarkTour({{ group_tour.id }})" id="tour-bookmark-btn-{{ group_tour.id }}" class="group flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 hover:border-white/50 px-4 sm:px-6 md:px-8 py-3 sm:py-4 rounded-2xl font-bold text-base sm:text-lg transition-all duration-300 transform hover:scale-105 {% if user in group_tour.bookmarks.all %}text-yellow-400{% endif %}">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform duration-300" fill="{% if user in group_tour.bookmarks.all %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v14l-7-3.5L5 18V5z"/>
                         </svg>
                         <span id="tour-bookmark-count-{{ group_tour.id }}">{{ group_tour.total_bookmarks }}</span>
