@@ -1,8 +1,90 @@
 {% extends 'users/base.html' %}
+{% load static %}
 
 {% block title %}TravelsKe - Discover Kenya's Beauty{% endblock %}
 
+{% block meta_description %}Discover Kenya's hidden treasures with TravelsKe. Experience extraordinary adventures through pristine landscapes, encounter majestic wildlife, and immerse yourself in rich cultural experiences. Book your unforgettable Kenyan adventure today.{% endblock %}
+
+{% block meta_keywords %}Kenya travel, safari tours, wildlife experiences, cultural tours, beach holidays, adventure travel, Maasai Mara, Diani Beach, Mount Kenya, Nairobi tours, Mombasa holidays{% endblock %}
+
+{% block og_title %}TravelsKe - Discover Kenya's Hidden Treasures{% endblock %}
+
+{% block og_description %}Embark on extraordinary adventures through pristine landscapes, encounter majestic wildlife, and immerse yourself in rich cultural experiences. Let TravelsKe be your gateway to Kenya's most authentic and unforgettable moments.{% endblock %}
+
+{% block og_image %}{% static 'images/travelske-homepage.jpg' %}{% endblock %}
+
+{% block og_type %}website{% endblock %}
+
+{% block canonical_url %}https://tourske.com/{% endblock %}
+
+{% block breadcrumb_schema %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://tourske.com/"
+        }
+    ]
+}
+</script>
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "TravelAgency",
+    "name": "TravelsKe",
+    "description": "Discover Kenya's hidden treasures with TravelsKe. Experience extraordinary adventures through pristine landscapes, encounter majestic wildlife, and immerse yourself in rich cultural experiences.",
+    "url": "https://tourske.com",
+    "logo": "https://tourske.com{% static 'images/travelske-logo.png' %}",
+    "image": "https://tourske.com{% static 'images/travelske-homepage.jpg' %}",
+    "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "Kenya",
+        "addressLocality": "Nairobi"
+    },
+    "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer service",
+        "email": "info@tourske.com"
+    },
+    "sameAs": [
+        "https://facebook.com/travelske",
+        "https://twitter.com/travelske",
+        "https://instagram.com/travelske"
+    ],
+    "offers": {
+        "@type": "Offer",
+        "description": "Kenya travel experiences including safaris, cultural tours, beach holidays, and adventure activities",
+        "availability": "https://schema.org/InStock"
+    },
+    "areaServed": {
+        "@type": "Country",
+        "name": "Kenya"
+    },
+    "serviceType": ["Safari Tours", "Cultural Tours", "Beach Holidays", "Adventure Travel", "Wildlife Experiences"]
+}
+</script>
+{% endblock %}
+
 {% block content %}
+<!-- Breadcrumb Navigation -->
+{% block breadcrumbs %}
+<nav class="bg-gray-100 border-b border-gray-200 py-3 px-4 mt-16">
+    <div class="max-w-7xl mx-auto">
+        <ol class="flex items-center space-x-2 text-sm text-gray-600">
+            <li class="text-gray-900 font-medium">Home</li>
+        </ol>
+    </div>
+</nav>
+{% endblock %}
+
 <!-- Messages Display -->
 {% if messages %}
 <div class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md">
