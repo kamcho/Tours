@@ -458,10 +458,88 @@ function openBookingModal(itemId) {
     }
 }
 
+// Video Validation Functions
+function validateVideoFile(input) {
+    const file = input.files[0];
+    if (!file) return true;
+    
+    // Check file size (100MB = 104857600 bytes)
+    const maxSize = 104857600;
+    if (file.size > maxSize) {
+        showNotification('Video file size must be less than 100MB', 'error');
+        input.value = '';
+        return false;
+    }
+    
+    // Check file type
+    const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/mov'];
+    if (!allowedTypes.includes(file.type)) {
+        showNotification('Please upload a valid video file (MP4, WebM, OGG, AVI, or MOV)', 'error');
+        input.value = '';
+        return false;
+    }
+    
+    // Check video duration (optional - can be implemented with HTML5 video element)
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    
+    video.onloadedmetadata = function() {
+        // Convert duration from seconds to minutes
+        const durationInMinutes = Math.ceil(video.duration / 60);
+        if (durationInMinutes > 10) { // Max 10 minutes
+            showNotification('Video must be shorter than 10 minutes', 'warning');
+        }
+    };
+    
+    video.src = URL.createObjectURL(file);
+    
+    showNotification('Video file validated successfully!', 'success');
+    return true;
+}
+
+function previewVideo(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    const previewContainer = document.getElementById('video-preview');
+    if (!previewContainer) return;
+    
+    // Clear previous preview
+    previewContainer.innerHTML = '';
+    
+    // Create video element
+    const video = document.createElement('video');
+    video.controls = true;
+    video.style.width = '100%';
+    video.style.maxHeight = '300px';
+    video.style.borderRadius = '8px';
+    
+    // Create source element
+    const source = document.createElement('source');
+    source.src = URL.createObjectURL(file);
+    source.type = file.type;
+    
+    video.appendChild(source);
+    previewContainer.appendChild(video);
+    
+    // Show preview container
+    previewContainer.style.display = 'block';
+}
+
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Check if user is authenticated (set by Django template)
     if (typeof window.isAuthenticated === 'undefined') {
         window.isAuthenticated = false;
     }
+    
+    // Add video validation to tour video inputs
+    const tourVideoInputs = document.querySelectorAll('input[name="tour_video"]');
+    tourVideoInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            if (validateVideoFile(this)) {
+                previewVideo(this);
+            }
+        });
+    });
 }); 

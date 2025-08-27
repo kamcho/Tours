@@ -1,3 +1,6 @@
+"""
+Core views for TravelsKe platform
+"""
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -11,8 +14,118 @@ import base64
 import requests
 from requests.auth import HTTPBasicAuth
 import logging
+from django.http import HttpResponse
+from django.views.decorators.cache import cache_page
+from django.views.decorators.http import require_http_methods
+
 
 logger = logging.getLogger(__name__)
+
+@require_http_methods(["GET"])
+@cache_page(60 * 60 * 24)  # Cache for 24 hours
+def robots_txt(request):
+    """Serve robots.txt file"""
+    content = """User-agent: *
+Allow: /
+
+# Allow all search engines to crawl the site
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /accounts/
+Disallow: /api/
+Disallow: /private/
+Disallow: /django-admin/
+
+# Allow important pages
+Allow: /tours/
+Allow: /events/
+Allow: /places/
+Allow: /agencies/
+Allow: /search/
+
+# Sitemap location
+Sitemap: https://tourske.com/sitemap.xml
+
+# Crawl delay (optional - be respectful to server)
+Crawl-delay: 1
+"""
+    return HttpResponse(content, content_type="text/plain")
+
+
+@require_http_methods(["GET"])
+@cache_page(60 * 60 * 24)  # Cache for 24 hours
+def sitemap_xml(request):
+    """Serve sitemap.xml file"""
+    # Generate simple sitemap
+    content = """<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://tourske.com/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://tourske.com/tours/</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tourske.com/events/</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tourske.com/places/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://tourske.com/agencies/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://tourske.com/about/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://tourske.com/contact/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+</urlset>"""
+    return HttpResponse(content, content_type="application/xml; charset=utf-8")
+
+
+def about_view(request):
+    """About page view"""
+    return render(request, 'core/about.html')
+
+
+def contact_view(request):
+    """Contact page view"""
+    return render(request, 'core/contact.html')
+
+
+def privacy_policy_view(request):
+    """Privacy policy page view"""
+    return render(request, 'core/privacy_policy.html')
+
+
+def terms_of_service_view(request):
+    """Terms of service page view"""
+    return render(request, 'core/terms_of_service.html')
+
 
 @login_required
 def subscription_page(request):

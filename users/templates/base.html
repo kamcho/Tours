@@ -3,12 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}TravelsKe{% endblock %}</title>
+    
+    <!-- SEO Meta Tags -->
+    {% block seo_meta %}
+    <title>{% block title %}TravelsKe - Discover Kenya's Amazing Tours, Events & Places{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Your premier destination for discovering Kenya's amazing tours, events, and places. Book unforgettable adventures and explore the beauty of Kenya.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}Kenya, travel, tours, events, places, tourism, adventure, Nairobi, Mombasa, safari, beach, culture{% endblock %}">
+    <meta name="author" content="TravelsKe">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    <meta name="revisit-after" content="7 days">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="{% block og_title %}{% block title %}TravelsKe - Discover Kenya's Amazing Tours, Events & Places{% endblock %}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{% block meta_description %}Your premier destination for discovering Kenya's amazing tours, events, and places. Book unforgettable adventures and explore the beauty of Kenya.{% endblock %}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{% static 'images/travelske-default.jpg' %}{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:site_name" content="TravelsKe">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@TravelsKe">
+    <meta name="twitter:title" content="{% block twitter_title %}{% block title %}TravelsKe - Discover Kenya's Amazing Tours, Events & Places{% endblock %}{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}{% block meta_description %}Your premier destination for discovering Kenya's amazing tours, events, and places. Book unforgettable adventures and explore the beauty of Kenya.{% endblock %}{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{% static 'images/travelske-default.jpg' %}{% endblock %}">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
+    
     {% load static %}
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     {% block extra_css %}{% endblock %}
-    <!-- Temporarily disabled CSS fix to test mobile menu functionality -->
+    
+    <!-- Organization Schema -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "TravelsKe",
+        "url": "https://tourske.com",
+        "logo": "https://tourske.com{% static 'images/travelske-logo.png' %}",
+        "description": "Your premier destination for discovering Kenya's amazing tours, events, and places.",
+        "address": {
+            "@type": "PostalAddress",
+            "addressCountry": "Kenya",
+            "addressLocality": "Nairobi"
+        },
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer service",
+            "email": "info@tourske.com"
+        },
+        "sameAs": [
+            "https://facebook.com/travelske",
+            "https://twitter.com/travelske",
+            "https://instagram.com/travelske"
+        ]
+    }
+    </script>
+    
+    <!-- Breadcrumb Schema -->
+    {% block breadcrumb_schema %}{% endblock %}
+    
+    <!-- Additional Structured Data -->
+    {% block structured_data %}{% endblock %}
 </head>
 <body class="bg-gray-50" data-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}">
     <!-- Navigation -->
@@ -187,8 +252,29 @@
         </div>
     </nav>
 
+    <!-- Breadcrumb Navigation -->
+    {% block breadcrumbs %}
+    <nav class="bg-gray-100 border-b border-gray-200 py-3 px-4 mt-16">
+        <div class="max-w-7xl mx-auto">
+            <ol class="flex items-center space-x-2 text-sm text-gray-600">
+                <li>
+                    <a href="{% url 'home' %}" class="hover:text-blue-600 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                    </a>
+                </li>
+                {% block breadcrumb_items %}
+                <li class="text-gray-400">/</li>
+                <li class="text-gray-900 font-medium">{{ page_title|default:"Page" }}</li>
+                {% endblock %}
+            </ol>
+        </div>
+    </nav>
+    {% endblock %}
+
     <!-- Main Content -->
-    <main class="min-h-screen pt-16">
+    <main class="min-h-screen pt-0">
         {% block content %}
         {% endblock %}
     </main>

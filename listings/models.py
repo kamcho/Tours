@@ -537,6 +537,14 @@ class GroupTours(models.Model):
         help_text="Main photo for the tour (recommended size: 800x600px)"
     )
     
+    # Tour Video
+    tour_video = models.FileField(
+        upload_to='tours/videos/',
+        blank=True,
+        null=True,
+        help_text="Short video explaining the tour (MP4, MOV, AVI - max 100MB)"
+    )
+    
     # Tour Details
     start_date = models.DateField()
     end_date = models.DateField()

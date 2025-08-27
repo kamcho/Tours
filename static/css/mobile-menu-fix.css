@@ -27,3 +27,31 @@
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
     background-color: rgba(156, 163, 175, 0.7);
 }
+
+/* Video Player Styles */
+.aspect-video {
+    aspect-ratio: 16 / 9;
+}
+
+#video-preview video {
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Video upload field styling */
+input[type="file"][name="tour_video"] {
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    padding: 12px;
+    transition: all 0.3s ease;
+}
+
+input[type="file"][name="tour_video"]:hover {
+    border-color: #3b82f6;
+    background-color: #f8fafc;
+}
+
+input[type="file"][name="tour_video"]:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}

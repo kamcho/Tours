@@ -1,0 +1,32 @@
+User-agent: *
+Allow: /
+
+# Allow all search engines to crawl the site
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /accounts/
+Disallow: /api/
+Disallow: /private/
+Disallow: /django-admin/
+
+# Allow important pages
+Allow: /tours/
+Allow: /events/
+Allow: /places/
+Allow: /agencies/
+Allow: /search/
+
+# Sitemap location
+Sitemap: https://tourske.com/sitemap.xml
+
+# Crawl delay (optional - be respectful to server)
+Crawl-delay: 1

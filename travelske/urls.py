@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from core.views import robots_txt, sitemap_xml
 from . import views
 
 urlpatterns = [
@@ -30,6 +31,10 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('listings/', include('listings.urls')),
     path('core/', include('core.urls')),
+    
+    # SEO URLs
+    path('robots.txt', robots_txt, name='robots_txt'),
+    path('sitemap.xml', sitemap_xml, name='sitemap_xml'),
 ]
 
 # Serve media files in development

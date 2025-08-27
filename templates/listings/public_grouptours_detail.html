@@ -1,5 +1,101 @@
 {% extends 'users/base.html' %}
 {% load static %}
+
+{% block title %}{{ group_tour.name }} - Group Tour in {{ group_tour.to }} | TravelsKe{% endblock %}
+
+{% block meta_description %}{{ group_tour.description|truncatewords:25 }} - Join this amazing group tour from {{ group_tour.start_date|date:"M d, Y" }} to {{ group_tour.end_date|date:"M d, Y" }}. Book now for only KES {{ group_tour.price_per_person }} per person.{% endblock %}
+
+{% block meta_keywords %}group tour, {{ group_tour.to }}, Kenya travel, {{ group_tour.destination }}, tour package, adventure, {{ group_tour.start_date|date:"Y" }}, affordable travel{% endblock %}
+
+{% block og_title %}{{ group_tour.name }} - Amazing Group Tour in {{ group_tour.to }}{% endblock %}
+
+{% block og_description %}{{ group_tour.description|truncatewords:20 }} - Experience the adventure of a lifetime with this group tour!{% endblock %}
+
+{% block og_image %}{% if group_tour.display_picture %}{{ request.build_absolute_uri:group_tour.display_picture.url }}{% else %}{{ request.build_absolute_uri }}{% static 'images/travelske-default.jpg' %}{% endif %}{% endblock %}
+
+{% block og_type %}website{% endblock %}
+
+{% block breadcrumbs %}
+<nav class="bg-gray-100 border-b border-gray-200 py-3 px-4 mt-16">
+    <div class="max-w-7xl mx-auto">
+        <ol class="flex items-center space-x-2 text-sm text-gray-600">
+            <li>
+                <a href="{% url 'home' %}" class="hover:text-blue-600 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                </a>
+            </li>
+            <li class="text-gray-400">/</li>
+            <li><a href="{% url 'grouptours_list' %}" class="hover:text-blue-600 transition-colors">Tours</a></li>
+            <li class="text-gray-400">/</li>
+            <li class="text-gray-900 font-medium">{{ group_tour.name|truncatechars:30 }}</li>
+        </ol>
+    </div>
+</nav>
+{% endblock %}
+
+{% block breadcrumb_schema %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "{% url 'home' %}"
+        },
+        {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Tours",
+            "item": "{% url 'grouptours_list' %}"
+        },
+        {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "{{ group_tour.name }}",
+            "item": "{{ request.build_absolute_uri }}"
+        }
+    ]
+}
+</script>
+{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Tour",
+    "name": "{{ group_tour.name }}",
+    "description": "{{ group_tour.description|truncatewords:50 }}",
+    "image": "{% if group_tour.display_picture %}{{ request.build_absolute_uri:group_tour.display_picture.url }}{% endif %}",
+    "url": "{{ request.build_absolute_uri }}",
+    "offers": {
+        "@type": "Offer",
+        "price": "{{ group_tour.price_per_person }}",
+        "priceCurrency": "KES",
+        "availability": "https://schema.org/InStock"
+    },
+    "location": {
+        "@type": "Place",
+        "name": "{{ group_tour.to }}"
+    },
+    "startDate": "{{ group_tour.start_date|date:'Y-m-d' }}",
+    "endDate": "{{ group_tour.end_date|date:'Y-m-d' }}",
+    "organizer": {
+        "@type": "Organization",
+        "name": "{{ group_tour.creator.get_full_name|default:group_tour.creator.username }}"
+    },
+    "touristType": "Group Tour",
+    "maximumAttendeeCapacity": {{ group_tour.max_participants }},
+    "priceRange": "KES {{ group_tour.price_per_person }}"
+}
+</script>
+{% endblock %}
+
 {% block content %}
 
 <!-- Hero Section -->
@@ -113,6 +209,61 @@
         </div>
     </div>
 </div>
+
+<!-- Tour Video Section -->
+{% if group_tour.tour_video %}
+<div class="py-16 bg-gradient-to-r from-gray-50 to-blue-50">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="text-center mb-12">
+            <div class="inline-flex items-center bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 mb-6 border border-gray-200">
+                <svg class="w-6 h-6 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+                <span class="text-gray-700 font-semibold">Tour Preview</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-4">
+                Watch the <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Tour Video</span>
+            </h2>
+            <p class="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                Get a firsthand look at what this amazing tour has to offer through this exclusive video presentation.
+            </p>
+        </div>
+        
+        <!-- Video Player -->
+        <div class="bg-white rounded-3xl shadow-2xl overflow-hidden">
+            <div class="aspect-video w-full">
+                <video 
+                    class="w-full h-full object-cover"
+                    controls
+                    preload="metadata"
+                    poster="{% if group_tour.display_picture %}{{ group_tour.display_picture.url }}{% endif %}"
+                >
+                    <source src="{{ group_tour.tour_video.url }}" type="video/mp4">
+                    <source src="{{ group_tour.tour_video.url }}" type="video/webm">
+                    <source src="{{ group_tour.tour_video.url }}" type="video/ogg">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            
+            <!-- Video Info -->
+            <div class="p-6 sm:p-8">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">{{ group_tour.name }} - Tour Video</h3>
+                    <div class="flex items-center gap-2 text-sm text-gray-500">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>Tour Preview</span>
+                    </div>
+                </div>
+                <p class="text-gray-600 text-sm sm:text-base">
+                    This video provides an overview of the tour experience, destinations, and activities you can expect.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- Tour Details -->
 <div class="bg-gray-800 py-20 relative overflow-hidden">

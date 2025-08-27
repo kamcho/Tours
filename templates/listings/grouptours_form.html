@@ -184,6 +184,28 @@
                             {% endfor %}
                         </div>
                         
+                        <!-- Tour Video Field -->
+                        <div class="space-y-2 mb-6">
+                            <label for="{{ form.tour_video.id_for_label }}" class="block text-sm font-semibold text-gray-700">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                    </svg>
+                                    Tour Video
+                                </div>
+                            </label>
+                            {{ form.tour_video }}
+                            <p class="text-sm text-gray-500">Upload a short video explaining your tour (MP4, MOV, AVI - max 100MB, recommended: under 10 minutes)</p>
+                            {% for error in form.tour_video.errors %}
+                                <p class="text-sm text-red-600">{{ error }}</p>
+                            {% endfor %}
+                            
+                            <!-- Video Preview Container -->
+                            <div id="video-preview" class="mt-4 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300" style="display: none;">
+                                <p class="text-sm text-gray-500 text-center">Video preview will appear here after selection</p>
+                            </div>
+                        </div>
+                        
                         <!-- Step 1 Navigation -->
                         <div class="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0">
                             <div></div> <!-- Empty div for spacing -->

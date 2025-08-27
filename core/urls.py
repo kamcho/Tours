@@ -4,6 +4,13 @@ from . import views
 app_name = 'core'
 
 urlpatterns = [
+    # Static pages
+    path('about/', views.about_view, name='about'),
+    path('contact/', views.contact_view, name='contact'),
+    path('privacy-policy/', views.privacy_policy_view, name='privacy_policy'),
+    path('terms-of-service/', views.terms_of_service_view, name='terms_of_service'),
+    
+    # Existing URLs
     path('subscription/', views.subscription_page, name='subscription_page'),
     path('subscription/plan/<int:plan_id>/', views.subscribe_to_plan, name='subscribe_to_plan'),
     path('subscription/payment/<int:subscription_id>/', views.subscription_payment, name='subscription_payment'),

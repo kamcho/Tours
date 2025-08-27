@@ -662,7 +662,7 @@ class GroupToursForm(forms.ModelForm):
         model = GroupTours
         fields = ['name', 'description', 'to', 'destination', 'travel_group', 'start_date', 'end_date', 
                   'max_participants', 'price_per_person', 'couple_price', 'status', 
-                  'itinerary', 'included_services', 'excluded_services', 'requirements', 'display_picture']
+                  'itinerary', 'included_services', 'excluded_services', 'requirements', 'display_picture', 'tour_video']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white text-gray-900',
@@ -732,6 +732,11 @@ class GroupToursForm(forms.ModelForm):
             'display_picture': forms.FileInput(attrs={
                 'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white text-gray-900',
                 'accept': 'image/*'
+            }),
+            'tour_video': forms.FileInput(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white text-gray-900',
+                'accept': 'video/*',
+                'data-max-size': '104857600'
             }),
         }
 

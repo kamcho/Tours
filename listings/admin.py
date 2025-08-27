@@ -54,7 +54,43 @@ class PlaceAdmin(admin.ModelAdmin):
     )
 admin.site.register(TravelGroup)
 admin.site.register(PlaceImage)
-admin.site.register(GroupTours)
+@admin.register(GroupTours)
+class GroupToursAdmin(admin.ModelAdmin):
+    list_display = ['name', 'creator', 'status', 'start_date', 'end_date', 'price_per_person', 'max_participants', 'current_participants', 'created_at']
+    list_filter = ['status', 'start_date', 'end_date', 'created_at']
+    search_fields = ['name', 'description', 'creator__email', 'to']
+    list_editable = ['status']
+    readonly_fields = ['created_at', 'updated_at', 'current_participants']
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'description', 'creator', 'status')
+        }),
+        ('Tour Details', {
+            'fields': ('to', 'destination', 'travel_group', 'agency')
+        }),
+        ('Dates & Capacity', {
+            'fields': ('start_date', 'end_date', 'min_participants', 'max_participants', 'current_participants')
+        }),
+        ('Pricing', {
+            'fields': ('price_per_person', 'couple_price')
+        }),
+        ('Media', {
+            'fields': ('display_picture', 'tour_video')
+        }),
+        ('Tour Information', {
+            'fields': ('itinerary', 'included_services', 'excluded_services', 'requirements')
+        }),
+        ('Demographics', {
+            'fields': ('min_age', 'max_age', 'gender')
+        }),
+        ('Engagement', {
+            'fields': ('likes', 'bookmarks')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
 @admin.register(Agency)
 class AgencyAdmin(admin.ModelAdmin):
     list_display = ['name', 'agency_type', 'status', 'verified', 'city', 'country', 'owner', 'created_at']
