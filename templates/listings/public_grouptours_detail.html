@@ -25,21 +25,21 @@
             
             <!-- Main Content -->
             <div class="text-white max-w-5xl mx-auto mb-16">
-                <div class="flex items-center justify-center gap-6 mb-8">
-                    <h1 class="text-6xl lg:text-8xl font-bold leading-tight">
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-8">
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl font-bold leading-tight text-center">
                         {{ group_tour.name }}
                     </h1>
                     {% if group_tour.creator.is_verified %}
-                    <div class="flex items-center gap-3 bg-gradient-to-r from-blue-500/30 to-indigo-500/30 backdrop-blur-sm border border-blue-400/40 px-6 py-3 rounded-full shadow-lg">
-                        <svg class="w-6 h-6 text-blue-300" fill="currentColor" viewBox="0 0 20 20">
+                    <div class="flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-blue-500/30 to-indigo-500/30 backdrop-blur-sm border border-blue-400/40 px-3 sm:px-4 md:px-6 py-2 sm:py-3 rounded-full shadow-lg">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-blue-300" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                         </svg>
-                        <span class="text-xl text-blue-200 font-bold">Verified Creator</span>
+                        <span class="text-sm sm:text-base md:text-lg lg:text-xl text-blue-200 font-bold">Verified Creator</span>
                     </div>
                     {% endif %}
                 </div>
                 
-                <p class="text-2xl lg:text-3xl mb-12 text-gray-200 leading-relaxed font-medium max-w-4xl mx-auto">
+                <p class="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-8 sm:mb-12 text-gray-200 leading-relaxed font-medium max-w-4xl mx-auto px-4">
                     {{ group_tour.description|truncatewords:60 }}
                 </p>
                 
