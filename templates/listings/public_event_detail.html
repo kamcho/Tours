@@ -3,7 +3,7 @@
 {% block content %}
 
 <!-- Hero Section -->
-<div class="relative bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-900 py-24 overflow-hidden">
+<div class="relative bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-900 py-16 sm:py-20 md:py-24 overflow-hidden">
     <!-- Animated Background Elements -->
     <div class="absolute inset-0">
         <div class="absolute top-0 left-0 w-40 h-40 bg-emerald-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
@@ -18,46 +18,46 @@
     <div class="relative z-10 max-w-7xl mx-auto px-4">
         <div class="text-center">
             <!-- Excellence Badge -->
-            <div class="inline-flex items-center bg-white/10 backdrop-blur-sm rounded-full px-8 py-4 mb-8 border border-white/20">
-                <span class="text-3xl mr-3">🌟</span>
-                <span class="text-white font-semibold text-lg">Event Excellence</span>
+            <div class="inline-flex items-center bg-white/10 backdrop-blur-sm rounded-full px-4 sm:px-6 md:px-8 py-3 sm:py-4 mb-6 sm:mb-8 border border-white/20">
+                <span class="text-2xl sm:text-3xl mr-2 sm:mr-3">🌟</span>
+                <span class="text-white font-semibold text-sm sm:text-base md:text-lg">Event Excellence</span>
             </div>
             
             <!-- Main Content -->
             <div class="text-white max-w-5xl mx-auto mb-16">
-                <div class="flex items-center justify-center gap-6 mb-8">
-                    <h1 class="text-6xl lg:text-8xl font-bold leading-tight">
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-8">
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl font-bold leading-tight text-center">
                         {{ event.name }}
                     </h1>
                     {% if event.creator.is_verified %}
-                    <div class="flex items-center gap-3 bg-gradient-to-r from-blue-500/30 to-indigo-500/30 backdrop-blur-sm border border-blue-400/40 px-6 py-3 rounded-full shadow-lg">
-                        <svg class="w-6 h-6 text-blue-300" fill="currentColor" viewBox="0 0 20 20">
+                    <div class="flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-blue-500/30 to-indigo-500/30 backdrop-blur-sm border border-blue-400/40 px-3 sm:px-4 md:px-6 py-2 sm:py-3 rounded-full shadow-lg">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-blue-300" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745a3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745a3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745a3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                         </svg>
-                        <span class="text-xl text-blue-200 font-bold">Verified Creator</span>
+                        <span class="text-sm sm:text-base md:text-lg lg:text-xl text-blue-200 font-bold">Verified Creator</span>
                     </div>
                     {% endif %}
                 </div>
                 
-                <p class="text-2xl lg:text-3xl mb-12 text-gray-200 leading-relaxed font-medium max-w-4xl mx-auto">
+                <p class="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-8 sm:mb-12 text-gray-200 leading-relaxed font-medium max-w-4xl mx-auto px-4">
                     {{ event.description|truncatewords:60 }}
                 </p>
                 
                 <!-- Primary Action Button Only -->
-                <div class="flex justify-center mb-16">
+                <div class="flex justify-center mb-12 sm:mb-16 px-4">
                     {% if not user.is_authenticated %}
-                        <a href="{% url 'login' %}" class="group bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-gray-900 px-16 py-6 rounded-2xl font-bold text-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
+                        <a href="{% url 'login' %}" class="group bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-gray-900 px-6 sm:px-8 md:px-12 lg:px-16 py-3 sm:py-4 md:py-5 lg:py-6 rounded-2xl font-bold text-base sm:text-lg md:text-xl lg:text-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
                             <div class="flex items-center justify-center">
-                                <svg class="w-8 h-8 mr-3 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-8 lg:h-8 mr-2 sm:mr-3 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
                                 </svg>
                                 Sign In to Book
                             </div>
                         </a>
                     {% else %}
-                        <a href="{% url 'simple_event_booking' event.pk %}" class="group bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-gray-900 px-16 py-6 rounded-2xl font-bold text-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
+                        <a href="{% url 'simple_event_booking' event.pk %}" class="group bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-gray-900 px-6 sm:px-8 md:px-12 lg:px-16 py-3 sm:py-4 md:py-5 lg:py-6 rounded-2xl font-bold text-base sm:text-lg md:text-xl lg:text-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-xl">
                             <div class="flex items-center justify-center">
-                                <svg class="w-8 h-8 mr-3 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-8 lg:h-8 mr-2 sm:mr-3 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                                 </svg>
                                 Book This Event
@@ -71,29 +71,29 @@
 </div>
 
 <!-- Secondary Actions Section -->
-<div class="bg-gradient-to-r from-gray-50 to-blue-50 py-12">
+<div class="bg-gradient-to-r from-gray-50 to-blue-50 py-8 sm:py-12">
     <div class="max-w-7xl mx-auto px-4">
-        <div class="flex flex-wrap justify-center gap-6">
+        <div class="flex flex-wrap justify-center gap-4 sm:gap-6">
             <!-- Like Button -->
             {% if user.is_authenticated %}
-            <button onclick="likeEvent({{ event.id }})" id="event-like-btn-{{ event.id }}" class="group flex items-center gap-3 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg {% if user in event.likes.all %}text-red-500 border-red-200 bg-red-50{% endif %}">
-                <svg class="w-6 h-6 group-hover:scale-110 transition-transform duration-300" fill="{% if user in event.likes.all %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
+            <button onclick="likeEvent({{ event.id }})" id="event-like-btn-{{ event.id }}" class="group flex items-center gap-2 sm:gap-3 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 px-4 sm:px-6 md:px-8 py-3 sm:py-4 rounded-2xl font-bold text-base sm:text-lg transition-all duration-300 transform hover:scale-105 shadow-lg {% if user in event.likes.all %}text-red-500 border-red-200 bg-red-50{% endif %}">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform duration-300" fill="{% if user in event.likes.all %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                 </svg>
                 <span id="event-like-count-{{ event.id }}">{{ event.total_likes }}</span>
             </button>
             
             <!-- Bookmark Button -->
-            <button onclick="bookmarkEvent({{ event.id }})" id="event-bookmark-btn-{{ event.id }}" class="group flex items-center gap-3 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg {% if user in event.bookmarks.all %}text-yellow-500 border-yellow-200 bg-yellow-50{% endif %}">
-                <svg class="w-6 h-6 group-hover:scale-110 transition-transform duration-300" fill="{% if user in event.bookmarks.all %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
+            <button onclick="bookmarkEvent({{ event.id }})" id="event-bookmark-btn-{{ event.id }}" class="group flex items-center gap-2 sm:gap-3 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 px-4 sm:px-6 md:px-8 py-3 sm:py-4 rounded-2xl font-bold text-base sm:text-lg transition-all duration-300 transform hover:scale-105 shadow-lg {% if user in event.bookmarks.all %}text-yellow-500 border-yellow-200 bg-yellow-50{% endif %}">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform duration-300" fill="{% if user in event.bookmarks.all %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v14l-7-3.5L5 18V5z"/>
                 </svg>
                 <span id="event-bookmark-count-{{ event.id }}">{{ event.total_bookmarks }}</span>
             </button>
             
             <!-- Discover More Events -->
-            <a href="{% url 'event_list' %}" class="group flex items-center gap-3 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
-                <svg class="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <a href="{% url 'event_list' %}" class="group flex items-center gap-2 sm:gap-3 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 px-4 sm:px-6 md:px-8 py-3 sm:py-4 rounded-2xl font-bold text-base sm:text-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                 </svg>
                 Discover More Events
