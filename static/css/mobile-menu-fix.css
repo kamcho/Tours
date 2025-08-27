@@ -1,0 +1,4 @@
+/* Mobile Menu Fix - x-cloak support */
+[x-cloak] {
+    display: none !important;
+}
