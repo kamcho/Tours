@@ -149,8 +149,10 @@ class PlaceSettingsForm(forms.Form):
         })
     )
 
+import os
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from django.core.files import File
 
 class PlaceCreateWizard(LoginRequiredMixin, View):
     FORMS = [PlaceBasicForm, PlaceContactForm, PlaceSettingsForm]
@@ -183,14 +185,14 @@ class PlaceCreateWizard(LoginRequiredMixin, View):
         if form.is_valid():
             step_data = form.cleaned_data.copy()
 
-            # ✅ Save uploaded file to storage, keep path in session
+            # ✅ Save uploaded file temporarily
             if 'profile_picture' in request.FILES:
                 uploaded_file = request.FILES['profile_picture']
                 path = default_storage.save(
                     f"temp_uploads/{uploaded_file.name}",
                     ContentFile(uploaded_file.read())
                 )
-                step_data['profile_picture'] = path  # store file path
+                step_data['profile_picture'] = path  # save file path, not file object
 
             if 'category' in step_data and hasattr(step_data['category'], 'id'):
                 step_data['category'] = step_data['category'].id
@@ -224,8 +226,18 @@ class PlaceCreateWizard(LoginRequiredMixin, View):
                 step_data = request.session.get(f'place_step_{i}', {})
                 data.update(step_data)
 
-            # Get file path before creating Place
             profile_picture_path = data.get('profile_picture')
+            final_profile_picture = None
+
+            # ✅ Move file from temp to permanent location
+            if profile_picture_path and default_storage.exists(profile_picture_path):
+                with default_storage.open(profile_picture_path, 'rb') as f:
+                    file_name = os.path.basename(profile_picture_path)
+                    final_path = default_storage.save(f"places/{file_name}", File(f))
+                    final_profile_picture = final_path
+
+                # delete temp file
+                default_storage.delete(profile_picture_path)
 
             place = Place.objects.create(
                 name=data['name'],
@@ -236,15 +248,11 @@ class PlaceCreateWizard(LoginRequiredMixin, View):
                 website=data.get('website', ''),
                 contact_email=data.get('contact_email', ''),
                 contact_phone=data.get('contact_phone', ''),
-                profile_picture=profile_picture_path,
+                profile_picture=final_profile_picture,  # now permanent path
                 place_intro_video=data.get('place_intro_video'),
                 is_active=data.get('is_active', True),
                 created_by=request.user
             )
-
-            # ✅ Remove temp uploaded file after successful creation
-            if profile_picture_path and default_storage.exists(profile_picture_path):
-                default_storage.delete(profile_picture_path)
 
             # Clear session data
             for i in range(1, 4):
