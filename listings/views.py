@@ -149,27 +149,10 @@ class PlaceSettingsForm(forms.Form):
         })
     )
 
-import os
-from django.conf import settings
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
-from django.shortcuts import render, redirect
-from django.urls import reverse
-from django.views import View
-from django.contrib.auth.mixins import LoginRequiredMixin
-
-from .forms import PlaceBasicForm, PlaceContactForm, PlaceSettingsForm
-from .models import Place, PlaceCategory
-
-
 class PlaceCreateWizard(LoginRequiredMixin, View):
-    """
-    Modern 3-step wizard for creating a Place:
-    1. Basic Information (name, description, category, location)
-    2. Contact & Media (address, website, email, phone, profile picture)
-    3. Settings & Confirmation (active status, review, submit)
-    """
     FORMS = [PlaceBasicForm, PlaceContactForm, PlaceSettingsForm]
     TEMPLATES = [
         'listings/place_create_step1.html',
@@ -181,11 +164,9 @@ class PlaceCreateWizard(LoginRequiredMixin, View):
         step = int(step)
         if step > 3:
             step = 3
-
-        form = self.FORMS[step - 1](initial=request.session.get(f'place_step_{step}', {}))
+        form = self.FORMS[step-1](initial=request.session.get(f'place_step_{step}', {}))
         progress_data = self.get_progress_data(request, step)
-
-        return render(request, self.TEMPLATES[step - 1], {
+        return render(request, self.TEMPLATES[step-1], {
             'form': form,
             'step': step,
             'progress_data': progress_data,
@@ -197,21 +178,20 @@ class PlaceCreateWizard(LoginRequiredMixin, View):
         if step > 3:
             step = 3
 
-        form = self.FORMS[step - 1](request.POST, request.FILES)
+        form = self.FORMS[step-1](request.POST, request.FILES)
 
         if form.is_valid():
             step_data = form.cleaned_data.copy()
 
-            # ✅ Store file path instead of file object
+            # ✅ Save uploaded file to storage, keep path in session
             if 'profile_picture' in request.FILES:
                 uploaded_file = request.FILES['profile_picture']
                 path = default_storage.save(
                     f"temp_uploads/{uploaded_file.name}",
                     ContentFile(uploaded_file.read())
                 )
-                step_data['profile_picture_path'] = path  # store path instead of file object
+                step_data['profile_picture'] = path  # store file path
 
-            # Convert category object to ID
             if 'category' in step_data and hasattr(step_data['category'], 'id'):
                 step_data['category'] = step_data['category'].id
 
@@ -220,11 +200,10 @@ class PlaceCreateWizard(LoginRequiredMixin, View):
             if step == 3:
                 return self.create_place(request)
             else:
-                return redirect(reverse('place_create_step', kwargs={'step': step + 1}))
+                return redirect(reverse('place_create_step', kwargs={'step': step+1}))
 
-        # Invalid form
         progress_data = self.get_progress_data(request, step)
-        return render(request, self.TEMPLATES[step - 1], {
+        return render(request, self.TEMPLATES[step-1], {
             'form': form,
             'step': step,
             'progress_data': progress_data,
@@ -245,10 +224,8 @@ class PlaceCreateWizard(LoginRequiredMixin, View):
                 step_data = request.session.get(f'place_step_{i}', {})
                 data.update(step_data)
 
-            # ✅ Load file from saved path if exists
-            profile_picture = None
-            if 'profile_picture_path' in data:
-                profile_picture = data['profile_picture_path']
+            # Get file path before creating Place
+            profile_picture_path = data.get('profile_picture')
 
             place = Place.objects.create(
                 name=data['name'],
@@ -259,13 +236,17 @@ class PlaceCreateWizard(LoginRequiredMixin, View):
                 website=data.get('website', ''),
                 contact_email=data.get('contact_email', ''),
                 contact_phone=data.get('contact_phone', ''),
-                profile_picture=profile_picture,  # file field will pick it from storage
+                profile_picture=profile_picture_path,
                 place_intro_video=data.get('place_intro_video'),
                 is_active=data.get('is_active', True),
                 created_by=request.user
             )
 
-            # ✅ Clear session
+            # ✅ Remove temp uploaded file after successful creation
+            if profile_picture_path and default_storage.exists(profile_picture_path):
+                default_storage.delete(profile_picture_path)
+
+            # Clear session data
             for i in range(1, 4):
                 if f'place_step_{i}' in request.session:
                     del request.session[f'place_step_{i}']
