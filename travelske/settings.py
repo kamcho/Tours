@@ -10,7 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-nci(^yh7#)g)kq54rn@r#ply@&0e3(b#2aave_^c5*+q-#5@_m'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-nci(^yh7#)g)kq54rn@r#ply@&0e3(b#2aave_^c5*+q-#5@_m')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -78,12 +83,78 @@ WSGI_APPLICATION = 'travelske.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# =============================================================================
+# DATABASE CONFIGURATION
+# =============================================================================
+# This setup automatically switches between:
+# - SQLite (local development) - when running on your local machine
+# - MySQL (production) - when running on PythonAnywhere
+# 
+# To test locally: Just run your Django app normally
+# To deploy: Upload to PythonAnywhere and it will automatically use MySQL
+# =============================================================================
+
+# Check if running on PythonAnywhere
+ON_PYTHONANYWHERE = 'PYTHONANYWHERE_SITE' in os.environ
+
+# Log which database configuration is being used
+if ON_PYTHONANYWHERE:
+    print("🚀 Using PythonAnywhere MySQL database")
+else:
+    print("💻 Using local SQLite database")
+
+if ON_PYTHONANYWHERE:
+    # Production database (PythonAnywhere)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'kevin254$tours',
+            'USER': 'kevin254',
+            'PASSWORD': '141778215aA!@#',
+            'HOST': 'kevin254.mysql.pythonanywhere-services.com',
+            'PORT': '3306',
+            'OPTIONS': {
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+                'charset': 'utf8mb4',
+            },
+        }
     }
-}
+else:
+    # Development database (Local SQLite)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
+# =============================================================================
+# ENVIRONMENT-SPECIFIC SETTINGS
+# =============================================================================
+
+if ON_PYTHONANYWHERE:
+    # Production settings (PythonAnywhere)
+    DEBUG = False
+    ALLOWED_HOSTS = ['kevin254.pythonanywhere.com', 'www.tourske.com', 'tourske.com']
+    
+    # Security settings for production
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    
+    # Static files (served by PythonAnywhere)
+    STATIC_ROOT = '/home/kevin254/travelske/staticfiles'
+    
+    print("🔒 Production mode enabled")
+else:
+    # Development settings (Local)
+    DEBUG = True
+    ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testserver']
+    
+    # Development-specific settings
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    
+    print("🛠️  Development mode enabled")
 
 
 # Password validation
@@ -121,7 +192,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
@@ -142,20 +212,27 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Email Configuration for Password Reset
-# For development, use console backend to see emails in terminal
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Email Configuration for Password Reset and Partnership Form
+# For development and production, use SMTP backend with Gmail
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'njokevin999@gmail.com'
+EMAIL_HOST_PASSWORD = 'xmgm anof pkmx gvym'
+DEFAULT_FROM_EMAIL = 'njokevin999@gmail.com'
 
-# For production, use SMTP backend with your email provider
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'  # or your SMTP server
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'your-email@gmail.com'
-# EMAIL_HOST_PASSWORD = 'your-app-password'
+# Partnership form recipient email
+PARTNERSHIP_EMAIL_RECIPIENT = 'kevingitundu@gmail.com'
+
+# Admin email for notifications
+ADMIN_EMAIL = 'kevingitundu@gmail.com'
+
+# Email notification settings
+EMAIL_NOTIFICATIONS_ENABLED = True
+EMAIL_SUBJECT_PREFIX = '[ToursKe] '
 
 
-
-OPENAI_API_KEY = ''
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
 # Default from email for password reset
 DEFAULT_FROM_EMAIL = 'noreply@travelske.com'

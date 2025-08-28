@@ -4,6 +4,61 @@ from django.utils import timezone
 from .models import ChatQuestion, ChatResponse
 
 # Register your models here.
+# Subscription Admin
+
+@admin.register(SubscriptionPlan)
+class SubscriptionPlanAdmin(admin.ModelAdmin):
+    list_display = ['name', 'price', 'duration_days', 'updated_at']
+    list_filter = ['duration_days']
+    search_fields = ['name']
+    readonly_fields = ['created_at', 'updated_at']
+    fieldsets = (
+        ('Basic Info', {
+            'fields': ('name',)
+        }),
+        ('Pricing & Duration', {
+            'fields': ('price', 'duration_days')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(Subscription)
+class SubscriptionAdmin(admin.ModelAdmin):
+    list_display = [
+        'user', 'subscription_type', 'status', 'amount', 'start_date', 'end_date',
+        'target_content_type', 'target_object_id', 'created_at'
+    ]
+    list_filter = ['subscription_type', 'status', 'start_date', 'end_date', 'created_at']
+    search_fields = ['user__email', 'user__username', 'payment_reference', 'target_content_type']
+    list_editable = ['status']
+    readonly_fields = ['created_at', 'updated_at']
+    fieldsets = (
+        ('Subscription Info', {
+            'fields': ('user', 'subscription_type', 'status', 'amount', 'start_date', 'end_date')
+        }),
+        ('Payment', {
+            'fields': ('payment_reference', 'payment_method')
+        }),
+        ('Services', {
+            'fields': (
+                'service_features', 'is_verified', 'ai_chat_enabled', 'ai_insights_enabled',
+                'date_builder_enabled', 'whatsapp_api_enabled', 'feature_ads_enabled'
+            ),
+            'classes': ('collapse',)
+        }),
+        ('Target', {
+            'fields': ('target_content_type', 'target_object_id')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
 
 @admin.register(Contact)
 class ContactAdmin(admin.ModelAdmin):

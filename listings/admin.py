@@ -39,7 +39,7 @@ class PlaceAdmin(admin.ModelAdmin):
             'fields': ('website', 'contact_email', 'contact_phone')
         }),
         ('Media', {
-            'fields': ('profile_picture',)
+            'fields': ('profile_picture', 'place_intro_video')
         }),
         ('Relationships', {
             'fields': ('created_by',)

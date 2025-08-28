@@ -9,14 +9,11 @@ from datetime import datetime, date, timedelta
 
 class Agency(models.Model):
     AGENCY_TYPE_CHOICES = [
-        ('tour_operator', 'Tour Operator'),
-        ('travel_agent', 'Travel Agent'),
-        ('destination_management', 'Destination Management'),
-        ('adventure_company', 'Adventure Company'),
-        ('luxury_travel', 'Luxury Travel'),
-        ('budget_travel', 'Budget Travel'),
-        ('corporate_travel', 'Corporate Travel'),
-        ('other', 'Other'),
+        ('travel_tours', 'Travel & Tours'),
+        ('transport', 'Transport'),
+        ('photo_video', 'Photo & Videography'),
+        ('accommodation', 'Accommodation'),
+        ('events_planners', 'Events Planners'),
     ]
     
     STATUS_CHOICES = [
@@ -28,7 +25,7 @@ class Agency(models.Model):
     
     name = models.CharField(max_length=200)
     description = models.TextField()
-    agency_type = models.CharField(max_length=50, choices=AGENCY_TYPE_CHOICES, default='tour_operator')
+    agency_type = models.CharField(max_length=50, choices=AGENCY_TYPE_CHOICES, default='travel_tours')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     
     # Contact Information
@@ -64,7 +61,7 @@ class Agency(models.Model):
     specialties = models.JSONField(
         default=list,
         blank=True,
-        help_text="List of specialties (e.g., ['adventure', 'cultural', 'wildlife', 'beach'])"
+        help_text="List of specialties (e.g., ['safari', 'cultural', 'wildlife', 'beach', 'wedding', 'corporate', 'photography', 'videography', 'car_rental', 'hotel', 'lodge'])"
     )
     
     languages_spoken = models.JSONField(
@@ -327,6 +324,7 @@ class Place(models.Model):
     contact_email = models.EmailField(blank=True, null=True)
     contact_phone = models.CharField(max_length=30, blank=True, null=True)
     profile_picture = models.ImageField(upload_to=place_profile_picture_path, blank=True, null=True, help_text="Main profile picture for the place")
+    place_intro_video = models.FileField(upload_to='places/intro_videos/', blank=True, null=True, help_text="Short introduction video about the place (MP4, MOV, AVI - max 100MB)")
     created_by = models.ForeignKey(MyUser, on_delete=models.SET_NULL, null=True, related_name='places_created')
     
     # Enhanced Search Fields
@@ -493,6 +491,7 @@ class TravelGroup(models.Model):
     description = models.TextField()
     creator = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='travel_groups_created')
     members = models.ManyToManyField(MyUser, related_name='travel_groups', blank=True)
+    admissionfee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     
     is_public = models.BooleanField(default=True, help_text="If true, anyone can request to join.")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1029,12 +1028,12 @@ class MenuItem(models.Model):
     @property
     def display_price(self):
         if self.is_discounted and self.discounted_price:
-            return f"${self.discounted_price}"
-        return f"${self.price}"
+            return f"KSH {self.discounted_price}"
+        return f"KSH {self.price}"
     
     @property
     def original_price(self):
-        return f"${self.price}"
+        return f"KSH {self.price}"
     
     @property
     def discount_percentage(self):

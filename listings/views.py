@@ -14,6 +14,7 @@ from django.db.models import Q, Avg, Count, Case, When, Value, F, IntegerField
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.conf import settings
+from django.core.mail import send_mail
 import logging
 
 # Local imports
@@ -27,7 +28,7 @@ from .models import (
 from .forms import (
     MenuCategoryForm, MenuItemForm, TourCommentForm, EventCommentForm, 
     TourBookingForm, EventBookingForm, EnhancedTourBookingForm, PlaceRatingForm, 
-    AgencyRatingForm, GroupToursForm, AgencyServiceForm, AdvancedSearchForm, FeatureForm,
+    AgencyRatingForm, GroupToursForm, TourVideoUploadForm, AgencyServiceForm, AdvancedSearchForm, FeatureForm,
     PlaceGalleryForm, AgencyGalleryForm, PlaceSearchForm, AgencySearchForm,
     DatePlanForm, DateActivityForm, DatePlanPreferenceForm, DatePlanSuggestionForm,
     PlaceStaffForm, PlaceOrderForm
@@ -47,6 +48,21 @@ import uuid
 
 # AI imports (optional) - will be imported lazily when needed
 OPENAI_AVAILABLE = False
+
+# Custom form for intro video upload
+class PlaceIntroVideoForm(forms.ModelForm):
+    class Meta:
+        model = Place
+        fields = ['place_intro_video']
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['place_intro_video'].widget.attrs.update({
+            'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100',
+            'accept': 'video/*',
+        })
+        self.fields['place_intro_video'].required = False
+        self.fields['place_intro_video'].help_text = "Upload a short video introducing your place (MP4, MOV, AVI - max 100MB)"
 
 # Step 1: Basic Information
 class PlaceBasicForm(forms.Form):
@@ -114,6 +130,14 @@ class PlaceContactForm(forms.Form):
         widget=forms.FileInput(attrs={
             'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100',
         })
+    )
+    place_intro_video = forms.FileField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100',
+            'accept': 'video/*',
+        }),
+        help_text="Upload a short video introducing your place (MP4, MOV, AVI - max 100MB)"
     )
 
 # Step 3: Settings & Confirmation
@@ -223,6 +247,7 @@ class PlaceCreateWizard(LoginRequiredMixin, View):
                 contact_email=data.get('contact_email', ''),
                 contact_phone=data.get('contact_phone', ''),
                 profile_picture=data.get('profile_picture'),
+                place_intro_video=data.get('place_intro_video'),
                 is_active=data.get('is_active', True),
                 created_by=request.user
             )
@@ -271,7 +296,7 @@ class UserPlaceDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 
 class UserPlaceUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Place
-    fields = ['name', 'description', 'category', 'location', 'address', 'website', 'contact_email', 'contact_phone', 'is_active']
+    fields = ['name', 'description', 'category', 'location', 'address', 'website', 'contact_email', 'contact_phone', 'profile_picture', 'place_intro_video', 'is_active']
     template_name = 'listings/user_place_form.html'
     success_url = reverse_lazy('user_place_list')
 
@@ -290,7 +315,7 @@ class PublicPlaceListView(ListView):
     model = Place
     template_name = 'listings/public_place_list.html'
     context_object_name = 'places'
-    paginate_by = 12
+    paginate_by = 30
     
     def get_queryset(self):
         queryset = Place.objects.filter(is_active=True)
@@ -506,6 +531,25 @@ def add_travel_group_member(request, group_id):
         
         # Add user to group
         group.members.add(user_to_add)
+
+        # If the group has an admission fee (> 0), notify admin via email
+        try:
+            if hasattr(group, 'admissionfee') and float(group.admissionfee) > 0:
+                admin_email = getattr(settings, 'ADMIN_EMAIL', 'kevingitundu@gmail.com')
+                subject = f"New TravelGroup Admission (Fee) - Group {group.id}"
+                message = (
+                    f"A member has been added to a TravelGroup that charges admission.\n\n"
+                    f"Group ID: {group.id}\n"
+                    f"Group Name: {group.name}\n"
+                    f"Creator ID: {group.creator.id}\n"
+                    f"Creator Email: {group.creator.email}\n"
+                    f"Member Added ID: {user_to_add.id}\n"
+                    f"Member Added Email: {user_to_add.email}\n"
+                    f"Admission Fee: KES {group.admissionfee}"
+                )
+                send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [admin_email], fail_silently=True)
+        except Exception:
+            pass
         
         messages.success(request, f'{user_to_add.email} has been added to the group successfully')
         return redirect('travelgroup_detail', pk=group_id)
@@ -547,6 +591,25 @@ def join_travel_group(request, group_id):
         
         # Add user to group
         group.members.add(request.user)
+
+        # If the group has an admission fee (> 0), notify admin via email
+        try:
+            if hasattr(group, 'admissionfee') and float(group.admissionfee) > 0:
+                admin_email = getattr(settings, 'ADMIN_EMAIL', 'kevingitundu@gmail.com')
+                subject = f"New TravelGroup Admission (Fee) - Group {group.id}"
+                message = (
+                    f"A member has joined a TravelGroup that charges admission.\n\n"
+                    f"Group ID: {group.id}\n"
+                    f"Group Name: {group.name}\n"
+                    f"Creator ID: {group.creator.id}\n"
+                    f"Creator Email: {group.creator.email}\n"
+                    f"Member Added ID: {request.user.id}\n"
+                    f"Member Added Email: {request.user.email}\n"
+                    f"Admission Fee: KES {group.admissionfee}"
+                )
+                send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [admin_email], fail_silently=True)
+        except Exception:
+            pass
         
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'success': True, 'message': f'You have successfully joined {group.name}!'})
@@ -703,6 +766,75 @@ class GroupToursDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
     def test_func(self):
         return self.get_object().creator == self.request.user
+
+class TourVideoUploadView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    """Separate view for tour video uploads - only for verified creators"""
+    model = GroupTours
+    template_name = 'listings/tour_video_upload.html'
+    context_object_name = 'group_tour'
+    
+    def test_func(self):
+        """Only tour creator can upload videos"""
+        return self.get_object().creator == self.request.user
+    
+    def dispatch(self, request, *args, **kwargs):
+        """Check if user is verified before allowing video upload"""
+        if not request.user.is_verified:
+            messages.error(request, 'Only verified creators can upload tour videos. Please get verified first.')
+            return redirect('core:subscription_page')
+        return super().dispatch(request, *args, **kwargs)
+    
+    def get_context_data(self, **kwargs):
+        """Add form to context for video upload"""
+        context = super().get_context_data(**kwargs)
+        context['form'] = TourVideoUploadForm(instance=self.get_object())
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        """Handle video upload"""
+        tour = self.get_object()
+        form = TourVideoUploadForm(request.POST, request.FILES, instance=tour)
+        
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Tour video uploaded successfully!')
+            return redirect('grouptours_list')
+        else:
+            # If form is invalid, re-render with errors
+            context = self.get_context_data()
+            context['form'] = form
+            return self.render_to_response(context)
+    
+    def delete_video(self, request, *args, **kwargs):
+        """Handle video deletion via AJAX"""
+        if request.method == 'POST':
+            tour = self.get_object()
+            
+            # Check if user has permission to delete
+            if tour.creator != request.user:
+                return JsonResponse({'success': False, 'error': 'Permission denied'})
+            
+            # Check if user is verified
+            if not request.user.is_verified:
+                return JsonResponse({'success': False, 'error': 'Only verified creators can delete videos'})
+            
+            try:
+                # Delete the video file
+                if tour.tour_video:
+                    # Remove the file from storage
+                    tour.tour_video.delete(save=False)
+                    # Clear the field
+                    tour.tour_video = None
+                    tour.save()
+                    
+                    return JsonResponse({'success': True, 'message': 'Video deleted successfully'})
+                else:
+                    return JsonResponse({'success': False, 'error': 'No video found to delete'})
+                    
+            except Exception as e:
+                return JsonResponse({'success': False, 'error': f'Error deleting video: {str(e)}'})
+        
+        return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 class UserGroupToursListView(LoginRequiredMixin, ListView):
     model = GroupTours
@@ -5580,3 +5712,81 @@ def add_items_to_order(request, place_id, order_id):
     }
     
     return render(request, 'listings/add_items_to_order.html', context)
+
+class TourVideoDeleteView(LoginRequiredMixin, UserPassesTestMixin, View):
+    """View for deleting tour videos via AJAX"""
+    
+    def test_func(self):
+        """Only tour creator can delete videos"""
+        return self.get_object().creator == self.request.user
+    
+    def dispatch(self, request, *args, **kwargs):
+        """Check if user is verified before allowing video deletion"""
+        if not request.user.is_verified:
+            return JsonResponse({'success': False, 'error': 'Only verified creators can delete videos'})
+        return super().dispatch(request, *args, **kwargs)
+    
+    def get_object(self):
+        """Get the tour object"""
+        return get_object_or_404(GroupTours, pk=self.kwargs['pk'])
+    
+    def post(self, request, *args, **kwargs):
+        """Handle video deletion"""
+        tour = self.get_object()
+        
+        try:
+            # Delete the video file
+            if tour.tour_video:
+                # Remove the file from storage
+                tour.tour_video.delete(save=False)
+                # Clear the field
+                tour.tour_video = None
+                tour.save()
+                
+                return JsonResponse({'success': True, 'message': 'Video deleted successfully'})
+            else:
+                return JsonResponse({'success': False, 'error': 'No video found to delete'})
+                
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': f'Error deleting video: {str(e)}'})
+
+class PlaceIntroVideoUploadView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """Dedicated view for uploading/updating place intro videos"""
+    model = Place
+    template_name = 'listings/place_intro_video_upload.html'
+    form_class = PlaceIntroVideoForm
+    
+    def test_func(self):
+        return self.get_object().created_by == self.request.user
+    
+    def get_success_url(self):
+        return reverse_lazy('user_place_detail', kwargs={'pk': self.object.pk})
+    
+    def form_valid(self, form):
+        # Handle file upload
+        if 'place_intro_video' in self.request.FILES:
+            # Store reference to old video before saving
+            old_video = self.object.place_intro_video
+            
+            # Save the form first to get the new video
+            response = super().form_valid(form)
+            
+            # Now delete the old video file if it exists and is different
+            if old_video and old_video != self.object.place_intro_video:
+                try:
+                    old_video.delete(save=False)
+                except Exception as e:
+                    # Log the error but don't fail the upload
+                    print(f"Warning: Could not delete old video file: {e}")
+            
+            messages.success(self.request, 'Intro video updated successfully!')
+            return response
+        else:
+            # No new file uploaded, just save the form
+            messages.success(self.request, 'Intro video updated successfully!')
+            return super().form_valid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['place'] = self.object
+        return context

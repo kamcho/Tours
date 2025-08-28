@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from datetime import timedelta
 import base64
@@ -16,17 +17,17 @@ from django.db import models
 @login_required
 def subscription_page(request):
     """Main subscription page showing all available plans"""
-    # Get active subscription plans
-    user_plans = SubscriptionPlan.objects.filter(target_type='user', is_active=True)
-    place_plans = SubscriptionPlan.objects.filter(target_type='place', is_active=True)
-    agency_plans = SubscriptionPlan.objects.filter(target_type='agency', is_active=True)
-    
+    # Plans are rendered statically in the template; model was simplified
+    user_plans = []
+    place_plans = []
+    agency_plans = []
+
     # Get user's current subscriptions
     user_subscriptions = Subscription.objects.filter(user=request.user, status='active')
     
     # Check if user has places or agencies
     user_places = Place.objects.filter(created_by=request.user)
-    user_agencies = Agency.objects.filter(created_by=request.user)
+    user_agencies = Agency.objects.filter(owner=request.user)
     
     context = {
         'user_plans': user_plans,
@@ -54,7 +55,7 @@ def subscribe_to_plan(request, plan_id):
         
         if existing_subscription:
             messages.warning(request, f'You already have an active {plan.get_plan_type_display()} subscription.')
-            return redirect('subscription_page')
+            return redirect('core:subscription_page')
         
         # Create subscription
         end_date = timezone.now() + timedelta(days=plan.duration_days)
@@ -67,7 +68,7 @@ def subscribe_to_plan(request, plan_id):
         )
         
         # Redirect to payment page
-        return redirect('subscription_payment', subscription_id=subscription.id)
+        return redirect('core:subscription_payment', subscription_id=subscription.id)
     
     context = {
         'plan': plan,
@@ -87,8 +88,8 @@ def subscription_payment(request, subscription_id):
             # Process M-Pesa payment
             success = process_mpesa_payment(subscription, phone_number)
             if success:
-                messages.success(request, 'Payment successful! Your subscription is now active.')
-                return redirect('subscription_page')
+                messages.success(request, 'Payment initiated. You will receive a confirmation shortly.')
+                return redirect('core:subscription_page')
             else:
                 messages.error(request, 'Payment failed. Please try again.')
         else:
@@ -98,6 +99,91 @@ def subscription_payment(request, subscription_id):
         'subscription': subscription,
     }
     return render(request, 'core/subscription_payment.html', context)
+
+
+@login_required
+def subscription_choose_target(request, tier):
+    """Selection page to pick a Place or Agency and enter phone number to pay via STK"""
+    # Normalize tier
+    tier = tier.lower()
+    if tier not in ['free', 'basic', 'gold', 'premium']:
+        messages.error(request, 'Invalid plan tier selected.')
+        return redirect('subscription_page')
+
+    # Fetch plan by name (simplified model)
+    plan = SubscriptionPlan.objects.filter(name__iexact=tier).first()
+
+    # User content to choose from
+    user_places = Place.objects.filter(created_by=request.user)
+    user_agencies = Agency.objects.filter(owner=request.user)
+
+    if request.method == 'POST':
+        target_value = request.POST.get('target_id')  # encoded like 'place:12' or 'agency:7'
+        phone_number = request.POST.get('phone_number')
+
+        # Validate
+        if not target_value or not phone_number:
+            messages.error(request, 'Please select a target and enter your phone number.')
+            return redirect('core:subscription_choose_target', tier=tier)
+
+        # Parse target
+        try:
+            parts = target_value.split(':', 1)
+            target_type = parts[0]
+            target_id = int(parts[1])
+        except Exception:
+            messages.error(request, 'Invalid selection. Please try again.')
+            return redirect('core:subscription_choose_target', tier=tier)
+
+        # Resolve plan based on selection (same plan for all targets)
+        selected_plan = plan
+        if not selected_plan:
+            messages.error(request, 'No subscription plan found for the selected tier and target.')
+            return redirect('core:subscription_page')
+
+        # Resolve target object
+        if target_type == 'place':
+            target_obj = get_object_or_404(Place, id=target_id, created_by=request.user)
+        else:
+            target_obj = get_object_or_404(Agency, id=target_id, owner=request.user)
+
+        # Create subscription (pending)
+        end_date = timezone.now() + timedelta(days=selected_plan.duration_days)
+        # Map tier to subscription_type on simplified model
+        tier_to_type = {
+            'basic': 'ai_chat',
+            'gold': 'premium',
+            'premium': 'premium',
+            'free': 'verification',
+        }
+        subscription = Subscription.objects.create(
+            user=request.user,
+            subscription_type=tier_to_type.get(tier, 'premium'),
+            amount=selected_plan.price,
+            end_date=end_date,
+            status='pending',
+        )
+
+        # Attach generic target (store type label as string)
+        subscription.target_content_type = 'place' if target_type == 'place' else 'agency'
+        subscription.target_object_id = target_obj.id
+        subscription.save()
+
+        # Trigger STK push
+        if process_mpesa_payment(subscription, phone_number):
+            messages.success(request, 'Payment initiated. You will receive a confirmation shortly.')
+            return redirect('core:subscription_page')
+        else:
+            messages.error(request, 'Payment failed. Please try again.')
+            return redirect('core:subscription_choose_target', tier=tier)
+
+    context = {
+        'tier': tier,
+        'plan': plan,
+        'user_places': user_places,
+        'user_agencies': user_agencies,
+    }
+    return render(request, 'core/subscription_choose_target.html', context)
 
 @login_required
 def verification_request(request):
@@ -118,7 +204,7 @@ def verification_request(request):
         
         if existing_request:
             messages.warning(request, 'You already have a pending verification request.')
-            return redirect('subscription_page')
+            return redirect('core:subscription_page')
         
         # Create verification request
         verification = VerificationRequest.objects.create(

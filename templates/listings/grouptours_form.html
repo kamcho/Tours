@@ -184,7 +184,8 @@
                             {% endfor %}
                         </div>
                         
-                        <!-- Tour Video Field -->
+                        <!-- Tour Video Field - Only for Verified Creators -->
+                        {% if user.is_verified %}
                         <div class="space-y-2 mb-6">
                             <label for="{{ form.tour_video.id_for_label }}" class="block text-sm font-semibold text-gray-700">
                                 <div class="flex items-center gap-2">
@@ -192,6 +193,12 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                                     </svg>
                                     Tour Video
+                                    <div class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full text-xs font-medium">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Verified Creator
+                                    </div>
                                 </div>
                             </label>
                             {{ form.tour_video }}
@@ -204,7 +211,54 @@
                             <div id="video-preview" class="mt-4 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300" style="display: none;">
                                 <p class="text-sm text-gray-500 text-center">Video preview will appear here after selection</p>
                             </div>
+                            
+                            <!-- Video Upload Navigation -->
+                            {% if form.instance.pk %}
+                            <div class="mt-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-sm font-semibold text-purple-800">Need Better Video Control?</h4>
+                                            <p class="text-sm text-purple-700">Use our dedicated video upload page for advanced features</p>
+                                        </div>
+                                    </div>
+                                    <a href="{% url 'tour_video_upload' form.instance.pk %}" class="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-200">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                        </svg>
+                                        Video Upload Page
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
                         </div>
+                        {% else %}
+                        <!-- Video Upload Info for Non-Verified Users -->
+                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mb-6">
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="text-sm font-semibold text-blue-800 mb-2">Tour Video Upload</h4>
+                                    <p class="text-sm text-blue-700 mb-3">Only verified creators can upload tour videos. Get verified to unlock this feature and enhance your tour listings.</p>
+                                    <a href="{% url 'core:subscription_page' %}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition duration-200">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        Get Verified
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
                         
                         <!-- Step 1 Navigation -->
                         <div class="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0">
@@ -502,6 +556,229 @@
         </div>
     </div>
 </div>
+
+<!-- Video Upload Guidance Section - Only for Verified Creators -->
+{% if user.is_verified %}
+<div class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-12 sm:py-16 lg:py-20">
+    <div class="max-w-4xl mx-auto px-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <!-- Section Header -->
+            <div class="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">Tour Video Upload Guide</h2>
+                        <p class="text-purple-100 mt-1">Best practices and tips for creating engaging tour videos</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Content -->
+            <div class="p-6 lg:p-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Left Column: Best Practices -->
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                Best Practices
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span class="text-green-600 text-xs font-bold">1</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">Keep it Short & Engaging</h4>
+                                        <p class="text-sm text-gray-600">Aim for 2-5 minutes. Start with a hook and maintain viewer interest throughout.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span class="text-green-600 text-xs font-bold">2</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">Show, Don't Just Tell</h4>
+                                        <p class="text-sm text-gray-600">Use visuals of destinations, activities, and experiences rather than just talking about them.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span class="text-green-600 text-xs font-bold">3</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">Include Key Information</h4>
+                                        <p class="text-sm text-gray-600">Highlight unique selling points, what's included, and what makes your tour special.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span class="text-green-600 text-xs font-bold">4</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">Professional Quality</h4>
+                                        <p class="text-sm text-gray-600">Use stable shots, good lighting, and clear audio. Consider using a tripod or stabilizer.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                </svg>
+                                Content Structure
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                            </svg>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h4 class="text-sm font-medium text-blue-800">Opening Hook (0-15s)</h4>
+                                            <p class="text-sm text-blue-700 mt-1">Start with an exciting moment or stunning visual to grab attention immediately.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 002.828 0l4-4z" clip-rule="evenodd"/>
+                                            </svg>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h4 class="text-sm font-medium text-green-800">Tour Overview (15s-1min)</h4>
+                                            <p class="text-sm text-green-700 mt-1">Brief introduction to the tour, destinations, and what travelers can expect.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-purple-50 border-l-4 border-purple-400 p-4 rounded-r-lg">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <svg class="h-5 w-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                            </svg>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h4 class="text-sm font-medium text-purple-800">Key Highlights (1-3min)</h4>
+                                            <p class="text-sm text-purple-700 mt-1">Showcase the most exciting activities, beautiful locations, and unique experiences.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-orange-50 border-l-4 border-orange-400 p-4 rounded-r-lg">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <svg class="h-5 w-5 text-orange-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                            </svg>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h4 class="text-sm font-medium text-orange-800">Call to Action (3-5min)</h4>
+                                            <p class="text-sm text-orange-700 mt-1">End with a clear invitation to book and contact information.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column: Technical Tips & Examples -->
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.372-.836-2.942-.734-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
+                                </svg>
+                                Technical Requirements
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <h4 class="font-semibold text-gray-800 mb-2">File Format & Size</h4>
+                                    <ul class="text-sm text-gray-600 space-y-1">
+                                        <li>• Supported formats: MP4, MOV, AVI, WebM</li>
+                                        <li>• Maximum file size: 100MB</li>
+                                        <li>• Recommended resolution: 1080p (1920x1080)</li>
+                                        <li>• Aspect ratio: 16:9 (landscape) or 9:16 (portrait)</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <h4 class="font-semibold text-gray-800 mb-2">Audio & Video Quality</h4>
+                                    <ul class="text-sm text-gray-600 space-y-1">
+                                        <li>• Video bitrate: 2-5 Mbps for 1080p</li>
+                                        <li>• Audio: Clear narration, background music optional</li>
+                                        <li>• Frame rate: 24-30 fps for smooth playback</li>
+                                        <li>• Avoid shaky footage and poor lighting</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Pro Tips
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="flex items-start gap-3 p-3 bg-indigo-50 rounded-lg">
+                                    <svg class="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <p class="text-sm text-indigo-800">Use B-roll footage to show different angles and perspectives of destinations and activities.</p>
+                                </div>
+                                <div class="flex items-start gap-3 p-3 bg-indigo-50 rounded-lg">
+                                    <svg class="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <p class="text-sm text-indigo-800">Include captions or text overlays to highlight key information and make videos accessible.</p>
+                                </div>
+                                <div class="flex items-start gap-3 p-3 bg-indigo-50 rounded-lg">
+                                    <svg class="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 1H9z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <p class="text-sm text-indigo-800">Tell a story - show the journey from start to finish, not just random clips.</p>
+                                </div>
+                                <div class="flex items-start gap-3 p-3 bg-indigo-50 rounded-lg">
+                                    <svg class="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 1H9z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <p class="text-sm text-indigo-800">Use music that matches the mood and pace of your tour for better engagement.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Call to Action -->
+                        <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-lg p-4">
+                            <div class="text-center">
+                                <h4 class="font-semibold text-emerald-800 mb-2">Ready to Create Your Tour Video?</h4>
+                                <p class="text-sm text-emerald-700 mb-3">Follow these guidelines to create compelling content that will attract more travelers to your tours.</p>
+                                <div class="flex items-center justify-center gap-2 text-xs text-emerald-600">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span>You're verified and ready to upload!</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 {% endblock %}
 

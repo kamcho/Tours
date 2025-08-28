@@ -126,20 +126,7 @@
                                 <span class="text-sm">{{ place.address|truncatechars:30 }}</span>
                             </div>
                             {% endif %}
-                            {% if place.contact_phone %}
-                            <div class="flex items-center gap-2 text-gray-600">
-                                <svg class="w-4 h-4 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
-                                </svg>
-                                <span class="text-sm">{{ place.contact_phone }}</span>
-                            </div>
-                            {% endif %}
-                            <div class="flex items-center gap-2 text-gray-600">
-                                <svg class="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
-                                </svg>
-                                <span class="text-sm">By {{ place.created_by.email|truncatechars:20 }}</span>
-                            </div>
+                            
                         </div>
                         
                         <!-- Tags -->
@@ -148,9 +135,7 @@
                             {% if place.website %}
                                 <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">Website</span>
                             {% endif %}
-                            {% if place.contact_email %}
-                                <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">Email</span>
-                            {% endif %}
+                            
                         </div>
                         
                         <!-- Action Button -->

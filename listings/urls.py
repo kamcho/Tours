@@ -18,6 +18,7 @@ urlpatterns = [
     path('my-places/', views.UserPlaceListView.as_view(), name='user_place_list'),
     path('my-place/<int:pk>/', views.UserPlaceDetailView.as_view(), name='user_place_detail'),
     path('my-place/<int:pk>/edit/', views.UserPlaceUpdateView.as_view(), name='user_place_update'),
+    path('my-place/<int:pk>/intro-video/', views.PlaceIntroVideoUploadView.as_view(), name='place_intro_video_upload'),
     path('my-place/<int:pk>/delete/', views.UserPlaceDeleteView.as_view(), name='user_place_delete'),
     
     # Travel Group URLs
@@ -36,6 +37,8 @@ urlpatterns = [
     path('group-tour/<int:pk>/', views.GroupToursDetailView.as_view(), name='grouptours_detail'),
     path('group-tour/create/', views.GroupToursCreateView.as_view(), name='grouptours_create'),
     path('group-tour/<int:pk>/edit/', views.GroupToursUpdateView.as_view(), name='grouptours_update'),
+    path('group-tour/<int:pk>/video-upload/', views.TourVideoUploadView.as_view(), name='tour_video_upload'),
+    path('group-tour/<int:pk>/video-delete/', views.TourVideoDeleteView.as_view(), name='tour_video_delete'),
     path('group-tour/<int:pk>/delete/', views.GroupToursDeleteView.as_view(), name='grouptours_delete'),
     path('my-group-tours/', views.UserGroupToursListView.as_view(), name='user_grouptours_list'),
     path('group-tour/<int:pk>/public/', views.PublicGroupToursDetailView.as_view(), name='public_grouptours_detail'),

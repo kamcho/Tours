@@ -1,0 +1,75 @@
+{% extends 'users/base.html' %}
+{% load static %}
+
+{% block title %}Choose Subscription Target - ToursKe{% endblock %}
+
+{% block content %}
+<div class="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 text-white py-12 mb-8">
+  <div class="container mx-auto px-4 text-center">
+    <h1 class="text-3xl md:text-4xl font-bold">Subscribe to {{ tier|title }} Plan</h1>
+    <p class="opacity-90 mt-2">Select a Place or Agency and enter your phone to receive an M-Pesa STK push</p>
+  </div>
+  </div>
+
+<div class="container mx-auto px-4 max-w-4xl">
+  <div class="bg-white rounded-2xl shadow-xl p-6">
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+
+      <!-- Target Selector -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Select Item</label>
+        <select name="target_id" id="target_id" class="w-full border rounded-lg px-4 py-3" onchange="updatePrice()">
+          <optgroup label="Your Places">
+          {% for p in user_places %}
+            <option value="place:{{ p.id }}" data-type="place" data-price="{{ plan.price|default:'0' }}">Place: {{ p.name }}</option>
+          {% empty %}
+            <option value="">No places found</option>
+          {% endfor %}
+          </optgroup>
+          <optgroup label="Your Agencies">
+          {% for a in user_agencies %}
+            <option value="agency:{{ a.id }}" data-type="agency" data-price="{{ plan.price|default:'0' }}">Agency: {{ a.name }}</option>
+          {% empty %}
+            <option value="">No agencies found</option>
+          {% endfor %}
+          </optgroup>
+        </select>
+        <p class="text-xs text-gray-500 mt-1">This will be linked to your subscription.</p>
+      </div>
+
+      <!-- Dynamic Price Display -->
+      <div class="p-4 rounded-lg border flex items-center justify-between">
+        <div>
+          <div class="text-sm text-gray-500">Selected Plan</div>
+          <div class="text-xs text-gray-500">{{ tier|title }} (yearly)</div>
+        </div>
+        <div class="text-2xl font-bold text-gray-800"><span id="amountDisplay">{{ plan.price|default:'0' }}</span> KES</div>
+      </div>
+
+      <!-- Phone Number -->
+      <div>
+        <label for="phone_number" class="block text-sm font-medium text-gray-700 mb-2">Phone Number (M-Pesa)</label>
+        <input id="phone_number" name="phone_number" type="tel" required placeholder="07XXXXXXXX or 2547XXXXXXXX"
+               class="w-full border rounded-lg px-4 py-3" />
+      </div>
+
+      <div class="pt-2">
+        <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white py-3 rounded-lg font-semibold">Pay with M-Pesa (STK Push)</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function updatePrice() {
+  const select = document.getElementById('target_id');
+  const selected = select.options[select.selectedIndex];
+  if (!selected) return;
+  const price = selected.getAttribute('data-price') || '0';
+  document.getElementById('amountDisplay').textContent = price;
+}
+document.addEventListener('DOMContentLoaded', updatePrice);
+</script>
+{% endblock %}
+

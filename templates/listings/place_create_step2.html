@@ -127,6 +127,38 @@
                     <p class="mt-1 text-sm text-gray-500">Optional: Upload a beautiful image that represents this place.</p>
                 </div>
 
+                <!-- Place Intro Video Field -->
+                <div>
+                    <label for="{{ form.place_intro_video.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                            Place Intro Video
+                        </div>
+                    </label>
+                    {{ form.place_intro_video }}
+                    {% if form.place_intro_video.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.place_intro_video.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Optional: Upload a short video (MP4, MOV, AVI - max 100MB) introducing your place to visitors.</p>
+                    
+                    <!-- Video Upload Tips -->
+                    <div class="mt-3 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                        <h4 class="text-sm font-semibold text-purple-800 mb-2">Video Tips:</h4>
+                        <ul class="text-xs text-purple-700 space-y-1">
+                            <li>• Keep it short (30 seconds to 2 minutes)</li>
+                            <li>• Show the place from different angles</li>
+                            <li>• Include any unique features or activities</li>
+                            <li>• Ensure good lighting and clear audio</li>
+                        </ul>
+                    </div>
+                </div>
+
                 <!-- Action Buttons -->
                 <div class="flex justify-between items-center pt-6">
                     <a href="{% url 'place_create_step' step=1 %}" class="text-teal-600 hover:text-teal-700 font-semibold flex items-center transition duration-200">
@@ -155,13 +187,30 @@
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Photo Tips for Your Place</h3>
-                    <ul class="text-sm text-gray-600 space-y-1">
-                        <li>• Choose a high-quality image that showcases the place's beauty</li>
-                        <li>• Ensure good lighting and clear visibility</li>
-                        <li>• Include recognizable landmarks or unique features</li>
-                        <li>• Recommended size: at least 800x600 pixels</li>
-                    </ul>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Media Tips for Your Place</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Photo Tips -->
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-800 mb-2">Photo Tips:</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Choose a high-quality image that showcases the place's beauty</li>
+                                <li>• Ensure good lighting and clear visibility</li>
+                                <li>• Include recognizable landmarks or unique features</li>
+                                <li>• Recommended size: at least 800x600 pixels</li>
+                            </ul>
+                        </div>
+                        <!-- Video Tips -->
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-800 mb-2">Video Tips:</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Keep it short (30 seconds to 2 minutes)</li>
+                                <li>• Show the place from different angles</li>
+                                <li>• Include any unique features or activities</li>
+                                <li>• Ensure good lighting and clear audio</li>
+                                <li>• Supported formats: MP4, MOV, AVI (max 100MB)</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

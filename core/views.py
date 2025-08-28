@@ -9,7 +9,9 @@ from django.views.decorators.http import require_POST
 from django.utils import timezone
 from datetime import timedelta
 from .models import Subscription, SubscriptionPlan, VerificationRequest, Payment
-from listings.models import Place, Agency
+from listings.models import Place, Agency, PlaceCategory
+import random
+from users.models import MyUser
 import base64
 import requests
 from requests.auth import HTTPBasicAuth
@@ -1417,3 +1419,190 @@ def test_mpesa_balance(request):
         'user': request.user,
     }
     return render(request, 'core/test_mpesa_balance.html', context)
+
+
+@require_POST
+def partnership_form_submit(request):
+    """Handle partnership form submissions and send emails"""
+    try:
+        from django.core.mail import send_mail
+        from django.conf import settings
+        from django.http import JsonResponse
+        
+        # Get form data
+        email = request.POST.get('email')
+        phone = request.POST.get('phone')
+        message = request.POST.get('message')
+        
+        # Validate required fields
+        if not all([email, phone, message]):
+            return JsonResponse({
+                'success': False,
+                'error': 'All fields are required'
+            }, status=400)
+        
+        # Prepare email content
+        subject = f'New Partnership Request from {email}'
+        email_content = f"""
+New Partnership Request
+
+From: {email}
+Phone: {phone}
+
+Message:
+{message}
+
+---
+This email was sent from the ToursKe partnership form.
+        """.strip()
+        
+        # Send email
+        recipient_email = getattr(settings, 'PARTNERSHIP_EMAIL_RECIPIENT', 'kevingitundu@gmail.com')
+        
+        send_mail(
+            subject=subject,
+            message=email_content,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[recipient_email],
+            fail_silently=False,
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Partnership request sent successfully!'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Failed to send partnership request: {str(e)}'
+        }, status=500)
+
+
+# -----------------------------
+# Sample data seeding (staff only)
+# -----------------------------
+
+def _random_kenyan_phone():
+    return '07' + ''.join(str(random.randint(0, 9)) for _ in range(8))
+
+def _random_name():
+    first_names = [
+        'Achieng', 'Wanjiku', 'Njeri', 'Atieno', 'Chebet', 'Akinyi', 'Nyambura', 'Wairimu', 'Wambui', 'Naliaka',
+        'Odhiambo', 'Kamau', 'Otieno', 'Kiptoo', 'Mutiso', 'Mwangi', 'Omondi', 'Barasa', 'Kiplagat', 'Juma'
+    ]
+    last_names = [
+        'Omondi', 'Otieno', 'Mwangi', 'Kamau', 'Njoroge', 'Mutiso', 'Barasa', 'Cheruiyot', 'Chebet', 'Wambui',
+        'Wekesa', 'Wanjiru', 'Muthoni', 'Were', 'Oketch', 'Karimi', 'Maina', 'Koech', 'Kiptoo', 'Ochieng'
+    ]
+    return random.choice(first_names), random.choice(last_names)
+
+@login_required
+def seed_sample_data(request):
+    if not request.user.is_staff:
+        messages.error(request, 'Only staff can seed sample data.')
+        return redirect('core:subscription_page')
+
+    created_users = 0
+    created_places = 0
+    created_agencies = 0
+
+    # Ensure a category exists
+    category = PlaceCategory.objects.first() or PlaceCategory.objects.create(name='Attractions')
+
+    # Create 100 users (verified)
+    for _ in range(10):
+        first, last = _random_name()
+        username = f"{first.lower()}.{last.lower()}{random.randint(100,999)}"
+        email = f"{username}@example.ke"
+        if MyUser.objects.filter(email=email).exists():
+            continue
+        try:
+            user = MyUser.objects.create_user(username=username, email=email, password='Pass12345!')
+            user.first_name = first
+            user.last_name = last
+            if hasattr(user, 'phone'):
+                setattr(user, 'phone', _random_kenyan_phone())
+            if hasattr(user, 'gender'):
+                setattr(user, 'gender', random.choice(['male', 'female']))
+            if hasattr(user, 'is_verified'):
+                user.is_verified = True
+            user.save()
+            created_users += 1
+        except Exception:
+            continue
+
+    creators = list(MyUser.objects.order_by('-id')[:10]) or [request.user]
+    locations = ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Naivasha', 'Diani', 'Malindi']
+
+    kenyan_places = [
+        "Carnivore","Java House","Artcaffe","Mama Oliech","Nyama Mama","Fogo Gaucho","Talisman","Urban Eatery","CJ's","Seven Seafood and Grill",
+        "Aero Club Restaurant","Ranalo Foods","Big Square","KFC","Pizza Inn","Galito's","Mambo Italia","About Thyme","Osteria del Chianti","Mezze on the Deck",
+        "Mercado","Hemmingways Brasserie","Lord Erroll","360 Degrees Pizza","Urban Burger","Roast by Carnivore","Abyssinia","Wasp and Sprout","Slims Restaurant","Hashmi BBQ",
+        "River Cafe","Tamambo","News Cafe","Sankara Rooftop","Copper Ivy","J's Fresh Bar and Kitchen","Captain’s Terrace","Mama Rocks","Village Market Food Court","Westgate Food Court",
+        "Two Rivers Food Court","Kempinski Cafe","Nairobi Street Kitchen","Cheka Japanese Restaurant","For You Chinese","Phoenician","Kosewe","Nargis","Kilimanjaro Jamia","Steers",
+        "Domino’s Pizza","Chicken Inn","Planet Yogurt","Cold Stone Creamery","Naked Pizza","Subway","Burger King","Magic Planet","Funscapes","Playland",
+        "Safari Walk","Paradise Lost","Bomas of Kenya","Uhuru Park","Jungle Gym","Kids City","Rock City","Two Rivers Funscapes","Village Bowl"
+    ]
+
+    kenyan_agencies = [
+        "Bonfire Adventures","Expeditions Maasai Safaris","Pollman’s Tours and Safaris","Glory Safaris","Let's Go Travel","Bountiful Safaris","Gamewatchers Safaris","JT Safaris",
+        "Kenya Walking Survivors Safaris","Apt Holidays","Go Kenya Tours","Sense of Africa","Safarilink","Bestcamp Kenya","Dream Kenya Safaris","Eastern Vacations","African Quest Safaris",
+        "Bush and Events Africa","Peony Safaris","Perfect Wilderness Tours"
+    ]
+
+    # Create 70 places (verified)
+    for i in range(70):
+        try:
+            creator = random.choice(creators)
+            place_name = kenyan_places[i % len(kenyan_places)]
+            place = Place.objects.create(
+                name=place_name,
+                description="A beautiful destination with amazing experiences across Kenya.",
+                category=category,
+                location=random.choice(locations),
+                address="Kenya",
+                website=f"https://{place_name}.com",
+                contact_email=f"{place_name}@gmail.com",
+                contact_phone=_random_kenyan_phone(),
+                is_active=True,
+                created_by=creator,
+            )
+            if hasattr(place, 'verified'):
+                place.verified = True
+                place.save()
+            created_places += 1
+        except Exception:
+            continue
+
+    # Create 20 agencies (verified)
+    agency_types = ['travel_tours', 'transport', 'photo_video', 'accommodation', 'events_planners']
+    for i in range(20):
+        try:
+            owner = random.choice(creators)
+            agency_name = kenyan_agencies[i % len(kenyan_agencies)]
+            agency = Agency.objects.create(
+                name=agency_name,
+                description="Professional services for travel and events across Kenya.",
+                agency_type=random.choice(agency_types),
+                email=f"{agency_name}@gmail.com",
+                phone=_random_kenyan_phone(),
+                website=f"https://{agency_name}.com",
+                address="Kenya",
+                city=random.choice(locations),
+                country="Kenya",
+                owner=owner,
+                status='active',
+            )
+            if hasattr(agency, 'verified'):
+                agency.verified = True
+                agency.save()
+            created_agencies += 1
+        except Exception:
+            continue
+
+    return render(request, 'core/seed_result.html', {
+        'created_users': created_users,
+        'created_places': created_places,
+        'created_agencies': created_agencies,
+    })

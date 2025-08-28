@@ -662,7 +662,7 @@ class GroupToursForm(forms.ModelForm):
         model = GroupTours
         fields = ['name', 'description', 'to', 'destination', 'travel_group', 'start_date', 'end_date', 
                   'max_participants', 'price_per_person', 'couple_price', 'status', 
-                  'itinerary', 'included_services', 'excluded_services', 'requirements', 'display_picture', 'tour_video']
+                  'itinerary', 'included_services', 'excluded_services', 'requirements', 'display_picture']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white text-gray-900',
@@ -760,6 +760,36 @@ class GroupToursForm(forms.ModelForm):
         if description and description.strip() == '':
             return None
         return description 
+
+class TourVideoUploadForm(forms.ModelForm):
+    """Separate form for tour video uploads - only for verified creators"""
+    class Meta:
+        model = GroupTours
+        fields = ['tour_video']
+        widgets = {
+            'tour_video': forms.FileInput(attrs={
+                'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white text-gray-900',
+                'accept': 'video/*',
+                'data-max-size': '104857600'
+            }),
+        }
+    
+    def clean_tour_video(self):
+        """Validate tour video file"""
+        video = self.cleaned_data.get('tour_video')
+        if not video:
+            return video
+            
+        # Check file size (100MB = 104857600 bytes)
+        if video.size > 104857600:
+            raise forms.ValidationError('Video file size must be less than 100MB.')
+        
+        # Check file type
+        allowed_types = ['video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/mov']
+        if video.content_type not in allowed_types:
+            raise forms.ValidationError('Please upload a valid video file (MP4, WebM, OGG, AVI, or MOV).')
+        
+        return video
 
 class PlaceGalleryForm(forms.ModelForm):
     """Form for uploading place gallery images"""

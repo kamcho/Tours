@@ -575,25 +575,7 @@ class Subscription(models.Model):
         return self.get_service_status(service_name)
 
 class SubscriptionPlan(models.Model):
-    """Subscription plans and pricing"""
-    PLAN_TYPES = [
-        ('verification', 'Verification'),
-        ('ai_chat', 'AI Chat Assistant'),
-        ('ai_insights', 'AI Insights & Analytics'),
-        ('date_builder', 'Date Builder Inclusion'),
-        ('whatsapp_api', 'WhatsApp API Support'),
-        ('feature_ads', 'Feature Advertising'),
-        ('premium', 'Premium Package'),
-        ('custom', 'Custom Package'),
-    ]
-    
-    TARGET_TYPES = [
-        ('user', 'User'),
-        ('place', 'Place'),
-        ('agency', 'Agency'),
-        ('business', 'Business Entity'),  # Generic business type
-    ]
-    
+    """Simplified subscription plan: name, duration, price"""
     DURATION_CHOICES = [
         (30, '1 Month'),
         (90, '3 Months'),
@@ -601,107 +583,47 @@ class SubscriptionPlan(models.Model):
         (365, '1 Year'),
         (730, '2 Years'),
     ]
-    
-    name = models.CharField(max_length=100)
-    plan_type = models.CharField(max_length=20, choices=PLAN_TYPES)
-    target_type = models.CharField(max_length=20, choices=TARGET_TYPES)
-    description = models.TextField()
+
+    name = models.CharField(max_length=100, unique=True)
+    duration_days = models.IntegerField(choices=DURATION_CHOICES, default=365)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    duration_days = models.IntegerField(choices=DURATION_CHOICES, default=30)
-    features = models.JSONField(default=list)  # List of features included
-    is_active = models.BooleanField(default=True)
-    is_popular = models.BooleanField(default=False)
-    is_featured = models.BooleanField(default=False)
-    
-    # Plan metadata
-    max_ai_chats_per_month = models.PositiveIntegerField(default=100, help_text="Maximum AI chat interactions per month")
-    max_insights_reports = models.PositiveIntegerField(default=10, help_text="Maximum insights reports per month")
-    date_builder_priority = models.PositiveIntegerField(default=1, help_text="Priority in date builder suggestions (1=highest)")
-    
-    # Plan limitations
-    max_places = models.PositiveIntegerField(default=1, help_text="Maximum places that can use this plan")
-    max_agencies = models.PositiveIntegerField(default=1, help_text="Maximum agencies that can use this plan")
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         ordering = ['price']
-        indexes = [
-            models.Index(fields=['plan_type', 'target_type', 'is_active']),
-            models.Index(fields=['is_popular', 'is_active']),
-        ]
-    
+
     def __str__(self):
-        return f"{self.name} - {self.get_target_type_display()} ({self.get_plan_type_display()})"
-    
+        return f"{self.name} ({self.duration_days} days)"
+
     @property
     def monthly_price(self):
-        """Calculate monthly equivalent price"""
+        if self.duration_days == 0:
+            return self.price
+        if self.duration_days == 365:
+            return self.price / 12
+        if self.duration_days == 180:
+            return self.price / 6
+        if self.duration_days == 90:
+            return self.price / 3
         if self.duration_days == 30:
             return self.price
-        elif self.duration_days == 90:
-            return self.price / 3
-        elif self.duration_days == 180:
-            return self.price / 6
-        elif self.duration_days == 365:
-            return self.price / 12
-        elif self.duration_days == 730:
-            return self.price / 24
         return self.price
-    
+
     @property
     def yearly_price(self):
-        """Calculate yearly equivalent price"""
         if self.duration_days == 365:
             return self.price
-        elif self.duration_days == 30:
+        if self.duration_days == 30:
             return self.price * 12
-        elif self.duration_days == 90:
+        if self.duration_days == 90:
             return self.price * 4
-        elif self.duration_days == 180:
+        if self.duration_days == 180:
             return self.price * 2
-        elif self.duration_days == 730:
+        if self.duration_days == 730:
             return self.price / 2
         return self.price
-    
-    def get_feature_summary(self):
-        """Get a summary of plan features"""
-        feature_summary = []
-        
-        if 'verification' in self.features:
-            feature_summary.append('✓ Verification Badge')
-        if 'ai_chat' in self.features:
-            feature_summary.append(f'✓ AI Chat ({self.max_ai_chats_per_month}/month)')
-        if 'ai_insights' in self.features:
-            feature_summary.append(f'✓ AI Insights ({self.max_insights_reports}/month)')
-        if 'date_builder' in self.features:
-            feature_summary.append(f'✓ Date Builder (Priority: {self.date_builder_priority})')
-        if 'whatsapp_api' in self.features:
-            feature_summary.append('✓ WhatsApp API')
-        if 'feature_ads' in self.features:
-            feature_summary.append('✓ Featured Advertising')
-        
-        return feature_summary
-    
-    def is_suitable_for(self, target_type, target_object=None):
-        """Check if this plan is suitable for a specific target"""
-        if self.target_type != target_type:
-            return False
-        
-        # Check if user already has maximum allowed places/agencies
-        if target_object and hasattr(target_object, 'created_by'):
-            user = target_object.created_by
-            if self.target_type == 'place':
-                user_places = user.places.count()
-                if user_places >= self.max_places:
-                    return False
-            elif self.target_type == 'agency':
-                user_agencies = user.agencies.count()
-                if user_agencies >= self.max_agencies:
-                    return False
-        
-        return True
 
 class VerificationRequest(models.Model):
     """Verification requests for users, places, and agencies"""

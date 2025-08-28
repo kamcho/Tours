@@ -1,0 +1,502 @@
+{% extends 'users/base.html' %}
+{% block content %}
+
+<!-- Hero Section -->
+<div class="relative bg-gradient-to-br from-purple-900 via-pink-900 to-purple-900 py-12 sm:py-16 lg:py-20">
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20" style="background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4">
+        <div class="text-center">
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-4 sm:mb-6">
+                Upload Tour Video
+            </h1>
+            <p class="text-lg sm:text-xl text-purple-100 mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
+                Enhance your tour listing with an engaging video that showcases the experience
+            </p>
+            
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-4">
+                <a href="{% url 'grouptours_detail' group_tour.pk %}" class="w-full sm:w-auto bg-white hover:bg-gray-50 text-gray-700 px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Back to Tour
+                </a>
+                <a href="{% url 'grouptours_update' group_tour.pk %}" class="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                    Edit Tour Details
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Video Upload Section -->
+<div class="bg-white py-8 sm:py-12 lg:py-16">
+    <div class="max-w-4xl mx-auto px-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <!-- Form Header -->
+            <div class="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">Upload Tour Video</h2>
+                        <p class="text-purple-100 mt-1">{{ group_tour.name }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Form Content -->
+            <div class="p-6 lg:p-8">
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Current Video Display -->
+                    {% if group_tour.tour_video %}
+                    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-lg font-semibold text-gray-800">Current Video</h3>
+                            <button type="button" id="delete-video-btn" class="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition duration-200">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                                Delete Video
+                            </button>
+                        </div>
+                        <div class="aspect-video w-full mb-3">
+                            <video 
+                                class="w-full h-full object-cover rounded-lg"
+                                controls
+                                preload="metadata"
+                                poster="{% if group_tour.display_picture %}{{ group_tour.display_picture.url }}{% endif %}"
+                            >
+                                <source src="{{ group_tour.tour_video.url }}" type="video/mp4">
+                                <source src="{{ group_tour.tour_video.url }}" type="video/webm">
+                                <source src="{{ group_tour.tour_video.url }}" type="video/ogg">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                        <p class="text-sm text-gray-600">Upload a new video to replace the current one, or delete it to remove completely.</p>
+                    </div>
+                    
+                    <!-- Delete Confirmation Modal -->
+                    <div id="delete-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+                        <div class="bg-white rounded-lg max-w-md w-full p-6">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                                    </svg>
+                                </div>
+                                <h3 class="text-lg font-semibold text-gray-800">Delete Video?</h3>
+                            </div>
+                            <p class="text-gray-600 mb-6">Are you sure you want to delete this tour video? This action cannot be undone.</p>
+                            <div class="flex gap-3">
+                                <button type="button" id="cancel-delete" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition duration-200">
+                                    Cancel
+                                </button>
+                                <button type="button" id="confirm-delete" class="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition duration-200">
+                                    Delete Video
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Video Upload Field -->
+                    <div class="space-y-3">
+                        <label for="{{ form.tour_video.id_for_label }}" class="block text-lg font-semibold text-gray-800">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                </svg>
+                                Select Video File
+                            </div>
+                        </label>
+                        
+                        <!-- Drag & Drop Zone -->
+                        <div id="video-drop-zone" class="border-2 border-dashed border-purple-300 rounded-lg p-8 text-center hover:border-purple-400 transition-colors duration-200 bg-purple-50 hover:bg-purple-100">
+                            <div class="space-y-3">
+                                <svg class="mx-auto h-12 w-12 text-purple-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <div class="text-purple-600">
+                                    <p class="text-lg font-medium">Drop your video file here</p>
+                                    <p class="text-sm">or click to browse</p>
+                                </div>
+                                <p class="text-xs text-purple-500">MP4, MOV, AVI, WebM up to 100MB</p>
+                            </div>
+                            {{ form.tour_video }}
+                        </div>
+                        
+                        <!-- File Info -->
+                        <div id="file-info" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                    </svg>
+                                    <div>
+                                        <p id="file-name" class="font-medium text-blue-800"></p>
+                                        <p id="file-size" class="text-sm text-blue-600"></p>
+                                    </div>
+                                </div>
+                                <button type="button" id="remove-file" class="text-blue-600 hover:text-blue-800">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Error Messages -->
+                        {% for error in form.tour_video.errors %}
+                            <p class="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">{{ error }}</p>
+                        {% endfor %}
+                        
+                        <!-- Help Text -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-semibold text-gray-800 mb-2">Video Requirements</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Supported formats: MP4, MOV, AVI, WebM</li>
+                                <li>• Maximum file size: 100MB</li>
+                                <li>• Recommended duration: 2-5 minutes</li>
+                                <li>• Recommended resolution: 1080p (1920x1080)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Video Preview -->
+                    <div id="video-preview" class="hidden">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Video Preview</h3>
+                        <div class="aspect-video w-full bg-gray-100 rounded-lg overflow-hidden">
+                            <video id="preview-player" class="w-full h-full object-cover" controls>
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                    </div>
+                    
+                    <!-- Form Actions -->
+                    <div class="flex flex-col sm:flex-row justify-between gap-4 pt-6 border-t border-gray-200">
+                        <a href="{% url 'grouptours_detail' group_tour.pk %}" class="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold transition duration-200 flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            Cancel
+                        </a>
+                        <button type="submit" class="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 rounded-lg font-semibold transition duration-200 flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                            Upload Video
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Video Upload Tips Section -->
+<div class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-12 sm:py-16 lg:py-20">
+    <div class="max-w-4xl mx-auto px-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <!-- Section Header -->
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">Quick Tips for Great Tour Videos</h2>
+                        <p class="text-blue-100 mt-1">Make your video stand out and attract more travelers</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tips Content -->
+            <div class="p-6 lg:p-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-800">Start Strong</h4>
+                                <p class="text-sm text-gray-600">Begin with your most exciting footage to grab attention in the first 10 seconds.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-800">Show Real Experiences</h4>
+                                <p class="text-sm text-gray-600">Include actual travelers enjoying activities, not just scenic shots.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                <svg class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-800">Keep it Concise</h4>
+                                <p class="text-sm text-gray-600">2-5 minutes is perfect. Longer videos often lose viewer engagement.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                <svg class="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-800">Add Text Overlays</h4>
+                                <p class="text-sm text-gray-600">Include key information like tour highlights, prices, or contact details.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                <svg class="w-5 h-5 text-pink-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-800">End with Action</h4>
+                                <p class="text-sm text-gray-600">Close with a clear call-to-action encouraging viewers to book the tour.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                <svg class="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-800">Quality Matters</h4>
+                                <p class="text-sm text-gray-600">Use stable shots, good lighting, and clear audio for professional results.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dropZone = document.getElementById('video-drop-zone');
+    const fileInput = document.querySelector('input[type="file"]');
+    const fileInfo = document.getElementById('file-info');
+    const fileName = document.getElementById('file-name');
+    const fileSize = document.getElementById('file-size');
+    const removeFile = document.getElementById('remove-file');
+    const videoPreview = document.getElementById('video-preview');
+    const previewPlayer = document.getElementById('preview-player');
+    const deleteVideoBtn = document.getElementById('delete-video-btn');
+    const deleteModal = document.getElementById('delete-modal');
+    const cancelDelete = document.getElementById('cancel-delete');
+    const confirmDelete = document.getElementById('confirm-delete');
+    
+    // Drag and drop functionality
+    dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        dropZone.classList.add('border-purple-500', 'bg-purple-100');
+    });
+    
+    dropZone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        dropZone.classList.remove('border-purple-500', 'bg-purple-100');
+    });
+    
+    dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dropZone.classList.remove('border-purple-500', 'bg-purple-100');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            handleFileSelect(files[0]);
+        }
+    });
+    
+    // Click to browse
+    dropZone.addEventListener('click', function() {
+        fileInput.click();
+    });
+    
+    // File input change
+    fileInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            handleFileSelect(e.target.files[0]);
+        }
+    });
+    
+    // Handle file selection
+    function handleFileSelect(file) {
+        // Validate file type
+        const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/mov'];
+        if (!allowedTypes.includes(file.type)) {
+            alert('Please select a valid video file (MP4, WebM, OGG, AVI, or MOV).');
+            return;
+        }
+        
+        // Validate file size (100MB)
+        if (file.size > 104857600) {
+            alert('Video file size must be less than 100MB.');
+            return;
+        }
+        
+        // Display file info
+        fileName.textContent = file.name;
+        fileSize.textContent = formatFileSize(file.size);
+        fileInfo.classList.remove('hidden');
+        
+        // Show video preview
+        const url = URL.createObjectURL(file);
+        previewPlayer.src = url;
+        videoPreview.classList.remove('hidden');
+        
+        // Update drop zone
+        dropZone.classList.add('hidden');
+    }
+    
+    // Remove file
+    removeFile.addEventListener('click', function() {
+        fileInput.value = '';
+        fileInfo.classList.add('hidden');
+        videoPreview.classList.add('hidden');
+        dropZone.classList.remove('hidden');
+        if (previewPlayer.src) {
+            URL.revokeObjectURL(previewPlayer.src);
+            previewPlayer.src = '';
+        }
+    });
+
+    // Delete Video functionality
+    if (deleteVideoBtn) {
+        deleteVideoBtn.addEventListener('click', function() {
+            deleteModal.classList.remove('hidden');
+        });
+    }
+
+    if (cancelDelete) {
+        cancelDelete.addEventListener('click', function() {
+            deleteModal.classList.add('hidden');
+        });
+    }
+
+    if (confirmDelete) {
+        confirmDelete.addEventListener('click', function() {
+            // Show loading state
+            confirmDelete.disabled = true;
+            confirmDelete.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Deleting...
+            `;
+            
+            // Send delete request
+            fetch(`{% url 'tour_video_delete' group_tour.pk %}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Hide modal
+                    deleteModal.classList.add('hidden');
+                    
+                    // Show success message
+                    showNotification('Video deleted successfully!', 'success');
+                    
+                    // Reload page to show updated state
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    throw new Error(data.error || 'Failed to delete video');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification(error.message || 'Failed to delete video', 'error');
+                
+                // Reset button state
+                confirmDelete.disabled = false;
+                confirmDelete.innerHTML = 'Delete Video';
+            });
+        });
+    }
+    
+    // Format file size
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Notification function
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg text-white font-medium transition-all duration-300 transform translate-x-full`;
+        
+        if (type === 'success') {
+            notification.className += ' bg-green-500';
+        } else if (type === 'error') {
+            notification.className += ' bg-red-500';
+        } else {
+            notification.className += ' bg-blue-500';
+        }
+        
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.classList.remove('translate-x-full');
+        }, 100);
+        
+        // Animate out and remove
+        setTimeout(() => {
+            notification.classList.add('translate-x-full');
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 300);
+        }, 3000);
+    }
+});
+</script>
+{% endblock %}
