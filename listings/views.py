@@ -149,6 +149,20 @@ class PlaceSettingsForm(forms.Form):
         })
     )
 
+import os
+from django.conf import settings
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.views import View
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+from .forms import PlaceBasicForm, PlaceContactForm, PlaceSettingsForm
+from .models import Place, PlaceCategory
+
+
 class PlaceCreateWizard(LoginRequiredMixin, View):
     """
     Modern 3-step wizard for creating a Place:
@@ -164,63 +178,60 @@ class PlaceCreateWizard(LoginRequiredMixin, View):
     ]
 
     def get(self, request, step=1):
-        """Display the form for the current step."""
         step = int(step)
         if step > 3:
             step = 3
-        
-        form = self.FORMS[step-1](initial=request.session.get(f'place_step_{step}', {}))
-        
-        # Get progress data for all steps
+
+        form = self.FORMS[step - 1](initial=request.session.get(f'place_step_{step}', {}))
         progress_data = self.get_progress_data(request, step)
-        
-        return render(request, self.TEMPLATES[step-1], {
-            'form': form, 
+
+        return render(request, self.TEMPLATES[step - 1], {
+            'form': form,
             'step': step,
             'progress_data': progress_data,
             'total_steps': 3
         })
 
     def post(self, request, step=1):
-        """Process the form for the current step."""
         step = int(step)
         if step > 3:
             step = 3
-        
-        form = self.FORMS[step-1](request.POST, request.FILES)
-        
+
+        form = self.FORMS[step - 1](request.POST, request.FILES)
+
         if form.is_valid():
-            # Save step data in session
             step_data = form.cleaned_data.copy()
-            
-            # Handle file uploads
+
+            # ✅ Store file path instead of file object
             if 'profile_picture' in request.FILES:
-                step_data['profile_picture'] = request.FILES['profile_picture']
-            
-            # Convert category object to its id for session serialization
+                uploaded_file = request.FILES['profile_picture']
+                path = default_storage.save(
+                    f"temp_uploads/{uploaded_file.name}",
+                    ContentFile(uploaded_file.read())
+                )
+                step_data['profile_picture_path'] = path  # store path instead of file object
+
+            # Convert category object to ID
             if 'category' in step_data and hasattr(step_data['category'], 'id'):
                 step_data['category'] = step_data['category'].id
-            
+
             request.session[f'place_step_{step}'] = step_data
-            
+
             if step == 3:
-                # Final step - create the place
                 return self.create_place(request)
             else:
-                # Move to next step
-                return redirect(reverse('place_create_step', kwargs={'step': step+1}))
-        
-        # Form is invalid, show errors
+                return redirect(reverse('place_create_step', kwargs={'step': step + 1}))
+
+        # Invalid form
         progress_data = self.get_progress_data(request, step)
-        return render(request, self.TEMPLATES[step-1], {
-            'form': form, 
+        return render(request, self.TEMPLATES[step - 1], {
+            'form': form,
             'step': step,
             'progress_data': progress_data,
             'total_steps': 3
         })
 
     def get_progress_data(self, request, current_step):
-        """Get data from all previous steps for progress display."""
         data = {}
         for i in range(1, current_step + 1):
             step_data = request.session.get(f'place_step_{i}', {})
@@ -228,15 +239,17 @@ class PlaceCreateWizard(LoginRequiredMixin, View):
         return data
 
     def create_place(self, request):
-        """Create the place from all collected data."""
         try:
-            # Get all step data
             data = {}
             for i in range(1, 4):
                 step_data = request.session.get(f'place_step_{i}', {})
                 data.update(step_data)
-            
-            # Create the place
+
+            # ✅ Load file from saved path if exists
+            profile_picture = None
+            if 'profile_picture_path' in data:
+                profile_picture = data['profile_picture_path']
+
             place = Place.objects.create(
                 name=data['name'],
                 description=data['description'],
@@ -246,31 +259,29 @@ class PlaceCreateWizard(LoginRequiredMixin, View):
                 website=data.get('website', ''),
                 contact_email=data.get('contact_email', ''),
                 contact_phone=data.get('contact_phone', ''),
-                profile_picture=data.get('profile_picture'),
+                profile_picture=profile_picture,  # file field will pick it from storage
                 place_intro_video=data.get('place_intro_video'),
                 is_active=data.get('is_active', True),
                 created_by=request.user
             )
-            
-            # Clear session data
+
+            # ✅ Clear session
             for i in range(1, 4):
                 if f'place_step_{i}' in request.session:
                     del request.session[f'place_step_{i}']
-            
+
             return redirect('place_create_success')
-            
+
         except Exception as e:
-            # Handle errors gracefully
             return render(request, self.TEMPLATES[2], {
                 'form': self.FORMS[2](),
                 'step': 3,
-                'error': 'An error occurred while creating your place. Please try again.',
+                'error': f'An error occurred while creating your place: {e}',
                 'progress_data': self.get_progress_data(request, 3),
                 'total_steps': 3
             })
 
     def get_success_url(self):
-        """Return the URL to redirect to after successful creation."""
         return reverse('place_create_success')
 
 # Success page
