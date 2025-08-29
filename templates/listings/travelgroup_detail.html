@@ -44,16 +44,16 @@
             </p>
             
             <!-- Group Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto mb-16">
-                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto mb-16 items-stretch">
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 h-full">
                     <div class="text-4xl font-bold text-yellow-300 mb-2">{{ travel_group.members.count }}</div>
                     <div class="text-white font-medium">Active Members</div>
                 </div>
-                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 h-full">
                     <div class="text-4xl font-bold text-emerald-300 mb-2">{{ travel_group.group_tours.count }}</div>
                     <div class="text-white font-medium">Group Tours</div>
                 </div>
-                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 h-full">
                     <div class="text-4xl font-bold text-cyan-300 mb-2">{{ travel_group.created_at|date:"Y" }}</div>
                     <div class="text-white font-medium">Established</div>
                 </div>
@@ -149,12 +149,12 @@
                         </div>
                         <h2 class="text-3xl font-bold text-gray-800">Group Tours</h2>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
                         {% for tour in travel_group.group_tours.all %}
-                        <div class="group bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-6 border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg transform hover:scale-105">
+                        <div class="group bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-6 border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg transform hover:scale-105 h-full flex flex-col">
                             <h3 class="font-bold text-gray-800 mb-3 text-lg">{{ tour.name }}</h3>
-                            <p class="text-gray-600 mb-4 text-sm leading-relaxed">{{ tour.description|truncatewords:20 }}</p>
-                            <div class="space-y-2">
+                            <p class="text-gray-600 mb-4 text-sm leading-relaxed flex-1">{{ tour.description|truncatewords:20 }}</p>
+                            <div class="space-y-2 mt-auto">
                                 <div class="flex items-center gap-2 text-sm text-gray-500">
                                     <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
