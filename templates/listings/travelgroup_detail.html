@@ -95,11 +95,12 @@
 <!-- Group Details -->
 <div class="bg-gradient-to-br from-gray-50 to-blue-50 py-20">
     <div class="max-w-7xl mx-auto px-4">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-16">
+        <div class="grid grid-cols-1 gap-8">
             <!-- Main Content -->
-            <div class="lg:col-span-2">
-                <!-- Group Image -->
-                <div class="group relative h-96 bg-gradient-to-br from-purple-400 to-pink-500 rounded-3xl overflow-hidden mb-12 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-[1.02]">
+            <div class="col-span-1">
+                <!-- Row 1: Display Picture + Group Information (equal height) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch mb-12">
+                <div class="group relative h-96 bg-gradient-to-br from-purple-400 to-pink-500 rounded-3xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-[1.02]">
                     <div class="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-700" style="background-image: url('https://images.unsplash.com/photo-1523050854058-8df90110c9a1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2025&q=80');"></div>
                     <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
                     
@@ -124,9 +125,67 @@
                         </span>
                     </div>
                 </div>
+                <div class="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 h-96 overflow-y-auto">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800">Group Information</h3>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-100">
+                            <div class="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center">
+                                <svg class="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600 font-medium">Objective</p>
+                                <p class="font-bold text-gray-800 text-lg">{{ travel_group.get_objective_display }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl border border-blue-100">
+                            <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
+                                <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600 font-medium">Creator</p>
+                                <p class="font-bold text-gray-800 text-lg">{{ travel_group.creator.email|truncatechars:25 }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border border-green-100">
+                            <div class="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center">
+                                <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600 font-medium">Created</p>
+                                <p class="font-bold text-gray-800 text-lg">{{ travel_group.created_at|date:"M d, Y" }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl border border-orange-100">
+                            <div class="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center">
+                                <svg class="w-6 h-6 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600 font-medium">Status</p>
+                                <p class="font-bold text-lg">{% if travel_group.is_public %}<span class="text-green-600">Open to Join</span>{% else %}<span class="text-gray-600">Invite Only</span>{% endif %}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
                 
-                <!-- Description -->
-                <div class="bg-white rounded-3xl p-10 mb-12 shadow-xl border border-gray-100">
+                <!-- Row 2: About + Join/Leave (equal height) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 items-stretch">
+                <div class="bg-white rounded-3xl p-10 shadow-xl border border-gray-100 h-full flex flex-col">
                     <div class="flex items-center gap-4 mb-6">
                         <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center">
                             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,51 +194,34 @@
                         </div>
                         <h2 class="text-3xl font-bold text-gray-800">About This Group</h2>
                     </div>
-                    <p class="text-gray-600 leading-relaxed text-lg">{{ travel_group.description }}</p>
+                    <p class="text-gray-600 leading-relaxed text-lg flex-1">{{ travel_group.description }}</p>
                 </div>
                 
-                <!-- Group Tours -->
-                {% if travel_group.group_tours.all %}
-                <div class="bg-white rounded-3xl p-10 shadow-xl border border-gray-100">
-                    <div class="flex items-center gap-4 mb-8">
-                        <div class="w-12 h-12 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7"/>
-                            </svg>
-                        </div>
-                        <h2 class="text-3xl font-bold text-gray-800">Group Tours</h2>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-                        {% for tour in travel_group.group_tours.all %}
-                        <div class="group bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-6 border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg transform hover:scale-105 h-full flex flex-col">
-                            <h3 class="font-bold text-gray-800 mb-3 text-lg">{{ tour.name }}</h3>
-                            <p class="text-gray-600 mb-4 text-sm leading-relaxed flex-1">{{ tour.description|truncatewords:20 }}</p>
-                            <div class="space-y-2 mt-auto">
-                                <div class="flex items-center gap-2 text-sm text-gray-500">
-                                    <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                    </svg>
-                                    <span>{{ tour.start_date|date:"M d" }} - {{ tour.end_date|date:"M d, Y" }}</span>
-                                </div>
-                                <div class="flex items-center gap-2 text-sm text-gray-500">
-                                    <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
-                                    </svg>
-                                    <span class="font-semibold text-green-600">Ksh {{ tour.price_per_person }}</span>
-                                    {% if tour.couple_price %}
-                                    <span class="text-pink-600 font-semibold">• Couple: Ksh {{ tour.couple_price }}</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
+                <div class="bg-white rounded-3xl p-8 border border-gray-200 shadow-xl h-full flex flex-col justify-between">
+                {% if user.is_authenticated %}
+                    {% if can_join %}
+                        <div class="text-center mb-6"><div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-4"><svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg></div><h3 class="text-2xl font-bold text-gray-800 mb-3">Join This Group</h3><p class="text-gray-600 text-lg">Connect with fellow travelers and start sharing experiences.</p></div>
+                        <form method="post" action="{% url 'join_travel_group' group_id=travel_group.id %}" class="space-y-4">{% csrf_token %}<button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-4 px-6 rounded-2xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 transform hover:scale-105 shadow-lg hover:shadow-xl">Join Group</button></form>
+                    {% elif can_leave %}
+                        <div class="text-center mb-6"><div class="w-16 h-16 bg-gradient-to-r from-red-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-4"><svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg></div><h3 class="text-2xl font-bold text-gray-800 mb-3">Leave This Group</h3><p class="text-gray-600 text-lg">You're currently a member of this group.</p></div>
+                        <form method="post" action="{% url 'leave_travel_group' group_id=travel_group.id %}" class="space-y-4">{% csrf_token %}<button type="submit" class="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-4 px-6 rounded-2xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 transform hover:scale-105 shadow-lg hover:shadow-xl" onclick="return confirm('Are you sure you want to leave this group?')">Leave Group</button></form>
+                    {% elif is_creator %}
+                        <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-4 text-center text-purple-800 font-semibold">You created this group and are automatically a member.</div>
+                    {% elif is_member %}
+                        <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-4 text-center text-green-800 font-semibold">You're already a member of this group.</div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center mb-6"><div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-4"><svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></div><h3 class="text-2xl font-bold text-gray-800 mb-3">Join This Group</h3><p class="text-gray-600 text-lg">Sign in to join this group and connect with fellow travelers.</p></div>
+                    <a href="{% url 'login' %}" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-4 px-6 rounded-2xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 transform hover:scale-105 shadow-lg hover:shadow-xl">Sign In to Join</a>
                 {% endif %}
+                </div>
+                </div>
+                
+                
             </div>
             
-            <!-- Sidebar -->
-            <div class="space-y-8">
+            <!-- Sidebar removed: switch to rows of 2 below -->
+            <div class="hidden">
                 <!-- Quick Info Card -->
                 <div class="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
                     <div class="flex items-center gap-4 mb-6">
@@ -458,6 +500,58 @@
                             Delete Group
                         </a>
                     </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Rows of 2: Members + Creator Actions, then Group Tours (if any) + Invite/Join already placed above) -->
+            <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Members List -->
+                <div class="bg-white rounded-3xl p-8 border border-gray-200 shadow-xl">
+                    <style>
+                        #members-list { scrollbar-width: thin; scrollbar-color: #a78bfa #faf5ff; }
+                        #members-list::-webkit-scrollbar { width: 8px; }
+                        #members-list::-webkit-scrollbar-track { background: #faf5ff; border-radius: 9999px; }
+                        #members-list::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #a78bfa, #ec4899); border-radius: 9999px; border: 2px solid #ffffff; }
+                        #members-list::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #8b5cf6, #db2777); }
+                    </style>
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800">Members (<span class="member-count text-purple-600">{{ travel_group.members.count }}</span>)</h3>
+                    </div>
+                    <div class="space-y-4 overflow-y-auto pr-2" id="members-list" style="max-height: 32rem;">
+                        {% for member in travel_group.members.all %}
+                        <div class="group flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-100 hover:border-purple-300 transition-all duration-300 hover:shadow-md"><div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300"><span class="text-white text-sm font-bold">{{ member.email|first|upper }}</span></div><span class="text-gray-700 font-medium">{{ member|member_display_name }}</span></div>
+                        {% empty %}
+                        <div class="text-center py-8"><div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4"><svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg></div><p class="text-gray-500 text-lg font-medium">No members yet</p><p class="text-gray-400 text-sm">Be the first to join this amazing group!</p></div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Creator Actions / Manage Group -->
+                {% if user == travel_group.creator %}
+                <div class="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-6 border border-yellow-100">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Manage Group</h3>
+                    <div class="space-y-3">
+                        <div class="bg-white rounded-xl p-4 border border-yellow-200">
+                            <h4 class="text-lg font-semibold text-gray-800 mb-3">Add New Member</h4>
+                            <form method="POST" action="{% url 'add_travel_group_member' travel_group.pk %}" class="space-y-3">{% csrf_token %}
+                                <div><label for="member-email" class="block text-sm font-medium text-gray-700 mb-1">Email Address <span class="text-red-500">*</span></label><input type="email" id="member-email" name="email" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-sm" placeholder="user@example.com"></div>
+                                <div><label for="member-user-id" class="block text-sm font-medium text-gray-700 mb-1">User ID <span class="text-red-500">*</span></label><input type="text" id="member-user-id" name="user_id" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-sm" placeholder="12345"><p class="text-xs text-gray-500 mt-1">Both email and user ID are required for verification</p></div>
+                                <button type="submit" class="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-2 px-4 rounded-lg font-semibold text-sm transition duration-300 flex items-center justify-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>Add Member</button>
+                            </form>
+                        </div>
+                        <a href="{% url 'travelgroup_update' travel_group.pk %}" class="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white py-3 px-4 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>Edit Group</a>
+                        <a href="{% url 'travelgroup_delete' travel_group.pk %}" class="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-3 px-4 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>Delete Group</a>
+                    </div>
+                </div>
+                {% else %}
+                <div class="bg-white rounded-3xl p-8 border border-gray-200 shadow-xl">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Invite Friends</h3>
+                    <p class="text-gray-600">Only the creator can add members. To invite friends, please contact the group creator:</p>
+                    <p class="mt-3 font-semibold text-gray-800">{{ travel_group.creator|member_display_name }}</p>
                 </div>
                 {% endif %}
             </div>
