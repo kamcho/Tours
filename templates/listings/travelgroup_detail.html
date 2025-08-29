@@ -344,6 +344,14 @@
                 
                 <!-- Members List -->
                 <div class="bg-white rounded-3xl p-8 border border-gray-200 shadow-xl">
+                    <style>
+                        /* Custom scrollbar styles for the members list */
+                        #members-list { scrollbar-width: thin; scrollbar-color: #a78bfa #faf5ff; }
+                        #members-list::-webkit-scrollbar { width: 8px; }
+                        #members-list::-webkit-scrollbar-track { background: #faf5ff; border-radius: 9999px; }
+                        #members-list::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #a78bfa, #ec4899); border-radius: 9999px; border: 2px solid #ffffff; }
+                        #members-list::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #8b5cf6, #db2777); }
+                    </style>
                     <div class="flex items-center gap-4 mb-6">
                         <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center">
                             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -352,7 +360,7 @@
                         </div>
                         <h3 class="text-2xl font-bold text-gray-800">Members (<span class="member-count text-purple-600">{{ travel_group.members.count }}</span>)</h3>
                     </div>
-                    <div class="space-y-4" id="members-list">
+                    <div class="space-y-4 overflow-y-auto pr-2" id="members-list" style="max-height: 32rem;">
                         {% for member in travel_group.members.all %}
                         <div class="group flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-100 hover:border-purple-300 transition-all duration-300 hover:shadow-md">
                             <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
