@@ -40,7 +40,8 @@ def member_display_name(user):
 
     # Gather candidate names from PersonalProfile if available
     names = []
-    profile = getattr(user, 'personalprofile', None)
+    # Correct reverse relation name is 'profile' (users.PersonalProfile.related_name)
+    profile = getattr(user, 'profile', None)
     if profile:
         for part in [getattr(profile, 'first_name', None), getattr(profile, 'surname', None), getattr(profile, 'last_name', None)]:
             if part:

@@ -428,7 +428,8 @@ class TravelGroupDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Prefetch related personal profiles to avoid N+1 queries in templates
-        context['members'] = self.object.members.select_related('personalprofile').all()
+        # Related name on PersonalProfile is 'profile'
+        context['members'] = self.object.members.select_related('profile').all()
         
         # Add membership information for the current user
         if self.request.user.is_authenticated:
