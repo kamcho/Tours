@@ -1700,11 +1700,18 @@ def submit_place_rating(request, place_id):
                 'total_ratings': place.total_ratings
             })
         else:
+            # Log form errors for debugging
+            print(f"Form validation failed: {form.errors}")
+            print(f"POST data: {request.POST}")
             return JsonResponse({'error': 'Invalid rating data', 'form_errors': form.errors}, status=400)
             
     except Place.DoesNotExist:
         return JsonResponse({'error': 'Place not found'}, status=404)
     except Exception as e:
+        # Log the full error for debugging
+        import traceback
+        print(f"Error in submit_place_rating: {str(e)}")
+        print(f"Traceback: {traceback.format_exc()}")
         return JsonResponse({'error': f'Server error: {str(e)}'}, status=500)
 
 @login_required
