@@ -601,3 +601,501 @@
   });
 </script>
 {% endblock %} 
+
+                    <div class="bg-white rounded-3xl p-8 border border-gray-200 shadow-xl">
+
+                        <div class="text-center mb-6">
+
+                            <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-4">
+
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+
+                                </svg>
+
+                            </div>
+
+                            <h3 class="text-2xl font-bold text-gray-800 mb-3">Join This Group</h3>
+
+                            <p class="text-gray-600 text-lg">Connect with fellow travelers and start sharing experiences.</p>
+
+                        </div>
+
+                        <form method="post" action="{% url 'join_travel_group' group_id=travel_group.id %}" class="space-y-4">
+
+                            {% csrf_token %}
+
+                            <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-4 px-6 rounded-2xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 transform hover:scale-105 shadow-lg hover:shadow-xl">
+
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+
+                                </svg>
+
+                                Join Group
+
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                    {% elif can_leave %}
+
+                    <div class="bg-white rounded-3xl p-8 border border-gray-200 shadow-xl">
+
+                        <div class="text-center mb-6">
+
+                            <div class="w-16 h-16 bg-gradient-to-r from-red-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-4">
+
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+
+                                </svg>
+
+                            </div>
+
+                            <h3 class="text-2xl font-bold text-gray-800 mb-3">Leave This Group</h3>
+
+                            <p class="text-gray-600 text-lg">You're currently a member of this group.</p>
+
+                        </div>
+
+                        <form method="post" action="{% url 'leave_travel_group' group_id=travel_group.id %}" class="space-y-4">
+
+                            {% csrf_token %}
+
+                            <button type="submit" class="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-4 px-6 rounded-2xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 transform hover:scale-105 shadow-lg hover:shadow-xl" onclick="return confirm('Are you sure you want to leave this group?')">
+
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+
+                                </svg>
+
+                                Leave Group
+
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                    {% elif is_creator %}
+
+                    <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-3xl p-8 border border-purple-200 shadow-xl">
+
+                        <div class="text-center mb-6">
+
+                            <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-4">
+
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+
+                                </svg>
+
+                            </div>
+
+                            <h3 class="text-2xl font-bold text-gray-800 mb-3">Group Creator</h3>
+
+                            <p class="text-gray-600 text-lg">You created this group and are automatically a member.</p>
+
+                        </div>
+
+                        <div class="bg-white/80 backdrop-blur-sm border border-purple-300 rounded-2xl p-4">
+
+                            <p class="text-purple-800 text-base font-semibold text-center">You can manage this group from your dashboard.</p>
+
+                        </div>
+
+                    </div>
+
+                    {% elif is_member %}
+
+                    <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-3xl p-8 border border-green-200 shadow-xl">
+
+                        <div class="text-center mb-6">
+
+                            <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-3xl flex items-center justify-center mx-auto mb-4">
+
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+
+                                </svg>
+
+                            </div>
+
+                            <h3 class="text-2xl font-bold text-gray-800 mb-3">Group Member</h3>
+
+                            <p class="text-gray-600 text-lg">You're already a member of this group.</p>
+
+                        </div>
+
+                        <div class="bg-white/80 backdrop-blur-sm border border-green-300 rounded-2xl p-4">
+
+                            <p class="text-green-800 text-base font-semibold text-center">Welcome to the group! Start connecting with other members.</p>
+
+                        </div>
+
+                    </div>
+
+                    {% endif %}
+
+                {% else %}
+
+                <div class="bg-white rounded-3xl p-8 border border-gray-200 shadow-xl">
+
+                    <div class="text-center mb-6">
+
+                        <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-4">
+
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+
+                            </svg>
+
+                        </div>
+
+                        <h3 class="text-2xl font-bold text-gray-800 mb-3">Join This Group</h3>
+
+                        <p class="text-gray-600 text-lg">Sign in to join this group and connect with fellow travelers.</p>
+
+                    </div>
+
+                    <a href="{% url 'login' %}" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-4 px-6 rounded-2xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 transform hover:scale-105 shadow-lg hover:shadow-xl">
+
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+
+                        </svg>
+
+                        Sign In to Join
+
+                    </a>
+
+                </div>
+
+                {% endif %}
+
+                
+
+                <!-- Members List -->
+
+                <div class="bg-white rounded-3xl p-8 border border-gray-200 shadow-xl">
+
+                    <div class="flex items-center gap-4 mb-6">
+
+                        <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center">
+
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+
+                            </svg>
+
+                        </div>
+
+                        <h3 class="text-2xl font-bold text-gray-800">Members (<span class="member-count text-purple-600">{{ travel_group.members.count }}</span>)</h3>
+
+                    </div>
+
+                    <div class="space-y-4" id="members-list">
+
+                        {% for member in travel_group.members.all %}
+
+                        <div class="group flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-100 hover:border-purple-300 transition-all duration-300 hover:shadow-md">
+
+                            <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+
+                                <span class="text-white text-sm font-bold">{{ member.email|first|upper }}</span>
+
+                            </div>
+
+                            <span class="text-gray-700 font-medium">{{ member.email|truncatechars:25 }}</span>
+
+                        </div>
+
+                        {% empty %}
+
+                        <div class="text-center py-8">
+
+                            <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+
+                                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+
+                                </svg>
+
+                            </div>
+
+                            <p class="text-gray-500 text-lg font-medium">No members yet</p>
+
+                            <p class="text-gray-400 text-sm">Be the first to join this amazing group!</p>
+
+                        </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+                
+
+                <!-- Creator Actions -->
+
+                {% if user == travel_group.creator %}
+
+                <div class="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-6 border border-yellow-100">
+
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Manage Group</h3>
+
+                    <div class="space-y-3">
+
+                        <!-- Add Member Section -->
+
+                        <div class="bg-white rounded-xl p-4 border border-yellow-200">
+
+                            <h4 class="text-lg font-semibold text-gray-800 mb-3">Add New Member</h4>
+
+                            <form method="POST" action="{% url 'add_travel_group_member' travel_group.pk %}" class="space-y-3">
+
+                                {% csrf_token %}
+
+                                <div>
+
+                                    <label for="member-email" class="block text-sm font-medium text-gray-700 mb-1">
+
+                                        Email Address <span class="text-red-500">*</span>
+
+                                    </label>
+
+                                    <input type="email" id="member-email" name="email" required
+
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-sm"
+
+                                           placeholder="user@example.com">
+
+                                </div>
+
+                                <div>
+
+                                    <label for="member-user-id" class="block text-sm font-medium text-gray-700 mb-1">
+
+                                        User ID <span class="text-red-500">*</span>
+
+                                    </label>
+
+                                    <input type="text" id="member-user-id" name="user_id" required
+
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-sm"
+
+                                           placeholder="12345">
+
+                                    <p class="text-xs text-gray-500 mt-1">Both email and user ID are required for verification</p>
+
+                                </div>
+
+                                <button type="submit" 
+
+                                        class="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-2 px-4 rounded-lg font-semibold text-sm transition duration-300 flex items-center justify-center gap-2">
+
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+
+                                    </svg>
+
+                                    Add Member
+
+                                </button>
+
+                            </form>
+
+                            
+
+                            <!-- Display Django Messages -->
+
+                            {% if messages %}
+
+                                <div class="mt-4 space-y-2">
+
+                                    {% for message in messages %}
+
+                                        <div class="p-3 rounded-lg border-2 font-medium {% if message.tags == 'success' %}bg-green-50 text-green-800 border-green-200{% elif message.tags == 'error' %}bg-red-50 text-red-800 border-red-200{% else %}bg-blue-50 text-blue-800 border-blue-200{% endif %}">
+
+                                            <div class="flex items-center gap-2">
+
+                                                {% if message.tags == 'success' %}
+
+                                                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+
+                                                    </svg>
+
+                                                {% elif message.tags == 'error' %}
+
+                                                    <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+
+                                                    </svg>
+
+                                                {% else %}
+
+                                                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+
+                                                    </svg>
+
+                                                {% endif %}
+
+                                                <span>{{ message }}</span>
+
+                                            </div>
+
+                                        </div>
+
+                                    {% endfor %}
+
+                                </div>
+
+                            {% endif %}
+
+                        </div>
+
+                        
+
+                        <a href="{% url 'travelgroup_update' travel_group.pk %}" class="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white py-3 px-4 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-2">
+
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+
+                            </svg>
+
+                            Edit Group
+
+                        </a>
+
+                        <a href="{% url 'travelgroup_delete' travel_group.pk %}" class="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-3 px-4 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-2">
+
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+
+                            </svg>
+
+                            Delete Group
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+{% endblock %}
+
+{% block extra_js %}
+
+<script>
+
+  const toggle = document.getElementById('theme-toggle');
+
+  toggle.addEventListener('click', () => {
+
+    document.documentElement.classList.toggle('dark');
+
+  });
+
+
+
+  // Minimal JavaScript for form validation
+
+  document.addEventListener('DOMContentLoaded', function() {
+
+    const addMemberForm = document.querySelector('form[action*="add-member"]');
+
+    
+
+    if (addMemberForm) {
+
+      addMemberForm.addEventListener('submit', function(e) {
+
+        const email = document.getElementById('member-email').value.trim();
+
+        const userId = document.getElementById('member-user-id').value.trim();
+
+        
+
+        if (!email || !userId) {
+
+          e.preventDefault();
+
+          alert('Both email and user ID are required');
+
+          return false;
+
+        }
+
+        
+
+        // Basic email validation
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!emailRegex.test(email)) {
+
+          e.preventDefault();
+
+          alert('Please enter a valid email address');
+
+          return false;
+
+        }
+
+        
+
+        // Basic user ID validation
+
+        if (isNaN(userId) || userId <= 0) {
+
+          e.preventDefault();
+
+          alert('Please enter a valid user ID (must be a positive number)');
+
+          return false;
+
+        }
+
+      });
+
+    }
+
+  });
+
+</script>
+
+{% endblock %} 

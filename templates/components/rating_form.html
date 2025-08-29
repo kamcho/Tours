@@ -115,39 +115,18 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showNotification(data.message, 'success');
+                    // Show success message
+                    alert(data.message);
                     // Reload page to show updated rating
-                    setTimeout(() => location.reload(), 1500);
+                    location.reload();
                 } else {
-                    let errorMessage = data.error || 'An error occurred';
-                    
-                    // Handle specific form errors
-                    if (data.form_errors) {
-                        const errors = [];
-                        for (const [field, fieldErrors] of Object.entries(data.form_errors)) {
-                            errors.push(`${field}: ${fieldErrors.join(', ')}`);
-                        }
-                        if (errors.length > 0) {
-                            errorMessage = `Validation errors: ${errors.join('; ')}`;
-                        }
-                    }
-                    
-                    showNotification(errorMessage, 'error');
+                    alert(data.error || 'An error occurred');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                let errorMessage = 'An error occurred while submitting your rating';
-                
-                // Handle network errors
-                if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                    errorMessage = 'Network error. Please check your connection and try again.';
-                } else if (error.message) {
-                    errorMessage = `Error: ${error.message}`;
-                }
-                
-                showNotification(errorMessage, 'error');
-            })
+                alert('An error occurred while submitting your rating');
+            });
         });
     }
 });
