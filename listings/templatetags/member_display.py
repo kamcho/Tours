@@ -45,13 +45,7 @@ def member_display_name(user):
         for part in [getattr(profile, 'first_name', None), getattr(profile, 'surname', None), getattr(profile, 'last_name', None)]:
             if part:
                 names.append(str(part).strip())
-    # Fallback to user model's first/last names
-    if not names:
-        for part in [getattr(user, 'first_name', None), getattr(user, 'last_name', None)]:
-            if part:
-                names.append(str(part).strip())
-
-    # Use first two distinct non-empty parts
+    # Use first two distinct non-empty parts from PersonalProfile only
     names = [n for n in names if n]
     if names:
         unique = []
@@ -61,7 +55,7 @@ def member_display_name(user):
         display = ' '.join(unique[:2])
         return display
 
-    # Fallback to masked email
+    # If no PersonalProfile or no names, fallback to masked email
     email = getattr(user, 'email', '')
     return _mask_email(email)
 

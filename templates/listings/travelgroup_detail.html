@@ -358,7 +358,7 @@
                             <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                                 <span class="text-white text-sm font-bold">{{ member.email|first|upper }}</span>
                             </div>
-                            <span class="text-gray-700 font-medium">{{ member|member_display_name|default:member.email|masked_email }}</span>
+                            <span class="text-gray-700 font-medium">{{ member|member_display_name }}</span>
                         </div>
                         {% empty %}
                         <div class="text-center py-8">
