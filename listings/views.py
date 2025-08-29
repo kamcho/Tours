@@ -427,7 +427,8 @@ class TravelGroupDetailView(DetailView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['members'] = self.object.members.all()
+        # Prefetch related personal profiles to avoid N+1 queries in templates
+        context['members'] = self.object.members.select_related('personalprofile').all()
         
         # Add membership information for the current user
         if self.request.user.is_authenticated:
@@ -481,7 +482,8 @@ class UserTravelGroupListView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return TravelGroup.objects.filter(creator=self.request.user)
+        # Include groups the user created or is a member of
+        return TravelGroup.objects.filter(models.Q(creator=self.request.user) | models.Q(members=self.request.user)).distinct()
 
 
 @login_required
