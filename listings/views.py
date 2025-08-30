@@ -1381,7 +1381,7 @@ class FeatureUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     
     def test_func(self):
         feature = self.get_object()
-        return self.request.user == feature.place.creator
+        return self.request.user == feature.place.created_by
     
     def get_success_url(self):
         return reverse('user_place_detail', kwargs={'pk': self.object.place.pk})
