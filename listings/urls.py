@@ -74,6 +74,7 @@ urlpatterns = [
     
     # Feature URLs
     path('place/<int:place_id>/feature/create/', views.FeatureCreateView.as_view(), name='feature_create'),
+    path('feature/<int:pk>/', views.FeatureDetailView.as_view(), name='feature_detail'),
     path('feature/<int:pk>/edit/', views.FeatureUpdateView.as_view(), name='feature_update'),
     path('feature/<int:pk>/delete/', views.FeatureDeleteView.as_view(), name='feature_delete'),
     

@@ -782,6 +782,23 @@ class Payment(models.Model):
 
 # AI Insights and Analytics Models
 
+class OpenAIAPIKey(models.Model):
+    """Store OpenAI API key for the chat feature"""
+    api_key = models.CharField(max_length=200, help_text="OpenAI API key")
+    
+    class Meta:
+        verbose_name = 'OpenAI API Key'
+        verbose_name_plural = 'OpenAI API Keys'
+    
+    def __str__(self):
+        return f"OpenAI API Key (***{self.api_key[-4:] if len(self.api_key) > 4 else '****'})"
+    
+    @classmethod
+    def get_api_key(cls):
+        """Get the API key from database"""
+        instance = cls.objects.first()
+        return instance.api_key if instance else None
+
 class AIChatInteraction(models.Model):
     """Track AI chat interactions for analytics and insights"""
     INTERACTION_TYPE_CHOICES = [

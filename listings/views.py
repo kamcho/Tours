@@ -1627,20 +1627,71 @@ class PlaceMenuView(DetailView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['menu_categories'] = MenuCategory.objects.filter(
+        
+        # Get filter parameters
+        category_filter = self.request.GET.get('category')
+        price_range = self.request.GET.get('price_range')
+        search_query = self.request.GET.get('search')
+        
+        # Base queryset for menu categories
+        menu_categories_qs = MenuCategory.objects.filter(
             place=self.object, 
             is_active=True
-        ).prefetch_related('menu_items').order_by('order', 'name')
+        ).prefetch_related('menu_items')
         
-        # Get featured items
-        context['featured_items'] = MenuItem.objects.filter(
+        # Filter categories if category filter is applied
+        if category_filter:
+            menu_categories_qs = menu_categories_qs.filter(id=category_filter)
+        
+        context['menu_categories'] = menu_categories_qs.order_by('order', 'name')
+        
+        # Get featured items with filters
+        featured_items_qs = MenuItem.objects.filter(
             place=self.object,
             is_featured=True,
             is_active=True
-        ).order_by('?')[:6]  # Random 6 featured items
+        )
+        
+        # Apply filters to featured items
+        if category_filter:
+            featured_items_qs = featured_items_qs.filter(category_id=category_filter)
+        
+        if price_range:
+            if price_range == '0-500':
+                featured_items_qs = featured_items_qs.filter(price__lte=500)
+            elif price_range == '500-1000':
+                featured_items_qs = featured_items_qs.filter(price__gte=500, price__lte=1000)
+            elif price_range == '1000-2000':
+                featured_items_qs = featured_items_qs.filter(price__gte=1000, price__lte=2000)
+            elif price_range == '2000+':
+                featured_items_qs = featured_items_qs.filter(price__gte=2000)
+        
+        if search_query:
+            featured_items_qs = featured_items_qs.filter(
+                Q(name__icontains=search_query) | 
+                Q(description__icontains=search_query)
+            )
+        
+        context['featured_items'] = featured_items_qs.order_by('?')[:6]
         
         # Check if user is the creator
         context['is_creator'] = self.request.user.is_authenticated and self.object.created_by == self.request.user
+        
+        return context
+
+class FeatureDetailView(DetailView):
+    model = Features
+    template_name = 'listings/feature_detail.html'
+    context_object_name = 'feature'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Get related features from the same place (excluding current feature)
+        context['related_features'] = Features.objects.filter(
+            place=self.object.place,
+            is_active=True
+        ).exclude(pk=self.object.pk)[:6]
         
         return context
 
@@ -4001,14 +4052,19 @@ def agency_chat(request, agency_id):
         """
         
         # Configure OpenAI API key
-        print(f"Setting OpenAI API key: {settings.OPENAI_API_KEY[:20]}...")
-        openai.api_key = settings.OPENAI_API_KEY
+        # Get OpenAI API key from database
+        from core.models import OpenAIAPIKey
+        api_key = OpenAIAPIKey.get_api_key()
+        if not api_key:
+            raise Exception("No OpenAI API key found in database")
+        
+        print(f"Using OpenAI API key from database: {api_key[:20]}...")
             
         # Get response from OpenAI
         try:
             print("Making OpenAI API call...")
             # Use the new OpenAI API (v1.0.0+)
-            client = openai.OpenAI(api_key=openai.api_key)
+            client = openai.OpenAI(api_key=api_key)
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
@@ -4746,10 +4802,15 @@ def place_chat(request, place_id):
         # Get response from OpenAI
         try:
             print("Making OpenAI API call...")
-            # Set OpenAI API key
-            openai.api_key = settings.OPENAI_API_KEY
+            # Get OpenAI API key from database
+            from core.models import OpenAIAPIKey
+            api_key = OpenAIAPIKey.get_api_key()
+            if not api_key:
+                raise Exception("No OpenAI API key found in database")
+            
+            print(f"Using OpenAI API key from database: {api_key[:20]}...")
             # Use the new OpenAI API (v1.0.0+)
-            client = openai.OpenAI(api_key=openai.api_key)
+            client = openai.OpenAI(api_key=api_key)
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[

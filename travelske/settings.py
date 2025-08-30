@@ -101,9 +101,9 @@ ON_PYTHONANYWHERE = 'PYTHONANYWHERE_SITE' in os.environ
 
 # Log which database configuration is being used
 if ON_PYTHONANYWHERE:
-    print("🚀 Using PythonAnywhere MySQL database")
+    print("Using PythonAnywhere MySQL database")
 else:
-    print("💻 Using local SQLite database")
+    print("Using local SQLite database")
 
 if ON_PYTHONANYWHERE:
     # Production database (PythonAnywhere)
@@ -147,7 +147,7 @@ if ON_PYTHONANYWHERE:
     # Static files (served by PythonAnywhere)
     STATIC_ROOT = '/home/kevin254/travelske/staticfiles'
     
-    print("🔒 Production mode enabled")
+    print("Production mode enabled")
 else:
     # Development settings (Local)
     DEBUG = True
@@ -156,7 +156,7 @@ else:
     # Development-specific settings
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     
-    print("🛠️  Development mode enabled")
+    print("Development mode enabled")
 
 
 # Password validation

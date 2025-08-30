@@ -100,9 +100,9 @@
         {% if place.place_intro_video %}
             <!-- Video Player -->
             <div class="max-w-4xl mx-auto">
-                <div class="relative bg-gray-900 rounded-2xl overflow-hidden shadow-2xl">
+                <div class="relative bg-gray-900 rounded-2xl overflow-hidden shadow-2xl aspect-video">
                     <video 
-                        class="w-full h-auto" 
+                        class="w-full h-full object-cover" 
                         controls 
                         preload="metadata"
                         poster="{% if place.profile_picture %}{{ place.profile_picture.url }}{% endif %}"
@@ -924,12 +924,12 @@
                 
                 <!-- View Feature Details Button -->
                 <div class="text-center mt-4">
-                    <button class="inline-flex items-center bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-gray-900 px-4 py-2 rounded-lg text-sm font-medium transition duration-300 shadow-lg hover:shadow-xl">
+                    <a href="{% url 'feature_detail' feature.pk %}" class="inline-flex items-center bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-gray-900 px-4 py-2 rounded-lg text-sm font-medium transition duration-300 shadow-lg hover:shadow-xl">
                         View Details
                         <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
-                    </button>
+                    </a>
                 </div>
             </div>
             {% endfor %}
