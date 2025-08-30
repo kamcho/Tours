@@ -785,7 +785,7 @@ class Payment(models.Model):
 class OpenAIAPIKey(models.Model):
     """Store OpenAI API key for the chat feature"""
     api_key = models.CharField(max_length=200, help_text="OpenAI API key")
-    
+    data = models.CharField(max_length=100, null=True, blank=True)
     class Meta:
         verbose_name = 'OpenAI API Key'
         verbose_name_plural = 'OpenAI API Keys'
