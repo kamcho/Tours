@@ -65,7 +65,7 @@ class AnalyticsMiddleware:
         response = self.get_response(request)
 
         # Skip admin and static files
-        if request.path.startswith("/admin") or request.path.startswith("/static"):
+        if request.path.startswith("/admin") or request.path.startswith("/static") or request.path.startswith("/core/analytics/") or request.path.startswith("/favicon.ico") or request.path.startswith('/media')     :
             return response
 
         try:
@@ -73,7 +73,11 @@ class AnalyticsMiddleware:
             ip = self.get_client_ip(request)
             user_agent = request.META.get("HTTP_USER_AGENT", "")
             referrer = request.META.get("HTTP_REFERER", "")
-            session_key = request.session.session_key or None
+            
+            # Ensure session exists for anonymous users too
+            if not request.session.session_key:
+                request.session.create()
+            session_key = request.session.session_key
 
             PageVisit.objects.create(
                 path=request.path,

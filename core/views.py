@@ -1609,16 +1609,22 @@ def seed_sample_data(request):
 from django.shortcuts import render
 from django.db.models import Count, Avg
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta, datetime
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import user_passes_test
 import json
 from .models import PageVisit
 
+def is_admin(user):
+    return user.is_authenticated and user.is_superuser
+
+@user_passes_test(is_admin)
 def analytics_dashboard(request):
     # Total visits
     total_visits = PageVisit.objects.count()
 
-    # Unique visitors by IP
-    unique_visitors = PageVisit.objects.values("ip_address").distinct().count()
+    # Unique visitors - count distinct sessions (now all visits should have sessions)
+    unique_visitors = PageVisit.objects.values("session_key").distinct().count()
 
     # Average load time
     avg_load_time = PageVisit.objects.aggregate(avg_time=Avg('load_time'))['avg_time'] or 0
@@ -1638,14 +1644,59 @@ def analytics_dashboard(request):
     )
 
     # Exit pages (last page per session) — simplified
-    exit_pages = top_pages  # you can refine this later
+    exit_pages = top_pages
+
+    # Real visits trend data - last 7 days
+    today = timezone.now().date()
+    visits_by_day = []
+    day_labels = []
+    
+    for i in range(6, -1, -1):  # Last 7 days
+        day = today - timedelta(days=i)
+        day_visits = PageVisit.objects.filter(
+            timestamp__date=day
+        ).count()
+        visits_by_day.append(day_visits)
+        day_labels.append(day.strftime('%a'))  # Mon, Tue, etc.
+
+    # Hourly visits for today
+    hourly_visits = []
+    hourly_labels = []
+    for hour in range(24):
+        hour_visits = PageVisit.objects.filter(
+            timestamp__date=today,
+            timestamp__hour=hour
+        ).count()
+        hourly_visits.append(hour_visits)
+        hourly_labels.append(f"{hour:02d}:00")
+
+    # Browser/Device analytics - group by parsed browser name
+    browser_stats = {}
+    all_visits = PageVisit.objects.values("user_agent").annotate(count=Count("id"))
+    
+    for visit in all_visits:
+        browser_name = parse_user_agent(visit['user_agent'])
+        if browser_name in browser_stats:
+            browser_stats[browser_name] += visit['count']
+        else:
+            browser_stats[browser_name] = visit['count']
+    
+    # Convert to list format for charts
+    browser_data = [
+        {'browser': browser, 'count': count} 
+        for browser, count in sorted(browser_stats.items(), key=lambda x: x[1], reverse=True)[:5]
+    ]
 
     # Prepare data for charts (JSON safe)
     chart_data = {
-        'top_pages_labels': [page['path'][:20] for page in top_pages],
+        'top_pages_labels': [page['path'][:30] for page in top_pages],
         'top_pages_data': [page['visits'] for page in top_pages],
-        'visits_trend_labels': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        'visits_trend_data': [65, 59, 80, 81, 56, 55, 40]  # Sample data - replace with real time-series
+        'visits_trend_labels': day_labels,
+        'visits_trend_data': visits_by_day,
+        'hourly_labels': hourly_labels,
+        'hourly_data': hourly_visits,
+        'browser_labels': [browser['browser'][:20] for browser in browser_data],
+        'browser_data': [browser['count'] for browser in browser_data]
     }
 
     context = {
@@ -1656,5 +1707,25 @@ def analytics_dashboard(request):
         "entry_pages": entry_pages,
         "exit_pages": exit_pages,
         "chart_data_json": json.dumps(chart_data),
+        "browser_data": browser_data,
     }
     return render(request, "core/analytics_dashboard.html", context)
+
+def parse_user_agent(user_agent):
+    """Simple user agent parsing to extract browser name"""
+    if not user_agent:
+        return "Unknown"
+    
+    user_agent = user_agent.lower()
+    if 'chrome' in user_agent and 'edg' not in user_agent:
+        return "Chrome"
+    elif 'firefox' in user_agent:
+        return "Firefox"
+    elif 'safari' in user_agent and 'chrome' not in user_agent:
+        return "Safari"
+    elif 'edg' in user_agent:
+        return "Edge"
+    elif 'opera' in user_agent:
+        return "Opera"
+    else:
+        return "Other"

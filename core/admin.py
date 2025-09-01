@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import Contact, PaymentMethod, PaymentTransaction, CardPayment, MPesaPayment, PaymentWebhook, Refund, PaymentSettings, Subscription, SubscriptionPlan, VerificationRequest, Payment, AIChatInteraction, AIInsightsReport, DateBuilderPreference, DateBuilderSuggestion, OpenAIAPIKey
 from django.utils import timezone
-from .models import ChatQuestion, ChatResponse
+from .models import ChatQuestion, ChatResponse, PageVisit
 
 # Register your models here.
 # Subscription Admin
@@ -655,3 +655,4 @@ class ChatResponseAdmin(admin.ModelAdmin):
 # OpenAI API Key Admin
 
 admin.site.register(OpenAIAPIKey)
+admin.site.register(PageVisit)
