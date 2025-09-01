@@ -430,7 +430,7 @@ class TravelGroupDetailView(DetailView):
         # Prefetch related personal profiles to avoid N+1 queries in templates
         # Related name on PersonalProfile is 'profile'
         context['members'] = self.object.members.select_related('profile').all()
-        
+            
         # Add membership information for the current user
         if self.request.user.is_authenticated:
             context['is_member'] = self.request.user in self.object.members.all()

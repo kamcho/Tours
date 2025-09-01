@@ -1,0 +1,113 @@
+{% extends 'users/base.html' %}
+{% load member_display %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="relative bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-900 py-24 overflow-hidden">
+    <!-- Hero section content -->
+    <div class="absolute inset-0">
+        <div class="absolute top-0 left-0 w-40 h-40 bg-emerald-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+        <div class="absolute top-0 right-0 w-32 h-32 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style="animation-delay: 1s;"></div>
+    </div>
+    
+    <!-- Main content container -->
+    <div class="relative z-10 max-w-7xl mx-auto px-4">
+        <!-- Your hero content here -->
+    </div>
+</div>
+
+<!-- Group Details -->
+<div class="bg-gradient-to-br from-gray-50 to-blue-50 py-20">
+    <div class="max-w-7xl mx-auto px-4">
+        {% if user.is_authenticated %}
+            {% if can_join %}
+                <!-- Join Group Card -->
+                <div class="bg-white rounded-3xl p-8 border border-gray-200 shadow-xl mb-8">
+                    <div class="text-center mb-6">
+                        <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-3">Join This Group</h3>
+                        <p class="text-gray-600 text-lg">Connect with fellow travelers and start sharing experiences.</p>
+                    </div>
+                    <form method="post" action="{% url 'join_travel_group' group_id=travel_group.id %}" class="space-y-4">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-4 px-6 rounded-2xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Join Group
+                        </button>
+                    </form>
+                </div>
+            {% elif can_leave %}
+                <!-- Leave Group Card -->
+                <div class="bg-white rounded-3xl p-8 border border-gray-200 shadow-xl mb-8">
+                    <div class="text-center mb-6">
+                        <div class="w-16 h-16 bg-gradient-to-r from-red-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-3">Leave Group</h3>
+                        <p class="text-gray-600 text-lg">You're currently a member of this group.</p>
+                    </div>
+                    <form method="post" action="{% url 'leave_travel_group' group_id=travel_group.id %}" class="space-y-4">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white py-4 px-6 rounded-2xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                            Leave Group
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+        {% else %}
+            <!-- Sign In Required Card -->
+            <div class="bg-white rounded-3xl p-8 border border-gray-200 shadow-xl mb-8">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-3">Sign In Required</h3>
+                    <p class="text-gray-600 text-lg">Please sign in to join this travel group.</p>
+                </div>
+                <a href="{% url 'login' %}?next={% url 'travelgroup_detail' travel_group.id %}" class="block w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-4 px-6 rounded-2xl font-bold text-lg text-center transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                    Sign In
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle form submission for removing members
+    const removeMemberForms = document.querySelectorAll('.remove-member-form');
+    
+    for (const form of removeMemberForms) {
+      form.addEventListener('submit', function(e) {
+        if (!confirm('Are you sure you want to remove this member from the group?')) {
+          e.preventDefault();
+          return false;
+        }
+        
+        // Basic user ID validation
+        const userId = this.querySelector('input[name="user_id"]').value;
+        if (isNaN(userId) || userId <= 0) {
+          e.preventDefault();
+          alert('Please enter a valid user ID (must be a positive number)');
+          return false;
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}
