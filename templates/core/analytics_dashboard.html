@@ -1,30 +1,414 @@
 {% extends 'users/base.html' %}
 {% load static %}
 
+{% block extra_css %}
+<style>
+    .analytics-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 2rem;
+        color: white;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .analytics-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    .metric-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+    
+    .chart-container {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+    
+    .chart-wrapper {
+        position: relative;
+        height: 400px;
+        width: 100%;
+    }
+    
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #2563eb;
+        margin-bottom: 0.5rem;
+    }
+    
+    .metric-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+    }
+    
+    .metric-icon {
+        width: 3rem;
+        height: 3rem;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+    
+    .icon-visits { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .icon-users { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .icon-pages { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .icon-time { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+    
+    .dashboard-header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #581c87 100%);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 3rem;
+        border-radius: 0 0 30px 30px;
+    }
+    
+    .page-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid #f3f4f6;
+        transition: background-color 0.2s ease;
+    }
+    
+    .page-item:hover {
+        background-color: #f9fafb;
+    }
+    
+    .page-item:last-child {
+        border-bottom: none;
+    }
+    
+    .page-path {
+        font-weight: 600;
+        color: #374151;
+    }
+    
+    .page-count {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<h2>Analytics Dashboard</h2>
+<!-- Dashboard Header -->
+<div class="dashboard-header">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center">
+            <h1 class="text-4xl lg:text-5xl font-bold mb-4">Analytics Dashboard</h1>
+            <p class="text-xl text-blue-100 max-w-3xl mx-auto">
+                Comprehensive insights into your website performance and user behavior
+            </p>
+        </div>
+    </div>
+</div>
 
-<p><strong>Total Visits:</strong> {{ total_visits }}</p>
-<p><strong>Unique Visitors:</strong> {{ unique_visitors }}</p>
+<div class="max-w-7xl mx-auto px-4 pb-12">
+    <!-- Key Metrics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Visits -->
+        <div class="metric-card">
+            <div class="metric-icon icon-visits">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+            </div>
+            <div class="metric-value">{{ total_visits|default:0 }}</div>
+            <div class="metric-label">Total Visits</div>
+        </div>
+        
+        <!-- Unique Visitors -->
+        <div class="metric-card">
+            <div class="metric-icon icon-users">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                </svg>
+            </div>
+            <div class="metric-value">{{ unique_visitors|default:0 }}</div>
+            <div class="metric-label">Unique Visitors</div>
+        </div>
+        
+        <!-- Top Pages Count -->
+        <div class="metric-card">
+            <div class="metric-icon icon-pages">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+            </div>
+            <div class="metric-value">{{ top_pages|length|default:0 }}</div>
+            <div class="metric-label">Active Pages</div>
+        </div>
+        
+        <!-- Average Load Time -->
+        <div class="metric-card">
+            <div class="metric-icon icon-time">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <div class="metric-value">{{ avg_load_time|floatformat:2|default:"0.00" }}s</div>
+            <div class="metric-label">Avg Load Time</div>
+        </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Top Pages Chart -->
+        <div class="chart-container">
+            <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                <svg class="w-6 h-6 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                Most Visited Pages
+            </h3>
+            <div class="chart-wrapper">
+                <canvas id="topPagesChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Visits Over Time Chart -->
+        <div class="chart-container">
+            <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                <svg class="w-6 h-6 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                </svg>
+                Visits Trend
+            </h3>
+            <div class="chart-wrapper">
+                <canvas id="visitsTimeChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detailed Tables -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Top Pages Table -->
+        <div class="chart-container">
+            <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                <svg class="w-6 h-6 text-purple-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Page Performance Details
+            </h3>
+            <div class="space-y-0">
+                {% for page in top_pages %}
+                <div class="page-item">
+                    <div class="page-path">{{ page.path|default:"/" }}</div>
+                    <div class="page-count">{{ page.visits }} visits</div>
+                </div>
+                {% empty %}
+                <div class="text-center py-8 text-gray-500">
+                    <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <p>No page data available yet</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Entry Pages Table -->
+        <div class="chart-container">
+            <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                <svg class="w-6 h-6 text-orange-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                </svg>
+                Popular Entry Points
+            </h3>
+            <div class="space-y-0">
+                {% for page in entry_pages %}
+                <div class="page-item">
+                    <div class="page-path">{{ page.path|default:"/" }}</div>
+                    <div class="page-count">{{ page.entries }} entries</div>
+                </div>
+                {% empty %}
+                <div class="text-center py-8 text-gray-500">
+                    <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                    </svg>
+                    <p>No entry data available yet</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
-<h3>Top Pages</h3>
-<ul>
-    {% for page in top_pages %}
-        <li>{{ page.path }} — {{ page.visits }} visits</li>
-    {% endfor %}
-</ul>
-
-<h3>Entry Pages</h3>
-<ul>
-    {% for page in entry_pages %}
-        <li>{{ page.path }} — {{ page.entries }} entries</li>
-    {% endfor %}
-</ul>
-
-<h3>Exit Pages</h3>
-<ul>
-    {% for page in exit_pages %}
-        <li>{{ page.path }} — {{ page.visits }} exits</li>
-    {% endfor %}
-</ul>
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get chart data from backend
+    const chartData = {{ chart_data_json|safe }};
+    
+    // Top Pages Chart
+    const topPagesCtx = document.getElementById('topPagesChart').getContext('2d');
+    const topPagesData = {
+        labels: chartData.top_pages_labels,
+        datasets: [{
+            label: 'Page Visits',
+            data: chartData.top_pages_data,
+            backgroundColor: [
+                'rgba(102, 126, 234, 0.8)',
+                'rgba(118, 75, 162, 0.8)',
+                'rgba(240, 147, 251, 0.8)',
+                'rgba(245, 87, 108, 0.8)',
+                'rgba(79, 172, 254, 0.8)',
+                'rgba(0, 242, 254, 0.8)',
+                'rgba(67, 233, 123, 0.8)',
+                'rgba(56, 249, 215, 0.8)',
+                'rgba(255, 159, 64, 0.8)',
+                'rgba(255, 99, 132, 0.8)'
+            ],
+            borderColor: [
+                'rgba(102, 126, 234, 1)',
+                'rgba(118, 75, 162, 1)',
+                'rgba(240, 147, 251, 1)',
+                'rgba(245, 87, 108, 1)',
+                'rgba(79, 172, 254, 1)',
+                'rgba(0, 242, 254, 1)',
+                'rgba(67, 233, 123, 1)',
+                'rgba(56, 249, 215, 1)',
+                'rgba(255, 159, 64, 1)',
+                'rgba(255, 99, 132, 1)'
+            ],
+            borderWidth: 2,
+            borderRadius: 8,
+            borderSkipped: false,
+        }]
+    };
+    
+    new Chart(topPagesCtx, {
+        type: 'bar',
+        data: topPagesData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            aspectRatio: 2,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: 'white',
+                    bodyColor: 'white',
+                    cornerRadius: 8,
+                    displayColors: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    ticks: {
+                        color: '#6b7280'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#6b7280',
+                        maxRotation: 45
+                    }
+                }
+            }
+        }
+    });
+    
+    // Visits Over Time Chart
+    const visitsTimeCtx = document.getElementById('visitsTimeChart').getContext('2d');
+    const visitsTimeData = {
+        labels: chartData.visits_trend_labels,
+        datasets: [{
+            label: 'Daily Visits',
+            data: chartData.visits_trend_data,
+            fill: true,
+            backgroundColor: 'rgba(67, 233, 123, 0.1)',
+            borderColor: 'rgba(67, 233, 123, 1)',
+            borderWidth: 3,
+            tension: 0.4,
+            pointBackgroundColor: 'rgba(67, 233, 123, 1)',
+            pointBorderColor: 'white',
+            pointBorderWidth: 2,
+            pointRadius: 6,
+            pointHoverRadius: 8
+        }]
+    };
+    
+    new Chart(visitsTimeCtx, {
+        type: 'line',
+        data: visitsTimeData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            aspectRatio: 2,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: 'white',
+                    bodyColor: 'white',
+                    cornerRadius: 8,
+                    displayColors: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    ticks: {
+                        color: '#6b7280'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#6b7280'
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

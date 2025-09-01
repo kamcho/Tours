@@ -1607,7 +1607,10 @@ def seed_sample_data(request):
         'created_agencies': created_agencies,
     })
 from django.shortcuts import render
-from django.db.models import Count
+from django.db.models import Count, Avg
+from django.utils import timezone
+from datetime import timedelta
+import json
 from .models import PageVisit
 
 def analytics_dashboard(request):
@@ -1616,6 +1619,9 @@ def analytics_dashboard(request):
 
     # Unique visitors by IP
     unique_visitors = PageVisit.objects.values("ip_address").distinct().count()
+
+    # Average load time
+    avg_load_time = PageVisit.objects.aggregate(avg_time=Avg('load_time'))['avg_time'] or 0
 
     # Top pages
     top_pages = (
@@ -1634,11 +1640,21 @@ def analytics_dashboard(request):
     # Exit pages (last page per session) — simplified
     exit_pages = top_pages  # you can refine this later
 
+    # Prepare data for charts (JSON safe)
+    chart_data = {
+        'top_pages_labels': [page['path'][:20] for page in top_pages],
+        'top_pages_data': [page['visits'] for page in top_pages],
+        'visits_trend_labels': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        'visits_trend_data': [65, 59, 80, 81, 56, 55, 40]  # Sample data - replace with real time-series
+    }
+
     context = {
         "total_visits": total_visits,
         "unique_visitors": unique_visitors,
+        "avg_load_time": avg_load_time,
         "top_pages": top_pages,
         "entry_pages": entry_pages,
         "exit_pages": exit_pages,
+        "chart_data_json": json.dumps(chart_data),
     }
     return render(request, "core/analytics_dashboard.html", context)
