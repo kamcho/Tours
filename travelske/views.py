@@ -2,8 +2,11 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import JsonResponse
 from core.models import Contact
+from listings.models import Place
 
 def home_view(request):
+    places = Place.objects.order_by("?")[:6]
+
     if request.method == 'POST':
         try:
             # Get form data
@@ -34,7 +37,7 @@ def home_view(request):
             messages.error(request, 'An error occurred. Please try again.')
             return redirect('home')
     
-    return render(request, 'home.html')
+    return render(request, 'home.html', context={'places': places})
 
 def tours_view(request):
     return render(request, 'tours.html')

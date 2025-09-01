@@ -19,8 +19,8 @@ staticfiles/
 *.log
 
 # Ignore all migration files
-# */migrations/*
-# !*/migrations/__init__.py   # Keep __init__.py so Django still recognizes the folder
+*/migrations/*
+*/migrations/__init__.py   # Keep __init__.py so Django still recognizes the folder
 
 # IDE / Editor settings
 .vscode/

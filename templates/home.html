@@ -291,175 +291,112 @@
             <p class="text-xl text-gray-600 max-w-3xl mx-auto">Discover Kenya's most breathtaking locations and curated travel packages</p>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Maasai Mara -->
-            <div class="group bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
-                <div class="relative h-64 overflow-hidden">
-                    <picture>
-                        <source srcset="https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=70&fm=webp" type="image/webp">
-                        <img src="https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=70" alt="Maasai Mara" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" decoding="async">
-                    </picture>
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                    <div class="absolute top-4 left-4">
-                        <span class="bg-emerald-700 text-white px-3 py-1 rounded-full text-sm font-semibold">Wildlife</span>
-                    </div>
-                    <div class="absolute top-4 right-4">
-                        <span class="bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-semibold"></span>
-                    </div>
-                </div>
-                <div class="p-6">
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Maasai Mara Safari</h3>
-                    <p class="text-gray-600 mb-4">Experience the Great Migration and witness the Big Five in their natural habitat</p>
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2 text-sm text-gray-500">
-                            <svg class="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                            </svg>
-                            <span>Narok County</span>
+        <!-- Places Grid -->
+<div class="g-white py-16">
+    <div class="max-w-7xl mx-auto px-4">
+        {% if places %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {% for place in places %}
+                <div class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105 overflow-hidden border border-gray-100">
+                    <!-- Place Image -->
+                    <div class="relative h-48 bg-gradient-to-br from-teal-400 to-blue-500 overflow-hidden">
+                        {% if place.profile_picture %}
+                            <div class="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-500" style="background-image: url('{{ place.profile_picture.url }}');"></div>
+                        {% else %}
+                            <div class="absolute inset-0 bg-gradient-to-br from-teal-400 to-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                                <div class="text-center text-white">
+                                    <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    <p class="text-sm font-medium">No Image</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                        
+                        <!-- Category Badge -->
+                        <div class="absolute top-4 left-4">
+                            <span class="bg-white/90 backdrop-blur-sm text-gray-800 px-3 py-1 rounded-full text-xs font-semibold">{{ place.category.name }}</span>
                         </div>
-                        <a href="{% url 'grouptours_list' %}" class="text-emerald-600 hover:text-emerald-700 font-semibold">View Details →</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Diani Beach -->
-            <div class="group bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
-                <div class="relative h-64 overflow-hidden">
-                                            <img src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=70" alt="Diani Beach" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                    <div class="absolute top-4 left-4">
-                        <span class="bg-blue-700 text-white px-3 py-1 rounded-full text-sm font-semibold">Beach</span>
-                    </div>
-                    <div class="absolute top-4 right-4">
-                        <span class="bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-semibold"></span>
-                    </div>
-                </div>
-                <div class="p-6">
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Diani Beach Resort</h3>
-                    <p class="text-gray-600 mb-4">Relax on pristine white sands and enjoy water sports in the Indian Ocean</p>
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2 text-sm text-gray-500">
-                            <svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                            </svg>
-                            <span>Kwale County</span>
+                        
+                        <!-- Active Status -->
+                        <div class="absolute top-4 right-4">
+                            {% if place.is_active %}
+                                <span class="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">Active</span>
+                            {% else %}
+                                <span class="bg-gray-500 text-white px-3 py-1 rounded-full text-xs font-semibold">Inactive</span>
+                            {% endif %}
                         </div>
-                        <a href="{% url 'public_place_list' %}" class="text-blue-600 hover:text-blue-700 font-semibold">View Details →</a>
                     </div>
-                </div>
-            </div>
-
-            <!-- Mount Kenya -->
-            <div class="group bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
-                <div class="relative h-64 overflow-hidden">
-                                            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=70" alt="Mount Kenya" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                    <div class="absolute top-4 left-4">
-                        <span class="bg-purple-700 text-white px-3 py-1 rounded-full text-sm font-semibold">Adventure</span>
-                    </div>
-                    <div class="absolute top-4 right-4">
-                        <span class="bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-semibold"></span>
-                    </div>
-                </div>
-                <div class="p-6">
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Mount Kenya Trek</h3>
-                    <p class="text-gray-600 mb-4">Conquer Africa's second-highest peak with experienced mountain guides</p>
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2 text-sm text-gray-500">
-                            <svg class="w-4 h-4 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                            </svg>
-                            <span>Nyeri County</span>
+                    
+                    <!-- Place Content -->
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-2 group-hover:text-teal-600 transition-colors">{{ place.name }}</h3>
+                        <p class="text-gray-600 mb-4 line-clamp-2">{{ place.description|truncatewords:20 }}</p>
+                        
+                        <!-- Place Details -->
+                        <div class="space-y-2 mb-4">
+                            <div class="flex items-center gap-2 text-gray-600">
+                                <svg class="w-4 h-4 text-teal-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                </svg>
+                                <span class="text-sm">{{ place.location }}</span>
+                            </div>
+                            {% if place.address %}
+                            <div class="flex items-center gap-2 text-gray-600">
+                                <svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                </svg>
+                                <span class="text-sm">{{ place.address|truncatechars:30 }}</span>
+                            </div>
+                            {% endif %}
+                            
                         </div>
-                        <a href="{% url 'grouptours_list' %}" class="text-purple-600 hover:text-purple-700 font-semibold">View Details →</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Lamu Island -->
-            <div class="group bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
-                <div class="relative h-64 overflow-hidden">
-                    <img src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" alt="Lamu Island" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                    <div class="absolute top-4 left-4">
-                        <span class="bg-orange-700 text-white px-3 py-1 rounded-full text-sm font-semibold">Cultural</span>
-                    </div>
-                    <div class="absolute top-4 right-4">
-                        <span class="bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-semibold"></span>
-                    </div>
-                </div>
-                <div class="p-6">
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Lamu Cultural Tour</h3>
-                    <p class="text-gray-600 mb-4">Explore the UNESCO World Heritage site and Swahili architecture</p>
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2 text-sm text-gray-500">
-                            <svg class="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                            </svg>
-                            <span>Lamu County</span>
+                        
+                        <!-- Tags -->
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="bg-teal-100 text-teal-700 px-2 py-1 rounded-full text-xs font-medium">{{ place.category.name }}</span>
+                            {% if place.website %}
+                                <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">Website</span>
+                            {% endif %}
+                            
                         </div>
-                        <a href="{% url 'grouptours_list' %}" class="text-orange-600 hover:text-orange-700 font-semibold">View Details →</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Lake Nakuru -->
-            <div class="group bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
-                <div class="relative h-64 overflow-hidden">
-                    <img src="https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" alt="Lake Nakuru" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                    <div class="absolute top-4 left-4">
-                        <span class="bg-teal-500 text-white px-3 py-1 rounded-full text-sm font-semibold">Birding</span>
-                    </div>
-                    <div class="absolute top-4 right-4">
-                        <span class="bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-semibold"></span>
-                    </div>
-                </div>
-                <div class="p-6">
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Lake Nakuru Bird Safari</h3>
-                    <p class="text-gray-600 mb-4">Witness millions of flamingos and diverse bird species</p>
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2 text-sm text-gray-500">
-                            <svg class="w-4 h-4 text-teal-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                        
+                        <!-- Action Button -->
+                        <a href="{% url 'public_place_detail' place.pk %}" class="w-full bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700 text-white py-3 px-4 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-2 group-hover:shadow-lg">
+                            View Details
+                            <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                             </svg>
-                            <span>Nakuru County</span>
-                        </div>
-                        <a href="{% url 'grouptours_list' %}" class="text-teal-600 hover:text-teal-700 font-semibold">View Details →</a>
+                        </a>
                     </div>
                 </div>
+                {% endfor %}
             </div>
-
-            <!-- Amboseli -->
-            <div class="group bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
-                <div class="relative h-64 overflow-hidden">
-                    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" alt="Amboseli" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                    <div class="absolute top-4 left-4">
-                        <span class="bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-semibold">Safari</span>
-                    </div>
-                    <div class="absolute top-4 right-4">
-                        <span class="bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-semibold"></span>
-                    </div>
+        {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-16">
+                <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
                 </div>
-                <div class="p-6">
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Amboseli Elephant Safari</h3>
-                    <p class="text-gray-600 mb-4">See elephants against the backdrop of Mount Kilimanjaro</p>
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2 text-sm text-gray-500">
-                            <svg class="w-4 h-4 text-pink-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                            </svg>
-                            <span>Kajiado County</span>
-                        </div>
-                        <a href="{% url 'grouptours_list' %}" class="text-pink-600 hover:text-pink-700 font-semibold">View Details →</a>
-                    </div>
-                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">No Places Found</h3>
+                <p class="text-gray-600 mb-6">We couldn't find any places matching your criteria. Try adjusting your filters or check back later.</p>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'place_create_step' step=1 %}" class="bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition duration-300">
+                        Add the First Place
+                    </a>
+                {% endif %}
             </div>
-        </div>
+        {% endif %}
+    </div>
+</div>
         
         <div class="text-center mt-12">
-            <a href="{% url 'grouptours_list' %}" class="inline-flex items-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-8 py-4 rounded-lg font-semibold transition duration-300 shadow-lg hover:shadow-xl">
+            <a href="{% url 'public_place_list' %}" class="inline-flex items-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-8 py-4 rounded-lg font-semibold transition duration-300 shadow-lg hover:shadow-xl">
                 View All Destinations
                 <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
