@@ -53,4 +53,6 @@ urlpatterns = [
     
     # Seeding sample data (staff only)
     path('seed/sample-data/', views.seed_sample_data, name='seed_sample_data'),
+    path("analytics/", views.analytics_dashboard, name="analytics_dashboard"),
+
 ] 

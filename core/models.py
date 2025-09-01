@@ -1207,3 +1207,20 @@ class ChatResponse(models.Model):
             return self.question.agency
         return None
 
+
+
+
+class PageVisit(models.Model):
+    path = models.CharField(max_length=255)   # The page URL or route
+    ip_address = models.GenericIPAddressField()
+    user_agent = models.TextField(blank=True, null=True)  # Browser/device info
+    referrer = models.TextField(blank=True, null=True)  # Source (Google, social, direct)
+    timestamp = models.DateTimeField(default=timezone.now)
+    session_key = models.CharField(max_length=40, blank=True, null=True)
+
+    # Extra metrics
+    load_time = models.FloatField(blank=True, null=True)  # In seconds
+    status_code = models.IntegerField(blank=True, null=True)  # e.g., 200, 404, 500
+
+    def __str__(self):
+        return f"{self.path} - {self.ip_address} @ {self.timestamp}"

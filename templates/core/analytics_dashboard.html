@@ -1,0 +1,30 @@
+{% extends 'users/base.html' %}
+{% load static %}
+
+{% block content %}
+<h2>Analytics Dashboard</h2>
+
+<p><strong>Total Visits:</strong> {{ total_visits }}</p>
+<p><strong>Unique Visitors:</strong> {{ unique_visitors }}</p>
+
+<h3>Top Pages</h3>
+<ul>
+    {% for page in top_pages %}
+        <li>{{ page.path }} — {{ page.visits }} visits</li>
+    {% endfor %}
+</ul>
+
+<h3>Entry Pages</h3>
+<ul>
+    {% for page in entry_pages %}
+        <li>{{ page.path }} — {{ page.entries }} entries</li>
+    {% endfor %}
+</ul>
+
+<h3>Exit Pages</h3>
+<ul>
+    {% for page in exit_pages %}
+        <li>{{ page.path }} — {{ page.visits }} exits</li>
+    {% endfor %}
+</ul>
+{% endblock %}

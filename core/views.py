@@ -1606,3 +1606,39 @@ def seed_sample_data(request):
         'created_places': created_places,
         'created_agencies': created_agencies,
     })
+from django.shortcuts import render
+from django.db.models import Count
+from .models import PageVisit
+
+def analytics_dashboard(request):
+    # Total visits
+    total_visits = PageVisit.objects.count()
+
+    # Unique visitors by IP
+    unique_visitors = PageVisit.objects.values("ip_address").distinct().count()
+
+    # Top pages
+    top_pages = (
+        PageVisit.objects.values("path")
+        .annotate(visits=Count("id"))
+        .order_by("-visits")[:10]
+    )
+
+    # Entry pages (first page per session)
+    entry_pages = (
+        PageVisit.objects.values("path")
+        .annotate(entries=Count("session_key", distinct=True))
+        .order_by("-entries")[:5]
+    )
+
+    # Exit pages (last page per session) — simplified
+    exit_pages = top_pages  # you can refine this later
+
+    context = {
+        "total_visits": total_visits,
+        "unique_visitors": unique_visitors,
+        "top_pages": top_pages,
+        "entry_pages": entry_pages,
+        "exit_pages": exit_pages,
+    }
+    return render(request, "core/analytics_dashboard.html", context)
