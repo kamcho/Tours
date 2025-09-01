@@ -1607,7 +1607,7 @@ def seed_sample_data(request):
         'created_agencies': created_agencies,
     })
 from django.shortcuts import render
-from django.db.models import Count, Avg
+from django.db.models import Count, Avg, Q
 from django.utils import timezone
 from datetime import timedelta, datetime
 from django.contrib.admin.views.decorators import staff_member_required
@@ -1620,6 +1620,9 @@ def is_admin(user):
 
 @user_passes_test(is_admin)
 def analytics_dashboard(request):
+    # Total users
+    total_users = MyUser.objects.count()
+    
     # Total visits
     total_visits = PageVisit.objects.count()
 
@@ -1708,6 +1711,7 @@ def analytics_dashboard(request):
         "exit_pages": exit_pages,
         "chart_data_json": json.dumps(chart_data),
         "browser_data": browser_data,
+        "total_users": total_users,
     }
     return render(request, "core/analytics_dashboard.html", context)
 
