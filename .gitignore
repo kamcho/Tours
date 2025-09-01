@@ -17,7 +17,7 @@ db.sqlite3
 /media/
 staticfiles/
 *.log
-
+*log
 # Ignore all migration files
 */migrations/*
 */migrations/__init__.py   # Keep __init__.py so Django still recognizes the folder
@@ -53,3 +53,4 @@ Thumbs.db
 .env.bak/
 .env.local
 .env.production
+"db.sqlite3" 
