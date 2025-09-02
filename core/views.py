@@ -1628,7 +1628,7 @@ def analytics_dashboard(request):
 
     # Unique visitors - count distinct sessions (now all visits should have sessions)
     unique_visitors = PageVisit.objects.values("session_key").distinct().count()
-
+    ip = PageVisit.objects.values('ip_address').distinct().count()
     # Average load time
     avg_load_time = PageVisit.objects.aggregate(avg_time=Avg('load_time'))['avg_time'] or 0
 
@@ -1711,7 +1711,7 @@ def analytics_dashboard(request):
         "exit_pages": exit_pages,
         "chart_data_json": json.dumps(chart_data),
         "browser_data": browser_data,
-        "total_users": total_users,
+        "total_users": total_users,'ip':ip,
     }
     return render(request, "core/analytics_dashboard.html", context)
 
