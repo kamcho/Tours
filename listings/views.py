@@ -179,7 +179,6 @@ class PlaceCreateWizard(LoginRequiredMixin, View):
         
         if step == 3:
             # Create a mock form with categories field for template access
-            from .forms import PlaceBasicForm
             mock_form = PlaceBasicForm()
             context['categories_queryset'] = mock_form.fields['categories'].queryset
         
