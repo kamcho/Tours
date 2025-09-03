@@ -352,7 +352,7 @@ class PublicPlaceListView(ListView):
     paginate_by = 30
     
     def get_queryset(self):
-        queryset = Place.objects.filter(is_active=True)
+        queryset = Place.objects.filter(is_active=True).order_by('-id')
         
         # Get filter parameters
         category = self.request.GET.get('category')
@@ -4729,7 +4729,7 @@ def place_chat(request, place_id):
             ==================
             Basic Details:
             - Name: {place_data['basic_info']['name']}
-            - Category: {place_data['basic_info']['category']}
+            - Categories: {', '.join(place_data['basic_info'].get('categories', []))}
             - Description: {place_data['basic_info']['description']}
             - Location: {place_data['basic_info']['location']}
             - Address: {place_data['basic_info']['address']}
