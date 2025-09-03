@@ -317,7 +317,7 @@ class PlaceCategory(models.Model):
 class Place(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
-    category = models.ForeignKey(PlaceCategory, on_delete=models.CASCADE, related_name='places')
+    categories = models.ManyToManyField(PlaceCategory, related_name='places', blank=True)
     location = models.CharField(max_length=255)
     address = models.CharField(max_length=255, blank=True, null=True)
     website = models.URLField(blank=True, null=True)
@@ -416,6 +416,11 @@ class Place(models.Model):
 
     def __str__(self):
         return self.name
+    
+    @property
+    def category(self):
+        """Backward compatibility property - returns first category"""
+        return self.categories.first()
     
     @property
     def average_rating(self):

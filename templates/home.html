@@ -315,9 +315,11 @@
                         {% endif %}
                         <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                         
-                        <!-- Category Badge -->
-                        <div class="absolute top-4 left-4">
-                            <span class="bg-white/90 backdrop-blur-sm text-gray-800 px-3 py-1 rounded-full text-xs font-semibold">{{ place.category.name }}</span>
+                        <!-- Category Badges -->
+                        <div class="absolute top-4 left-4 flex flex-wrap gap-1">
+                            {% for category in place.categories.all %}
+                                <span class="bg-white/90 backdrop-blur-sm text-gray-800 px-3 py-1 rounded-full text-xs font-semibold">{{ category.name }}</span>
+                            {% endfor %}
                         </div>
                         
                         <!-- Active Status -->
@@ -356,7 +358,9 @@
                         
                         <!-- Tags -->
                         <div class="flex flex-wrap gap-2 mb-4">
-                            <span class="bg-teal-100 text-teal-700 px-2 py-1 rounded-full text-xs font-medium">{{ place.category.name }}</span>
+                            {% for category in place.categories.all %}
+                                <span class="bg-teal-100 text-teal-700 px-2 py-1 rounded-full text-xs font-medium">{{ category.name }}</span>
+                            {% endfor %}
                             {% if place.website %}
                                 <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">Website</span>
                             {% endif %}

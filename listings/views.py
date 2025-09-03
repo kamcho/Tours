@@ -80,12 +80,12 @@ class PlaceBasicForm(forms.Form):
             'rows': 4,
         })
     )
-    category = forms.ModelChoiceField(
+    categories = forms.ModelMultipleChoiceField(
         queryset=PlaceCategory.objects.all(),
-        empty_label="Select a category",
-        widget=forms.Select(attrs={
-            'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200',
-        })
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'space-y-2',
+        }),
+        help_text="Select one or more categories that best describe your place"
     )
     location = forms.CharField(
         max_length=255,
@@ -194,8 +194,9 @@ class PlaceCreateWizard(LoginRequiredMixin, View):
                 )
                 step_data['profile_picture'] = path  # save file path, not file object
 
-            if 'category' in step_data and hasattr(step_data['category'], 'id'):
-                step_data['category'] = step_data['category'].id
+            # Handle categories QuerySet - convert to list of IDs for session storage
+            if 'categories' in step_data:
+                step_data['categories'] = [cat.id for cat in step_data['categories']]
 
             request.session[f'place_step_{step}'] = step_data
 
@@ -242,7 +243,6 @@ class PlaceCreateWizard(LoginRequiredMixin, View):
             place = Place.objects.create(
                 name=data['name'],
                 description=data['description'],
-                category=PlaceCategory.objects.get(id=data['category']),
                 location=data['location'],
                 address=data.get('address', ''),
                 website=data.get('website', ''),
@@ -253,6 +253,11 @@ class PlaceCreateWizard(LoginRequiredMixin, View):
                 is_active=data.get('is_active', True),
                 created_by=request.user
             )
+            
+            # Add categories after creating the place
+            if 'categories' in data:
+                category_ids = data['categories'] if isinstance(data['categories'], list) else [data['categories']]
+                place.categories.set(PlaceCategory.objects.filter(id__in=category_ids))
 
             # Clear session data
             for i in range(1, 4):
@@ -296,9 +301,29 @@ class UserPlaceDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 
 class UserPlaceUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Place
-    fields = ['name', 'description', 'category', 'location', 'address', 'website', 'contact_email', 'contact_phone', 'profile_picture', 'place_intro_video', 'is_active']
+    fields = ['name', 'description', 'location', 'address', 'website', 'contact_email', 'contact_phone', 'profile_picture', 'place_intro_video', 'is_active']
     template_name = 'listings/user_place_form.html'
     success_url = reverse_lazy('user_place_list')
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        # Add categories field manually since it's ManyToMany
+        form.fields['categories'] = forms.ModelMultipleChoiceField(
+            queryset=PlaceCategory.objects.all(),
+            widget=forms.CheckboxSelectMultiple(attrs={
+                'class': 'space-y-2',
+            }),
+            help_text="Select one or more categories that best describe your place",
+            initial=self.object.categories.all()
+        )
+        return form
+    
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        # Handle categories separately
+        if 'categories' in form.cleaned_data:
+            self.object.categories.set(form.cleaned_data['categories'])
+        return response
 
     def test_func(self):
         return self.get_object().created_by == self.request.user

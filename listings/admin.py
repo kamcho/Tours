@@ -22,15 +22,16 @@ unverify_agencies.short_description = "Mark selected agencies as unverified"
 admin.site.register(PlaceCategory)
 @admin.register(Place)
 class PlaceAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'location', 'verified', 'is_active', 'created_by', 'created_at']
-    list_filter = ['category', 'verified', 'is_active', 'created_at']
+    list_display = ['name', 'get_categories', 'location', 'verified', 'is_active', 'created_by', 'created_at']
+    list_filter = ['categories', 'verified', 'is_active', 'created_at']
     search_fields = ['name', 'description', 'location', 'address']
     list_editable = ['verified', 'is_active']
     readonly_fields = ['created_at', 'updated_at']
     actions = [verify_places, unverify_places]
+    filter_horizontal = ['categories']
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'description', 'category', 'verified')
+            'fields': ('name', 'description', 'categories', 'verified')
         }),
         ('Location', {
             'fields': ('location', 'address')
@@ -52,6 +53,12 @@ class PlaceAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+    
+    def get_categories(self, obj):
+        """Display categories as comma-separated list in admin"""
+        return ", ".join([cat.name for cat in obj.categories.all()])
+    get_categories.short_description = "Categories"
+
 admin.site.register(TravelGroup)
 admin.site.register(PlaceImage)
 @admin.register(GroupTours)
