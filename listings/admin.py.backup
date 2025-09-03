@@ -27,6 +27,65 @@ class PlaceAdmin(admin.ModelAdmin):
     search_fields = ['name', 'description', 'location', 'address']
     list_editable = ['verified', 'is_active']
     readonly_fields = ['created_at', 'updated_at']
+
+
+# Business Chat Admin
+
+@admin.register(Business)
+class BusinessAdmin(admin.ModelAdmin):
+    list_display = ['name', 'industry', 'location', 'email', 'phone', 'created_at']
+    list_filter = ['industry', 'created_at']
+    search_fields = ['name', 'email', 'location']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'description', 'industry', 'company_size')
+        }),
+        ('Contact Information', {
+            'fields': ('email', 'phone', 'whatsapp_number', 'website', 'location')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+
+
+@admin.register(UserBusinessInquiry)
+class UserBusinessInquiryAdmin(admin.ModelAdmin):
+    list_display = ['user', 'business', 'status', 'created_at']
+    list_filter = ['status', 'business', 'created_at']
+    search_fields = ['user__email', 'business__name', 'message']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Inquiry Details', {
+            'fields': ('business', 'user', 'message', 'status')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+
+
+@admin.register(BusinessAIIquiryResponse)
+class BusinessAIIquiryResponseAdmin(admin.ModelAdmin):
+    list_display = ['inquiry', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['inquiry__user__email', 'inquiry__business__name', 'response']
+    readonly_fields = ['created_at']
+    
+    fieldsets = (
+        ('Response Details', {
+            'fields': ('inquiry', 'response')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        })
+    )
     actions = [verify_places, unverify_places]
     filter_horizontal = ['categories']
     fieldsets = (
@@ -105,6 +164,65 @@ class AgencyAdmin(admin.ModelAdmin):
     search_fields = ['name', 'description', 'city', 'country', 'owner__email']
     list_editable = ['status', 'verified']
     readonly_fields = ['created_at', 'updated_at']
+
+
+# Business Chat Admin
+
+@admin.register(Business)
+class BusinessAdmin(admin.ModelAdmin):
+    list_display = ['name', 'industry', 'location', 'email', 'phone', 'created_at']
+    list_filter = ['industry', 'created_at']
+    search_fields = ['name', 'email', 'location']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'description', 'industry', 'company_size')
+        }),
+        ('Contact Information', {
+            'fields': ('email', 'phone', 'whatsapp_number', 'website', 'location')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+
+
+@admin.register(UserBusinessInquiry)
+class UserBusinessInquiryAdmin(admin.ModelAdmin):
+    list_display = ['user', 'business', 'status', 'created_at']
+    list_filter = ['status', 'business', 'created_at']
+    search_fields = ['user__email', 'business__name', 'message']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Inquiry Details', {
+            'fields': ('business', 'user', 'message', 'status')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+
+
+@admin.register(BusinessAIIquiryResponse)
+class BusinessAIIquiryResponseAdmin(admin.ModelAdmin):
+    list_display = ['inquiry', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['inquiry__user__email', 'inquiry__business__name', 'response']
+    readonly_fields = ['created_at']
+    
+    fieldsets = (
+        ('Response Details', {
+            'fields': ('inquiry', 'response')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        })
+    )
     actions = [verify_agencies, unverify_agencies]
     fieldsets = (
         ('Basic Information', {
@@ -170,6 +288,65 @@ class AgencyServiceAdmin(admin.ModelAdmin):
     search_fields = ['name', 'description', 'agency__name']
     list_editable = ['is_featured', 'is_active', 'availability']
     readonly_fields = ['created_at', 'updated_at']
+
+
+# Business Chat Admin
+
+@admin.register(Business)
+class BusinessAdmin(admin.ModelAdmin):
+    list_display = ['name', 'industry', 'location', 'email', 'phone', 'created_at']
+    list_filter = ['industry', 'created_at']
+    search_fields = ['name', 'email', 'location']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'description', 'industry', 'company_size')
+        }),
+        ('Contact Information', {
+            'fields': ('email', 'phone', 'whatsapp_number', 'website', 'location')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+
+
+@admin.register(UserBusinessInquiry)
+class UserBusinessInquiryAdmin(admin.ModelAdmin):
+    list_display = ['user', 'business', 'status', 'created_at']
+    list_filter = ['status', 'business', 'created_at']
+    search_fields = ['user__email', 'business__name', 'message']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Inquiry Details', {
+            'fields': ('business', 'user', 'message', 'status')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+
+
+@admin.register(BusinessAIIquiryResponse)
+class BusinessAIIquiryResponseAdmin(admin.ModelAdmin):
+    list_display = ['inquiry', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['inquiry__user__email', 'inquiry__business__name', 'response']
+    readonly_fields = ['created_at']
+    
+    fieldsets = (
+        ('Response Details', {
+            'fields': ('inquiry', 'response')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        })
+    )
     
     fieldsets = (
         ('Basic Information', {
@@ -207,6 +384,65 @@ class FeaturesAdmin(admin.ModelAdmin):
     search_fields = ['name', 'description', 'place__name']
     list_editable = ['is_active']
     readonly_fields = ['created_at', 'updated_at']
+
+
+# Business Chat Admin
+
+@admin.register(Business)
+class BusinessAdmin(admin.ModelAdmin):
+    list_display = ['name', 'industry', 'location', 'email', 'phone', 'created_at']
+    list_filter = ['industry', 'created_at']
+    search_fields = ['name', 'email', 'location']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'description', 'industry', 'company_size')
+        }),
+        ('Contact Information', {
+            'fields': ('email', 'phone', 'whatsapp_number', 'website', 'location')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+
+
+@admin.register(UserBusinessInquiry)
+class UserBusinessInquiryAdmin(admin.ModelAdmin):
+    list_display = ['user', 'business', 'status', 'created_at']
+    list_filter = ['status', 'business', 'created_at']
+    search_fields = ['user__email', 'business__name', 'message']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Inquiry Details', {
+            'fields': ('business', 'user', 'message', 'status')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+
+
+@admin.register(BusinessAIIquiryResponse)
+class BusinessAIIquiryResponseAdmin(admin.ModelAdmin):
+    list_display = ['inquiry', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['inquiry__user__email', 'inquiry__business__name', 'response']
+    readonly_fields = ['created_at']
+    
+    fieldsets = (
+        ('Response Details', {
+            'fields': ('inquiry', 'response')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        })
+    )
     
     fieldsets = (
         ('Basic Information', {
@@ -249,6 +485,65 @@ class PlaceGalleryAdmin(admin.ModelAdmin):
     )
     
     readonly_fields = ['created_at', 'updated_at']
+
+
+# Business Chat Admin
+
+@admin.register(Business)
+class BusinessAdmin(admin.ModelAdmin):
+    list_display = ['name', 'industry', 'location', 'email', 'phone', 'created_at']
+    list_filter = ['industry', 'created_at']
+    search_fields = ['name', 'email', 'location']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'description', 'industry', 'company_size')
+        }),
+        ('Contact Information', {
+            'fields': ('email', 'phone', 'whatsapp_number', 'website', 'location')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+
+
+@admin.register(UserBusinessInquiry)
+class UserBusinessInquiryAdmin(admin.ModelAdmin):
+    list_display = ['user', 'business', 'status', 'created_at']
+    list_filter = ['status', 'business', 'created_at']
+    search_fields = ['user__email', 'business__name', 'message']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Inquiry Details', {
+            'fields': ('business', 'user', 'message', 'status')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+
+
+@admin.register(BusinessAIIquiryResponse)
+class BusinessAIIquiryResponseAdmin(admin.ModelAdmin):
+    list_display = ['inquiry', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['inquiry__user__email', 'inquiry__business__name', 'response']
+    readonly_fields = ['created_at']
+    
+    fieldsets = (
+        ('Response Details', {
+            'fields': ('inquiry', 'response')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        })
+    )
 
 @admin.register(AgencyGallery)
 class AgencyGalleryAdmin(admin.ModelAdmin):

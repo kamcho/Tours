@@ -1665,3 +1665,72 @@ class PlaceOrderItem(models.Model):
         if not self.total_price:
             self.total_price = self.quantity * self.menu_item.price
         super().save(*args, **kwargs)
+
+
+# Business Chat Models
+
+class Business(models.Model):
+    """Business model for chat service"""
+    name = models.CharField(max_length=200)
+    description = models.TextField()
+    industry = models.CharField(max_length=100)
+    company_size = models.CharField(max_length=50)
+    website = models.URLField(blank=True, null=True)
+    location = models.CharField(max_length=200)
+    phone = models.CharField(max_length=30)
+    email = models.EmailField()
+    whatsapp_number = models.CharField(max_length=30, blank=True, null=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Business'
+        verbose_name_plural = 'Businesses'
+    
+    def __str__(self):
+        return self.name
+
+
+class UserBusinessInquiry(models.Model):
+    """User inquiries about businesses"""
+    STATUS_CHOICES = [
+        ('new', 'New'),
+        ('in_progress', 'In Progress'),
+        ('resolved', 'Resolved'),
+        ('closed', 'Closed'),
+    ]
+    
+    business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name='inquiries')
+    user = models.ForeignKey('users.MyUser', on_delete=models.CASCADE, related_name='business_inquiries')
+    message = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new')
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'User Business Inquiry'
+        verbose_name_plural = 'User Business Inquiries'
+    
+    def __str__(self):
+        return f"{self.user.email} - {self.business.name} - {self.created_at.strftime('%Y-%m-%d')}"
+
+
+class BusinessAIIquiryResponse(models.Model):
+    """AI responses to business inquiries"""
+    inquiry = models.OneToOneField(UserBusinessInquiry, on_delete=models.CASCADE, related_name='ai_response')
+    response = models.TextField()
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = 'Business AI Inquiry Response'
+        verbose_name_plural = 'Business AI Inquiry Responses'
+    
+    def __str__(self):
+        return f"AI Response to {self.inquiry}"
