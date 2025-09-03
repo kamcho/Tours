@@ -62,12 +62,12 @@
                                 <span class="font-medium text-gray-900">{{ progress_data.name|default:"Not provided" }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-600">Category:</span>
+                                <span class="text-gray-600">Categories:</span>
                                 <span class="font-medium text-gray-900">
-                                    {% if progress_data.category %}
-                                        {% for cat in form.category.queryset %}
-                                            {% if cat.id == progress_data.category %}
-                                                {{ cat.name }}
+                                    {% if progress_data.categories %}
+                                        {% for cat in categories_queryset %}
+                                            {% if cat.id in progress_data.categories %}
+                                                <span class="bg-teal-100 text-teal-700 px-2 py-1 rounded-full text-xs mr-1">{{ cat.name }}</span>
                                             {% endif %}
                                         {% endfor %}
                                     {% else %}

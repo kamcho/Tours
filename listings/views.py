@@ -168,12 +168,22 @@ class PlaceCreateWizard(LoginRequiredMixin, View):
             step = 3
         form = self.FORMS[step-1](initial=request.session.get(f'place_step_{step}', {}))
         progress_data = self.get_progress_data(request, step)
-        return render(request, self.TEMPLATES[step-1], {
+        
+        # For step 3, we need to pass categories queryset for the template
+        context = {
             'form': form,
             'step': step,
             'progress_data': progress_data,
             'total_steps': 3
-        })
+        }
+        
+        if step == 3:
+            # Create a mock form with categories field for template access
+            from .forms import PlaceBasicForm
+            mock_form = PlaceBasicForm()
+            context['categories_queryset'] = mock_form.fields['categories'].queryset
+        
+        return render(request, self.TEMPLATES[step-1], context)
 
     def post(self, request, step=1):
         step = int(step)
