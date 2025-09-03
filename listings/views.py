@@ -362,7 +362,7 @@ class PublicPlaceListView(ListView):
         
         # Apply filters
         if category and category != 'all':
-            queryset = queryset.filter(category__name__icontains=category)
+            queryset = queryset.filter(categories__name__icontains=category)
         
         if location:
             queryset = queryset.filter(
@@ -398,7 +398,7 @@ class PublicPlaceDetailView(DetailView):
     context_object_name = 'place'
 
     def get_queryset(self):
-        return Place.objects.prefetch_related('place_gallery_images').select_related('category', 'created_by')
+        return Place.objects.prefetch_related('place_gallery_images', 'categories').select_related('created_by')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -2035,7 +2035,7 @@ class AdvancedSearchView(View):
         
         # Category filter
         if data.get('place_category'):
-            queryset = queryset.filter(category=data['place_category'])
+            queryset = queryset.filter(categories=data['place_category'])
         
         # Rating filter
         if data.get('min_rating'):
@@ -2334,7 +2334,7 @@ class RecommendationView(View):
         user = request.user
         
         # Get user's preferences based on their activity
-        user_ratings = PlaceRating.objects.filter(user=user).values_list('place__category', flat=True)
+        user_ratings = PlaceRating.objects.filter(user=user).values_list('place__categories', flat=True)
         user_liked_tours = user.liked_tours.values_list('destination__category', flat=True)
         
         # Combine preferences
@@ -4378,7 +4378,7 @@ def enhanced_place_search(request):
         # Category filter
         category = search_form.cleaned_data.get('category')
         if category:
-            places = places.filter(category=category)
+            places = places.filter(categories=category)
         
         # Price range filter
         price_range = search_form.cleaned_data.get('price_range')
@@ -4597,7 +4597,7 @@ def place_chat(request, place_id):
             place_data = {
                 'basic_info': {
                     'name': place.name,
-                    'category': place.category.name if place.category else 'Not specified',
+                    'categories': [cat.name for cat in place.categories.all()] if place.categories.exists() else ['Not specified'],
                     'description': place.description,
                     'location': place.location,
                     'address': place.address if place.address else 'Not specified',
@@ -4889,7 +4889,8 @@ def place_chat(request, place_id):
             print(f"Error type: {type(openai_error)}")
             print(f"Error details: {str(openai_error)}")
             # Enhanced fallback response with available data
-            fallback_response = f"I'm sorry, I'm having trouble processing your question right now. However, I can tell you that {place.name} is a {place.category.name if place.category else 'travel destination'} located in {place.location}. "
+            primary_category = place.categories.first().name if place.categories.exists() else 'travel destination'
+            fallback_response = f"I'm sorry, I'm having trouble processing your question right now. However, I can tell you that {place.name} is a {primary_category} located in {place.location}. "
             
             if menu_data:
                 fallback_response += f"They offer {len(menu_data)} menu categories with various food and beverage options. "
