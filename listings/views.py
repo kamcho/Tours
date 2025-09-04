@@ -23,7 +23,7 @@ from .models import (
     Agency, AgencyService, TourComment, TourBookingPayment, Event, EventComment, 
     MenuCategory, MenuItem, Features, PlaceRating, AgencyRating, RatingHelpful,
     PlaceGallery, AgencyGallery, DatePlan, DateActivity, DatePlanPreference, DatePlanSuggestion,
-    PlaceStaff, PlaceOrder, PlaceOrderItem
+    PlaceStaff, PlaceOrder, PlaceOrderItem, Business, UserBusinessInquiry, BusinessAIIquiryResponse
 )
 from .forms import (
     MenuCategoryForm, MenuItemForm, TourCommentForm, EventCommentForm, 
@@ -5889,3 +5889,146 @@ class PlaceIntroVideoUploadView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
         context = super().get_context_data(**kwargs)
         context['place'] = self.object
         return context
+
+
+# Business Chat Views and Functions
+
+class BusinessChatService(TemplateView):
+    template_name = 'listings/service_explainer.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        try:
+            business_id = self.kwargs['id']
+            context['business'] = Business.objects.get(id=business_id)
+        except Business.DoesNotExist:
+            messages.error(self.request, 'Business Not Found')
+        except Exception as e:
+            messages.error(self.request, 'Object Not Found')
+        return context
+
+
+def web_chat_assistant(business_id: int, user, query: str) -> str:
+    """
+    Handles user query about a business:
+      - Collects conversation history
+      - Calls OpenAI API
+      - Saves user inquiry & AI response
+      - Returns AI response for rendering in template
+    """
+    try:
+        # 1. Get the business
+        business = Business.objects.get(id=business_id)
+
+        # 2. Collect past conversation history
+        history = []
+        past_inquiries = UserBusinessInquiry.objects.filter(
+            business=business,
+            user=user
+        ).order_by("created_at")
+
+        for inquiry in past_inquiries:
+            # user message
+            history.append({"role": "user", "content": inquiry.message})
+
+            # AI response
+            ai_response = BusinessAIIquiryResponse.objects.filter(inquiry=inquiry).first()
+            if ai_response:
+                history.append({"role": "assistant", "content": ai_response.response})
+
+        # Add the new user query
+        history.append({"role": "user", "content": query})
+
+        # 3. System prompt
+        system_prompt = f"""
+        You are a helpful assistant answering questions about this business through WhatsApp API. 
+        Use ONLY the info below. If asked about unavailable info, say: 
+        "I don't have that information right now."
+        Use a professional and friendly tone.
+        Always use "we" when referring to the business.
+
+        Business Info:
+        - Name: {business.name}
+        - Description: {business.description}
+        - Industry: {business.industry}
+        - Company Size: {business.company_size}
+        - Website: {business.website}
+        - Location: {business.location}
+        - Phone: {business.phone}
+        - Email: {business.email}
+        - WhatsApp: {business.whatsapp_number}
+        """
+
+        # 4. Send to OpenAI
+        try:
+            # Get OpenAI API key from database
+            from core.models import OpenAIAPIKey
+            api_key = OpenAIAPIKey.get_api_key()
+            if not api_key:
+                raise Exception("No OpenAI API key found in database")
+
+            # Import OpenAI client
+            import openai
+            client = openai.OpenAI(api_key=api_key)
+            
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "system", "content": system_prompt}, *history],
+                temperature=0.3,
+            )
+
+            answer = response.choices[0].message.content.strip()
+        
+        except Exception as openai_error:
+            print(f"OpenAI API error: {openai_error}")
+            # Fallback response
+            answer = f"Thank you for your inquiry about {business.name}. We're a {business.industry} company located in {business.location}. For immediate assistance, please contact us at {business.phone} or email us at {business.email}."
+
+        # 5. Save inquiry and AI response
+        inquiry = UserBusinessInquiry.objects.create(
+            business=business,
+            user=user,
+            message=query,
+            status="new",
+        )
+        BusinessAIIquiryResponse.objects.create(
+            inquiry=inquiry,
+            response=answer
+        )
+
+        return answer
+
+    except Business.DoesNotExist:
+        return "Sorry, this business does not exist."
+    except Exception as e:
+        print("❌ Error in web_chat_assistant:", e)
+        return "Sorry, I'm having trouble processing your request right now."
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def business_chat_ajax(request, business_id):
+    """AJAX endpoint for handling chat messages"""
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required'}, status=401)
+    
+    try:
+        data = json.loads(request.body)
+        query = data.get('message', '').strip()
+        
+        if not query:
+            return JsonResponse({'error': 'Message is required'}, status=400)
+        
+        # Get AI response
+        response = web_chat_assistant(business_id, request.user, query)
+        
+        return JsonResponse({
+            'success': True,
+            'response': response
+        })
+    
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        print(f"Error in business_chat_ajax: {e}")
+        return JsonResponse({'error': 'Internal server error'}, status=500)

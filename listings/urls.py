@@ -183,4 +183,8 @@ urlpatterns = [
     path('place/<int:place_id>/order/<int:order_id>/edit/', views.edit_place_order, name='edit_place_order'),
     path('place/<int:place_id>/order/<int:order_id>/delete/', views.delete_place_order, name='delete_place_order'),
     path('place/<int:place_id>/order/<int:order_id>/add-items/', views.add_items_to_order, name='add_items_to_order'),
+    
+    # Business Chat URLs
+    path('business/<int:id>/chat/', views.BusinessChatService.as_view(), name='business_chat'),
+    path('business/<int:business_id>/chat/ajax/', views.business_chat_ajax, name='business_chat_ajax'),
 ] 
