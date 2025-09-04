@@ -518,7 +518,7 @@ class UserTravelGroupListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         # Include groups the user created or is a member of
-        return TravelGroup.objects.filter(models.Q(creator=self.request.user) | models.Q(members=self.request.user)).distinct()
+        return TravelGroup.objects.filter(Q(creator=self.request.user) | Q(members=self.request.user)).distinct()
 
 
 @login_required
