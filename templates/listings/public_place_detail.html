@@ -217,7 +217,7 @@
             <!-- Sidebar -->
             <div class="space-y-6">
                 <!-- Quick Info Card -->
-                <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg h-96 flex flex-col">
+                <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg flex flex-col">
                     <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-3">
                         <div class="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
                             <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -233,9 +233,9 @@
                                     <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
                                 </svg>
                             </div>
-                            <div>
+                            <div class="min-w-0">
                                 <p class="text-sm text-gray-600">Location</p>
-                                <p class="font-semibold text-gray-800">{{ place.location }}</p>
+                                <p class="font-semibold text-gray-800 break-words">{{ place.location }}</p>
                             </div>
                         </div>
                         
@@ -246,9 +246,9 @@
                                     <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
                                 </svg>
                             </div>
-                            <div>
+                            <div class="min-w-0">
                                 <p class="text-sm text-gray-600">Address</p>
-                                <p class="font-semibold text-gray-800">{{ place.address }}</p>
+                                <p class="font-semibold text-gray-800 break-words">{{ place.address }}</p>
                             </div>
                         </div>
                         {% endif %}
@@ -260,9 +260,9 @@
                                     <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
                                 </svg>
                             </div>
-                            <div>
+                            <div class="min-w-0">
                                 <p class="text-sm text-gray-600">Phone</p>
-                                <p class="font-semibold text-gray-800">{{ place.contact_phone }}</p>
+                                <p class="font-semibold text-gray-800 break-all">{{ place.contact_phone }}</p>
                             </div>
                         </div>
                         {% endif %}
@@ -275,9 +275,9 @@
                                     <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
                                 </svg>
                             </div>
-                            <div>
+                            <div class="min-w-0">
                                 <p class="text-sm text-gray-600">Email</p>
-                                <p class="font-semibold text-gray-800">{{ place.contact_email }}</p>
+                                <p class="font-semibold text-gray-800 break-all">{{ place.contact_email }}</p>
                             </div>
                         </div>
                         {% endif %}
@@ -509,9 +509,9 @@
                                     <svg class="w-5 h-5 text-slate-500 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
                                     </svg>
-                                    <div>
+                                    <div class="min-w-0">
                                         <p class="text-sm text-slate-600 font-medium">Website</p>
-                                        <a href="{{ place.website }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">{{ place.website }}</a>
+                                        <a href="{{ place.website }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline break-all inline-block max-w-full">{{ place.website }}</a>
                                     </div>
                                 </div>
                                 {% endif %}
