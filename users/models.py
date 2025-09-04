@@ -109,7 +109,9 @@ class MyUser(AbstractUser):
                 self.username = f"{original_username}{counter}"
                 counter += 1
         super().save(*args, **kwargs)
-
+    def get_no(self):
+        phone = PersonalProfile.objects.get(user__id=self.id).phone
+        return phone if phone else self.email
 class PersonalProfile(models.Model):
     user = models.OneToOneField(
         MyUser, 
